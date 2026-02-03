@@ -21,14 +21,12 @@ public class JwtUtil {
     /**
      * 生成 JWT
      *
-     * @param uid   用户ID
-     * @param role  用户角色
+     * @param username   用户ID
      * @return JWT字符串
      */
-    public static String generateToken(String uid, String role) {
+    public String generateToken(String username) {
         Map<String, Object> claims = new HashMap<>();
-        claims.put("uid", uid);
-        claims.put("role", role);
+        claims.put("username", username);
 
         ObjectMapper objectMapper = new ObjectMapper()
                 .registerModule(new JavaTimeModule());
@@ -48,25 +46,14 @@ public class JwtUtil {
                 .compact();
     }
 
-    /**
-     * 提取用户ID
+     /**
+     * 提取用户账号
      *
      * @param token JWT令牌
-     * @return 用户ID，String
+     * @return 用户账号， String
      */
-    public static String extractUId(String token) {
-        return parserToken(token).get("uid", String.class);
-    }
-
-
-    /**
-     * 提取用户角色
-     *
-     * @param token JWT令牌
-     * @return 用户角色， String
-     */
-    public static String extractRole(String token) {
-        return parserToken(token).get("role", String.class);
+    public String extractUsername(String token) {
+        return parserToken(token).get("username", String.class);
     }
 
     /**
@@ -79,8 +66,7 @@ public class JwtUtil {
             Claims claims = parserToken(token);
             // 额外检查 claims 是否包含必要的信息
             return claims != null &&
-                    claims.get("uid") != null &&
-                    claims.get("role") != null;
+                    claims.get("username") != null;
         } catch (Exception e) {
             return false;
         }
@@ -93,7 +79,7 @@ public class JwtUtil {
      * @param token JWT 字符串
      * @return JWT Token中的 Claims 信息
      */
-    private static Claims parserToken(String token) {
+    private Claims parserToken(String token) {
         try {
             return Jwts.parser()
                     .verifyWith(KeysUtil.getPublicKey())
