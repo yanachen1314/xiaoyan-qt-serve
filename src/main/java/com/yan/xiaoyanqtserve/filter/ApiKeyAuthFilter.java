@@ -76,7 +76,7 @@ public class ApiKeyAuthFilter extends OncePerRequestFilter {
     @Nullable
     private String extractApiKeyFromHeader(HttpServletRequest request) {
         String header = request.getHeader(HEADER_NAME);
-        if (header != null && header.startsWith(HEADER_PREFIX)) {
+        if (StringUtils.hasText(header) && header.startsWith(HEADER_PREFIX)) {
             // 返回 header 值
             return header.substring(HEADER_PREFIX.length()).trim();
         }
@@ -88,6 +88,7 @@ public class ApiKeyAuthFilter extends OncePerRequestFilter {
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
         // 例如，不对 /actuator/health 等路径应用此过滤器
         String path = request.getRequestURI();
-        return path.startsWith("/actuator/health") || path.startsWith("/css/") || path.startsWith("/js/");
+        return path.startsWith("/actuator/health") || path.startsWith("/css/") || path.startsWith("/js/")
+                || path.startsWith("/login") || path.startsWith("/register");
     }
 }
