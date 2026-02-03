@@ -25,7 +25,6 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-
 /**
  * Spring Security 配置
  */
@@ -40,6 +39,12 @@ public class SecurityConfig {
     private SecurityResponseUtil responseUtil;
     @Resource
     private ApiKeyAuthFilter apiKeyAuthFilter;
+
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
 
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
@@ -85,7 +90,8 @@ public class SecurityConfig {
 
                 // 授权处理
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/**").permitAll() // 公共 API 接口，允许访问 (但后面会被 ApiKeyAuthFilter 拦截验证)
+                        .requestMatchers("/login","/register").permitAll() // 开放接口，无需任何认证
+                        .requestMatchers("/api/**").permitAll() // API Key 接口，需要密钥认证访问 (但后面会被 ApiKeyAuthFilter 拦截验证)
                         .requestMatchers("/admin/**").hasRole(Role.ADMIN.name()) // 管理员接口需要 ADMIN 角色
                         .anyRequest().authenticated() // 其他所有请求都需要认证 (理论上不会到达这里，因为上面已经覆盖了所有路径)
                 )
@@ -95,8 +101,4 @@ public class SecurityConfig {
                 .build();
     }
 
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
 }

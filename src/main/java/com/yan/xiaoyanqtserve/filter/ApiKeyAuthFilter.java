@@ -1,12 +1,17 @@
 package com.yan.xiaoyanqtserve.filter;
 
+import com.yan.xiaoyanqtserve.common.enums.BizStatus;
+import com.yan.xiaoyanqtserve.common.enums.Role;
 import com.yan.xiaoyanqtserve.entity.KeyInfo;
+import com.yan.xiaoyanqtserve.service.impl.RequestProcessingService;
+import com.yan.xiaoyanqtserve.util.SecurityResponseUtil;
+import jakarta.annotation.Resource;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -18,11 +23,16 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.Optional;
 
+import static com.yan.xiaoyanqtserve.common.Constants.HEADER_PREFIX;
 import static com.yan.xiaoyanqtserve.common.Constants.HEADER_NAME;
 
 @Component
 public class ApiKeyAuthFilter extends OncePerRequestFilter {
 
+    @Resource
+    private SecurityResponseUtil securityResponseUtil;
+    @Resource
+    private RequestProcessingService requestProcessingService;
 
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request,
@@ -39,26 +49,23 @@ public class ApiKeyAuthFilter extends OncePerRequestFilter {
         }
 
         // 3. 使用你的服务验证 API Key，并获取相关密钥信息
-        // 注意：这里调用 requestProcessingService.processRequest(keyValue) 会直接扣减次数！
-        // 如果只是想验证而不扣次，需要在 service 层单独加一个验证方法，或者将扣次逻辑移到 controller。
-        // 假设我们有一个只验证不扣次的方法 validateKey
-        Optional<KeyInfo> keyInfoOpt = requestProcessingService.validateKey(apiKey); // 假设此方法存在
+        Optional<KeyInfo> keyInfoOpt = requestProcessingService.validateKey(apiKey);
 
         if (keyInfoOpt.isPresent()) {
             // 4. 如果 API Key 有效，创建一个 Authentication 对象
             // Principal 可以是 KeyInfo 对象或其 ID，Credentials 通常是 null (因为不是密码认证)
-            // Authorities 可以根据业务需要赋予，例如 ROLE_API_USER
+            // Authorities 可以根据业务需要赋予(ROLE_KEY_USER)
             KeyInfo keyInfo = keyInfoOpt.get();
             UsernamePasswordAuthenticationToken authToken =
-                    new UsernamePasswordAuthenticationToken(keyInfo.getKeyValue(), null, Collections.singletonList(new SimpleGrantedAuthority("ROLE_API_USER")));
+                    new UsernamePasswordAuthenticationToken(keyInfo.getKeyValue(),
+                            null,
+                            Collections.singletonList(new SimpleGrantedAuthority("ROLE_"+ Role.KEY_USER.name())));
 
             // 5. 将认证信息放入 Security Context
             SecurityContextHolder.getContext().setAuthentication(authToken);
         } else {
-            // 6. 如果 API Key 无效，可以选择直接返回错误，或者继续链（由后续规则处理，但通常这里直接返回更清晰）
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 或者 SC_FORBIDDEN
-            response.getWriter().write("{\"error\":\"Invalid API Key\"}");
-            response.getWriter().flush();
+            // 6. 如果 API Key 无效，可以选择直接返回错误
+            securityResponseUtil.writeError(response, BizStatus.UNAUTHORIZED, "无效的 API Key");
             return; // 阻止请求继续
         }
 
@@ -66,12 +73,14 @@ public class ApiKeyAuthFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
+    @Nullable
     private String extractApiKeyFromHeader(HttpServletRequest request) {
         String header = request.getHeader(HEADER_NAME);
-        if (header != null && header.startsWith(" ")) { // 如果需要 Bearer 这样的前缀，可以这样处理
-            return header.substring(1).trim();
+        if (header != null && header.startsWith(HEADER_PREFIX)) {
+            // 返回 header 值
+            return header.substring(HEADER_PREFIX.length()).trim();
         }
-        return header; // 直接返回整个 header 值
+        return null;
     }
 
     // 决定此过滤器是否应用于特定请求路径

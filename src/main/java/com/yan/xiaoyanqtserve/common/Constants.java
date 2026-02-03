@@ -21,6 +21,8 @@ public class Constants {
 
     // 定义Header名称常量
     public static final String HEADER_NAME = "X-API-Key";
+    // 定义Header前缀
+    public static String HEADER_PREFIX = "Bearer ";
 
     // 默认字符集
     public static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;

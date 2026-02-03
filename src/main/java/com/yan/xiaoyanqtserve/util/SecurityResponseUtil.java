@@ -23,19 +23,20 @@ public class SecurityResponseUtil {
      * 统一写错误响应
      * 请求成功，但是业务失败
      * @param response 响应对象
-     * @param status   状态码
+     * @param bizStatus   业务状态码
      * @param message  错误信息
      * @throws IOException IO异常
      */
-    public void writeError(HttpServletResponse response, BizStatus status, String message) throws IOException {
+    public void writeError(HttpServletResponse response, BizStatus bizStatus, String message) throws IOException {
         response.setStatus(200);
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding(Constants.DEFAULT_CHARSET.name());
 
-        ApiResponse<?> api = ApiResponse.build(status, message, null);
+        ApiResponse<?> api = ApiResponse.build(bizStatus, message, null);
         String json = objectMapper.writeValueAsString(api);
 
         response.getWriter().write(json);
+        response.getWriter().flush();
     }
 
 }
