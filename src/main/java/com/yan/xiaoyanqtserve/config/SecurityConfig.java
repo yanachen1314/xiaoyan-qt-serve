@@ -1,0 +1,102 @@
+package com.yan.xiaoyanqtserve.config;
+
+import cn.hutool.core.collection.ListUtil;
+import com.yan.xiaoyanqtserve.common.Constants;
+import com.yan.xiaoyanqtserve.common.enums.BizStatus;
+import com.yan.xiaoyanqtserve.common.enums.Role;
+import com.yan.xiaoyanqtserve.filter.ApiKeyAuthFilter;
+import com.yan.xiaoyanqtserve.util.SecurityResponseUtil;
+import jakarta.annotation.Resource;
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.savedrequest.NullRequestCache;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+
+/**
+ * Spring Security 配置
+ */
+@Configuration
+@EnableWebSecurity
+@RequiredArgsConstructor
+// 启用方法级权限控制, @PreAuthorize 等注解
+@EnableMethodSecurity(prePostEnabled = true)
+public class SecurityConfig {
+
+    @Resource
+    private SecurityResponseUtil responseUtil;
+    @Resource
+    private ApiKeyAuthFilter apiKeyAuthFilter;
+
+    @Bean
+    CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration cfg = new CorsConfiguration();
+        // 允许前端地址
+        cfg.setAllowedOrigins(Constants.ORIGINS_WHITE_LIST);
+        // 允许的请求方法
+        cfg.setAllowedMethods(ListUtil.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        // 允许的请求头
+        cfg.setAllowedHeaders(ListUtil.of("Authorization", "Content-Type", "*"));
+        // 是否允许携带 Cookie
+        cfg.setAllowCredentials(Constants.CORS_allowCredentials);
+        // 注册对所有路径都生效
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", cfg);
+        return source;
+    }
+
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        return http
+                // 启用 WebMvc Cors 配置
+                .cors(cors -> {})
+
+                // 禁用 表单登录/登出、session管理、csrf防护、匿名身份等默认配置，如果不disable。会默认创建默认filter
+                .csrf(AbstractHttpConfigurer::disable)
+                .formLogin(AbstractHttpConfigurer::disable)
+                .httpBasic(AbstractHttpConfigurer::disable)
+                .logout(AbstractHttpConfigurer::disable)
+                .anonymous(AbstractHttpConfigurer::disable)
+                // 请求缓存用于重定向，前后端分离项目无需重定向，请求缓存也用不上
+                .requestCache(cache -> cache.requestCache(new NullRequestCache()))
+                // 禁用 session或者设置为无状态
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+
+                // 异常处理：未认证 & 无权限
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint((req, res, authEx) ->
+                                responseUtil.writeError(res, BizStatus.UNAUTHORIZED, "登录已失效"))
+                        .accessDeniedHandler((req, res, accEx) ->
+                                responseUtil.writeError(res, BizStatus.FORBIDDEN, "无权限访问"))
+                )
+
+                // 授权处理
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/**").permitAll() // 公共 API 接口，允许访问 (但后面会被 ApiKeyAuthFilter 拦截验证)
+                        .requestMatchers("/admin/**").hasRole(Role.ADMIN.name()) // 管理员接口需要 ADMIN 角色
+                        .anyRequest().authenticated() // 其他所有请求都需要认证 (理论上不会到达这里，因为上面已经覆盖了所有路径)
+                )
+
+                .addFilterBefore(apiKeyAuthFilter, UsernamePasswordAuthenticationFilter.class)
+
+                .build();
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+}

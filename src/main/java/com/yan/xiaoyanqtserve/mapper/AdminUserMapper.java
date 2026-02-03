@@ -15,4 +15,10 @@ import org.apache.ibatis.annotations.Mapper;
 @Mapper
 public interface AdminUserMapper extends BaseMapper<AdminUser> {
 
+    /**
+     * 根据用户名查询用户
+     * @param username 用户账号
+     * @return  用户
+     */
+    AdminUser findByUsername(String username);
 }
