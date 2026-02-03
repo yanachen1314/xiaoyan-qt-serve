@@ -1,0 +1,38 @@
+server:
+  # HTTP请求、响应头信息的最大大小
+  port: 8080
+  max-http-request-header-size: 102400
+
+spring:
+  application:
+    name: xiaoyanQt-serve
+
+  # ======================= 数据源配置 (开发环境) =======================
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://127.0.0.1:3306/db_xiaoyan_ai_qt?useSSL=true&useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai # 指向本地MySQL
+    username: root
+    password: root
+  servlet:
+    multipart:
+      # 单个文件的最大大小
+      max-file-size: 15MB
+      # 整个请求的最大大小（可以包含多个文件）
+      max-request-size: 15MB
+      enabled: true
+
+
+# ===================== mybatis-plus 配置 =======================
+mybatis-plus:
+  #  configuration:
+  #配置日志
+  #    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  #    log-impl: org.apache.ibatis.logging.log4j.Log4jImpl
+  #指定xml的位置
+  mapper-locations: classpath:mapper/**/*.xml
+  # 配置别名包扫描路径
+  #  type-aliases-package: com.yan.entity
+  #  绑定Mybatis的配置文件,不能与configuration同时使用
+  config-location: classpath:mybatis-config.xml
+  global-config:
+    banner: false
