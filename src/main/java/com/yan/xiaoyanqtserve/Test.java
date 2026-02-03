@@ -1,6 +1,8 @@
 package com.yan.xiaoyanqtserve;
 
 import com.yan.xiaoyanqtserve.util.KeysUtil;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.SignatureAlgorithm;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.Nullable;
@@ -20,9 +22,7 @@ import static com.yan.xiaoyanqtserve.common.Constants.HEADER_PREFIX;
 @Slf4j
 public class Test {
     public static void main(String[] args) {
-
-        URI uri = URI.create("a/b/c");
-        System.out.println(uri.getPath());
+        KeysUtil.generateKey();
     }
 
     @Nullable

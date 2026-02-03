@@ -54,8 +54,6 @@ public class KeysUtil {
 
     /**
      * 通过jjwt提供的方法生成密钥
-     * <p>
-     * 密钥保存路径：src/main/resources/key
      */
     public static void generateKey() {
         // 生成密钥对
@@ -83,6 +81,17 @@ public class KeysUtil {
             Files.createDirectories(keyDirectoryPath); // 创建目录
             Files.writeString(privateKeyPath, privateKeyPem, Constants.DEFAULT_CHARSET);
             Files.writeString(publicKeyPath, publicKeyPem, Constants.DEFAULT_CHARSET);
+
+            // 打印生成成功的相关信息
+            System.out.println("===================================");
+            System.out.println("密钥对生成成功！");
+            System.out.println("算法类型: " + ALG);
+            System.out.println("私钥文件路径: " + privateKeyPath);
+            System.out.println("公钥文件路径: " + publicKeyPath);
+            System.out.println("密钥目录: " + keyDirectoryPath);
+            System.out.println("生成时间: " + java.time.LocalDateTime.now());
+            System.out.println("===================================");
+
         } catch (IOException e) {
             throw new RuntimeException("密钥对保存失败");
         }
