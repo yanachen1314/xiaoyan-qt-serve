@@ -18,7 +18,7 @@ public class AdminUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         AdminUser adminUser = adminUserMapper.findByUsername(username);
         if (adminUser == null) {
-            throw new UsernameNotFoundException("Admin user not found: " + username);
+            throw new UsernameNotFoundException("用户不存在: " + username);
         }
         return new AdminUserDetails(adminUser);
     }
