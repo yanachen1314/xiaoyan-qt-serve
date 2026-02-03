@@ -30,10 +30,10 @@ public class KeysUtil {
      * 签名算法，默认使用 RSA256，详情见：{@link Jwts.SIG}
      */
     private static final SignatureAlgorithm ALG = Jwts.SIG.RS256;
-    // 密钥保存目录
-    private static final String KEY_DIR = System.getProperty("user.dir")+"src/main/resources/key";
     // 默认字符集
     private static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
+    // 密钥保存目录
+    private static final String KEY_DIR = System.getProperty("user.dir")+"src/main/resources/key";
 
 
     /**
