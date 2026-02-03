@@ -7,26 +7,28 @@ import com.yan.xiaoyanqtserve.exception.BizException;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.jackson.io.JacksonSerializer;
 import io.jsonwebtoken.security.SecurityException;
+import org.springframework.stereotype.Component;
 
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+@Component
 public class JwtUtil {
-
-    private static final long JWT_EXPIRE_TIME = 1000 * 60 * 60 * 10; // 10小时
+    // 过期时间，10小时
+    private static final long JWT_EXPIRE_TIME = 1000 * 60 * 60 * 10;
 
     /**
      * 生成 JWT
      *
-     * @param customerId 客户ID
-     * @param jwtVer     JWT 版本
-     * @return JWT 字符串
+     * @param uid   用户ID
+     * @param role  用户角色
+     * @return JWT字符串
      */
-    public static String generateToken(String customerId, Integer jwtVer) {
+    public static String generateToken(String uid, String role) {
         Map<String, Object> claims = new HashMap<>();
-        claims.put("customerId", customerId);
-        claims.put("jwtVer", jwtVer);
+        claims.put("uid", uid);
+        claims.put("role", role);
 
         ObjectMapper objectMapper = new ObjectMapper()
                 .registerModule(new JavaTimeModule());
@@ -47,25 +49,43 @@ public class JwtUtil {
     }
 
     /**
-     * 获取用户ID
+     * 提取用户ID
      *
      * @param token JWT令牌
      * @return 用户ID，String
      */
-    public static String getCustomerId(String token) {
-        return parserToken(token).get("customerId", String.class);
+    public static String extractUId(String token) {
+        return parserToken(token).get("uid", String.class);
     }
 
 
     /**
-     * 获取Token版本
+     * 提取用户角色
      *
      * @param token JWT令牌
-     * @return 用户信息， Object
+     * @return 用户角色， String
      */
-    public static int getJwtVer(String token) {
-        return parserToken(token).get("jwtVer", Integer.class);
+    public static String extractRole(String token) {
+        return parserToken(token).get("role", String.class);
     }
+
+    /**
+     * 验证 JWT
+     * @param token JWT令牌
+     * @return true/false
+     */
+    public Boolean validateToken(String token) {
+        try {
+            Claims claims = parserToken(token);
+            // 额外检查 claims 是否包含必要的信息
+            return claims != null &&
+                    claims.get("uid") != null &&
+                    claims.get("role") != null;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
 
     /**
      * 解析 JWT 的 Claims
@@ -73,7 +93,7 @@ public class JwtUtil {
      * @param token JWT 字符串
      * @return JWT Token中的 Claims 信息
      */
-    public static Claims parserToken(String token) {
+    private static Claims parserToken(String token) {
         try {
             return Jwts.parser()
                     .verifyWith(KeysUtil.getPublicKey())
