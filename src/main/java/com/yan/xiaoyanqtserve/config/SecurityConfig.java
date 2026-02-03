@@ -11,7 +11,6 @@ import jakarta.annotation.Resource;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -43,7 +42,6 @@ public class SecurityConfig {
     @Resource
     private JwtAuthFilter jwtAuthFilter;
 
-
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -70,7 +68,8 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return http
                 // 启用 WebMvc Cors 配置
-                .cors(cors -> {})
+                .cors(cors -> {
+                })
 
                 // 禁用 表单登录/登出、session管理、csrf防护、匿名身份等默认配置，如果不disable。会默认创建默认filter
                 .csrf(AbstractHttpConfigurer::disable)
@@ -85,15 +84,14 @@ public class SecurityConfig {
 
                 // 异常处理：未认证 & 无权限
                 .exceptionHandling(exception -> exception
-                        .authenticationEntryPoint((req, res, authEx) ->
-                                responseUtil.writeError(res, BizStatus.UNAUTHORIZED, "登录已失效"))
-                        .accessDeniedHandler((req, res, accEx) ->
-                                responseUtil.writeError(res, BizStatus.FORBIDDEN, "无权限访问"))
-                )
+                        .authenticationEntryPoint(
+                                (req, res, authEx) -> responseUtil.writeError(res, BizStatus.UNAUTHORIZED, "登录已失效"))
+                        .accessDeniedHandler(
+                                (req, res, accEx) -> responseUtil.writeError(res, BizStatus.FORBIDDEN, "无权限访问")))
 
                 // 授权处理
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/login","/register").permitAll() // 开放接口，无需任何认证
+                        .requestMatchers("/admin/login", "/admin/register").permitAll() // 开放接口，无需任何认证
                         .requestMatchers("/api/**").permitAll() // API Key 接口，需要密钥认证访问 (但后面会被 ApiKeyAuthFilter 拦截验证)
                         .requestMatchers("/admin/**").hasRole(Role.ADMIN.name()) // 管理员接口需要 ADMIN 角色
                         .anyRequest().authenticated() // 其他所有请求都需要认证 (理论上不会到达这里，因为上面已经覆盖了所有路径)

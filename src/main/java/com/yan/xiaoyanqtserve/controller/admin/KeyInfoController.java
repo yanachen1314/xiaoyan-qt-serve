@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @since 2026-02-03
  */
 @RestController
-@RequestMapping("/keyInfo")
+@RequestMapping("/admin/keyInfo")
 public class KeyInfoController {
 
 }
