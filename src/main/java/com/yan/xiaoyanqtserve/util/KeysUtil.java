@@ -4,11 +4,12 @@ import com.yan.xiaoyanqtserve.common.Constants;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Encoders;
 import io.jsonwebtoken.security.SignatureAlgorithm;
-import lombok.Data;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.util.StreamUtils;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -19,36 +20,30 @@ import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 
 /**
- * 密钥生成工具类
- * 
+ * 密钥生成工具类（非对称加密算法）
+ *
  * @author yanchen
  * @since 2025/5/14 23:32
  */
 public class KeysUtil {
+    /**
+     * 签名算法，默认使用 RSA256，详情见：{@link Jwts.SIG}
+     */
+    private static final SignatureAlgorithm ALG = Jwts.SIG.RS256;
+    // 密钥保存目录
+    private static final String KEY_DIR = System.getProperty("user.dir")+"src/main/resources/key";
+    // 默认字符集
+    private static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
+
 
     /**
      * 通过jjwt提供的方法生成密钥
      * <p>
      * 密钥保存路径：src/main/resources/key
-     * <p>
-     * 非对称加密算法
-     * 默认：Jwts.SIG.RS256
      */
     public static void generateKey() {
-        generateKey(Jwts.SIG.RS256);
-    }
-
-    /**
-     * 通过jjwt提供的方法生成密钥
-     * <p>
-     * 密钥保存路径：src/main/resources/key
-     * @param alg 非对称加密算法
-     * <p>
-     * 默认：Jwts.SIG.RS256，详情见：{@link Jwts.SIG}
-     */
-    public static void generateKey(SignatureAlgorithm alg) {
         // 生成密钥对
-        KeyPair keyPair = alg.keyPair().build();
+        KeyPair keyPair = ALG.keyPair().build();
         PrivateKey privateKey = keyPair.getPrivate();
         PublicKey publicKey = keyPair.getPublic();
 
@@ -62,7 +57,7 @@ public class KeysUtil {
                 "\n-----END PUBLIC KEY-----";
 
         // 确定保存路径
-        Path keyDir = Paths.get("src/main/resources/key");
+        Path keyDir = Paths.get(KEY_DIR);
 
         // 保存私钥
         Path privateKeyPath = keyDir.resolve("private.pem");
@@ -114,7 +109,7 @@ public class KeysUtil {
     // 读取 PEM 文件并移除头尾标识
     private static String readPemFile(String path) throws Exception {
         ClassPathResource resource = new ClassPathResource(path);
-        String pemContent = StreamUtils.copyToString(resource.getInputStream(), Constants.DEFAULT_CHARSET);
+        String pemContent = StreamUtils.copyToString(resource.getInputStream(), DEFAULT_CHARSET);
         return pemContent
                 .replace("-----BEGIN PRIVATE KEY-----", "")
                 .replace("-----END PRIVATE KEY-----", "")
