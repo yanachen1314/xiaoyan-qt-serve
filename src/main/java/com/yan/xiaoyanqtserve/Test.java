@@ -5,6 +5,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.Nullable;
 
+import java.net.URI;
 import java.security.PublicKey;
 import java.util.Arrays;
 
@@ -19,7 +20,9 @@ import static com.yan.xiaoyanqtserve.common.Constants.HEADER_PREFIX;
 @Slf4j
 public class Test {
     public static void main(String[] args) {
-        System.out.println(System.getProperty("user.dir"));
+
+        URI uri = URI.create("a/b/c");
+        System.out.println(uri.getPath());
     }
 
     @Nullable
