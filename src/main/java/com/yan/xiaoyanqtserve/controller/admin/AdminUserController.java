@@ -208,7 +208,7 @@ public class AdminUserController {
                 return ApiResponse.fail(BizStatus.ERROR, "修改失败，请稍后重试");
             }
 
-            // 6. 生成新的 JWT 令牌（如果更新了用户名）
+            // 6. 生成新的 JWT 令牌
             String token = jwtUtil.generateToken(adminUser.getUsername());
 
             // 7. 构建响应对象
