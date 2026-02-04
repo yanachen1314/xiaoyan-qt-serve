@@ -13,7 +13,9 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 
 import java.time.LocalDateTime;
 
@@ -54,9 +56,7 @@ public class AdminUserController {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
                             loginRequest.getUsername(),
-                            loginRequest.getPassword()
-                    )
-            );
+                            loginRequest.getPassword()));
 
             // 获取用户信息
             AdminUserDetails userDetails = (AdminUserDetails) authentication.getPrincipal();
@@ -93,8 +93,8 @@ public class AdminUserController {
      */
     @PostMapping("/register")
     public ApiResponse<String> register(@Valid @RequestBody AdminUserRegisterRequest registerRequest) {
-         // 检查用户名是否已存在
-         AdminUser existingUser = adminUserService.findByUsername(registerRequest.getUsername());
+        // 检查用户名是否已存在
+        AdminUser existingUser = adminUserService.findByUsername(registerRequest.getUsername());
 
         if (existingUser != null) {
             return ApiResponse.fail("用户名已存在");
@@ -117,7 +117,7 @@ public class AdminUserController {
         } else {
             return ApiResponse.fail("注册失败");
         }
-     }
+    }
 
     /**
      * 更新管理员信息接口
@@ -126,6 +126,7 @@ public class AdminUserController {
      * @return 更新结果
      */
     @PostMapping("/update")
+    @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<String> update(@Valid @RequestBody AdminUserUpdateRequest updateRequest) {
         // 检查管理员是否存在
         AdminUser existingUser = adminUserService.getById(updateRequest.getId());
@@ -133,18 +134,17 @@ public class AdminUserController {
             return ApiResponse.fail("管理员不存在");
         }
 
-         // 如果更新用户名，检查是否与其他用户冲突
-         if (updateRequest.getUsername() != null && !updateRequest.getUsername().equals(existingUser.getUsername())) {
-             AdminUser userWithSameName = adminUserService.getOne(
-                 com.baomidou.mybatisplus.core.conditions.query.QueryWrapper.create()
-                     .eq(AdminUser.class, AdminUser::getUsername, updateRequest.getUsername())
-                     .ne(AdminUser.class, AdminUser::getId, updateRequest.getId())
-             );
-             if (userWithSameName != null) {
-                 return ApiResponse.fail("用户名已存在");
-             }
-             existingUser.setUsername(updateRequest.getUsername());
-         }
+        // 如果更新用户名，检查是否与其他用户冲突
+        if (updateRequest.getUsername() != null && !updateRequest.getUsername().equals(existingUser.getUsername())) {
+            AdminUser userWithSameName = adminUserService.getOne(
+                    new QueryWrapper<AdminUser>()
+                            .eq("username", updateRequest.getUsername())
+                            .ne("id", updateRequest.getId()));
+            if (userWithSameName != null) {
+                return ApiResponse.fail("用户名已存在");
+            }
+            existingUser.setUsername(updateRequest.getUsername());
+        }
 
         // 如果更新密码，则加密存储
         if (updateRequest.getPassword() != null) {
@@ -158,16 +158,16 @@ public class AdminUserController {
         if (updateRequest.getPhone() != null) {
             existingUser.setPhone(updateRequest.getPhone());
         }
-        
+
         existingUser.setUpdatedTime(LocalDateTime.now());
 
-         // 保存更新
-         boolean result = adminUserService.updateAdminUser(existingUser);
-         if (result) {
-             return ApiResponse.success("更新成功");
-         } else {
-             return ApiResponse.fail("更新失败");
-         }
+        // 保存更新
+        boolean result = adminUserService.updateAdminUser(existingUser);
+        if (result) {
+            return ApiResponse.success("更新成功");
+        } else {
+            return ApiResponse.fail("更新失败");
+        }
     }
 
     /**
@@ -177,6 +177,7 @@ public class AdminUserController {
      * @return 删除结果
      */
     @PostMapping("/delete")
+    @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<String> delete(@Valid @RequestBody AdminUserDeleteRequest deleteRequest) {
         // 检查管理员是否存在
         AdminUser existingUser = adminUserService.getById(deleteRequest.getId());
@@ -184,12 +185,12 @@ public class AdminUserController {
             return ApiResponse.fail("管理员不存在");
         }
 
-         // 执行删除操作
-         boolean result = adminUserService.deleteAdminUser(deleteRequest.getId());
-         if (result) {
-             return ApiResponse.success("删除成功");
-         } else {
-             return ApiResponse.fail("删除失败");
-         }
+        // 执行删除操作
+        boolean result = adminUserService.deleteAdminUser(deleteRequest.getId());
+        if (result) {
+            return ApiResponse.success("删除成功");
+        } else {
+            return ApiResponse.fail("删除失败");
+        }
     }
 }
