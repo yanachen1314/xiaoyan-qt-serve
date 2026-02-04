@@ -4,6 +4,8 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.yan.xiaoyanqtserve.common.dto.AdminUserLoginRequest;
 import com.yan.xiaoyanqtserve.common.dto.AdminUserRegisterRequest;
 import com.yan.xiaoyanqtserve.common.dto.AdminUserResponse;
+import com.yan.xiaoyanqtserve.common.dto.AdminUserUpdateRequest;
+import com.yan.xiaoyanqtserve.common.dto.AdminUserDeleteRequest;
 import com.yan.xiaoyanqtserve.common.enums.BizStatus;
 import com.yan.xiaoyanqtserve.entity.AdminUser;
 import com.yan.xiaoyanqtserve.service.AdminUserService;
@@ -26,10 +28,10 @@ import java.time.LocalDateTime;
 
 /**
  * 管理员用户控制器
- * 处理管理员登录、注册等认证相关请求
+ * 处理管理员登录、注册、修改、删除等认证相关请求
  *
  * @author 烟尘
- * @since 2026-02-03
+ * @since 2026-02-04
  */
 @Slf4j
 @RestController
@@ -149,6 +151,109 @@ public class AdminUserController {
         } catch (Exception e) {
             log.error("管理员登录异常: {}", e.getMessage(), e);
             return ApiResponse.fail(BizStatus.UNAUTHORIZED, "用户名或密码错误");
+        }
+    }
+
+    /**
+     * 修改管理员信息接口
+     * <p>
+     * 更新管理员用户的基本信息，支持更新用户名、密码、邮箱和电话
+     *
+     * @param request 修改请求参数，包含管理员ID和要更新的信息
+     * @return 更新成功后返回用户信息
+     */
+    @PostMapping("/update")
+    public ApiResponse<AdminUserResponse> update(@Valid @RequestBody AdminUserUpdateRequest request) {
+        log.info("修改管理员信息请求: ID={}", request.getId());
+
+        try {
+            // 1. 验证管理员ID是否存在
+            AdminUser adminUser = adminUserService.getById(request.getId());
+            if (adminUser == null) {
+                log.warn("管理员不存在: ID={}", request.getId());
+                return ApiResponse.fail(BizStatus.NOT_FOUND, "管理员不存在");
+            }
+
+            // 2. 如果更新用户名，检查用户名是否已存在
+            if (request.getUsername() != null && !request.getUsername().equals(adminUser.getUsername())) {
+                AdminUser existingUser = adminUserService.getOne(
+                        new LambdaQueryWrapper<AdminUser>()
+                                .eq(AdminUser::getUsername, request.getUsername())
+                );
+                if (existingUser != null) {
+                    log.warn("用户名已存在: {}", request.getUsername());
+                    return ApiResponse.fail(BizStatus.CONFLICT, "用户名已存在");
+                }
+                adminUser.setUsername(request.getUsername());
+            }
+
+            // 3. 如果更新密码，进行密码加密处理
+            if (request.getPassword() != null) {
+                String encodedPassword = passwordEncoder.encode(request.getPassword());
+                adminUser.setPasswordHash(encodedPassword);
+            }
+
+            // 4. 更新其他信息
+            if (request.getEmail() != null) {
+                adminUser.setEmail(request.getEmail());
+            }
+            if (request.getPhone() != null) {
+                adminUser.setPhone(request.getPhone());
+            }
+
+            // 5. 保存更新到数据库
+            boolean updateResult = adminUserService.updateById(adminUser);
+            if (!updateResult) {
+                log.error("修改管理员信息失败: ID={}", request.getId());
+                return ApiResponse.fail(BizStatus.ERROR, "修改失败，请稍后重试");
+            }
+
+            // 6. 生成新的 JWT 令牌（如果更新了用户名）
+            String token = jwtUtil.generateToken(adminUser.getUsername());
+
+            // 7. 构建响应对象
+            AdminUserResponse response = buildAdminUserResponse(adminUser, token);
+
+            log.info("修改管理员信息成功: ID={}", request.getId());
+            return ApiResponse.success("修改成功", response);
+        } catch (Exception e) {
+            log.error("修改管理员信息异常: {}", e.getMessage(), e);
+            return ApiResponse.fail(BizStatus.ERROR, "系统异常，请稍后重试");
+        }
+    }
+
+    /**
+     * 删除管理员接口
+     * <p>
+     * 删除指定的管理员账户，添加安全校验机制
+     *
+     * @param request 删除请求参数，包含管理员ID
+     * @return 删除成功后返回结果
+     */
+    @PostMapping("/delete")
+    public ApiResponse<?> delete(@Valid @RequestBody AdminUserDeleteRequest request) {
+        log.info("删除管理员请求: ID={}", request.getId());
+
+        try {
+            // 1. 验证管理员ID是否存在
+            AdminUser adminUser = adminUserService.getById(request.getId());
+            if (adminUser == null) {
+                log.warn("管理员不存在: ID={}", request.getId());
+                return ApiResponse.fail(BizStatus.NOT_FOUND, "管理员不存在");
+            }
+
+            // 2. 执行删除操作
+            boolean deleteResult = adminUserService.removeById(request.getId());
+            if (!deleteResult) {
+                log.error("删除管理员失败: ID={}", request.getId());
+                return ApiResponse.fail(BizStatus.ERROR, "删除失败，请稍后重试");
+            }
+
+            log.info("删除管理员成功: ID={}", request.getId());
+            return ApiResponse.success("删除成功");
+        } catch (Exception e) {
+            log.error("删除管理员异常: {}", e.getMessage(), e);
+            return ApiResponse.fail(BizStatus.ERROR, "系统异常，请稍后重试");
         }
     }
 
