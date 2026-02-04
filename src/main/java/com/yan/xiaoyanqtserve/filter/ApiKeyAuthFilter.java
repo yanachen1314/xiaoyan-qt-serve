@@ -57,8 +57,7 @@ public class ApiKeyAuthFilter extends OncePerRequestFilter {
             // Authorities 可以根据业务需要赋予(ROLE_KEY_USER)
             KeyInfo keyInfo = keyInfoOpt.get();
             UsernamePasswordAuthenticationToken authToken =
-                    new UsernamePasswordAuthenticationToken(keyInfo.getKeyValue(),
-                            null,
+                    new UsernamePasswordAuthenticationToken(keyInfo, null,
                             Collections.singletonList(new SimpleGrantedAuthority("ROLE_"+ Role.KEY_USER.name())));
 
             // 5. 将认证信息放入 Security Context
