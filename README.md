@@ -1,4 +1,5 @@
 ### **核心功能模块**
+项目技术栈为：Spring Boot3.5.9 + MyBatis Plus + MySQL8 + Redis + JWT + Spring Security
 
 1.  **密钥管理系统 (Key Management System)**
     *   **密钥生成**:
