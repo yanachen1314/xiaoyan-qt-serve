@@ -3,6 +3,8 @@ package com.yan.xiaoyanqtserve.service;
 import com.yan.xiaoyanqtserve.entity.KeyInfo;
 import com.baomidou.mybatisplus.extension.service.IService;
 
+import java.util.Optional;
+
 /**
  * <p>
  * 密钥信息表 服务类
@@ -13,4 +15,19 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface KeyInfoService extends IService<KeyInfo> {
 
+    /**
+     * 激活密钥
+     * @param apiKey API Key
+     * @return 激活成功返回KeyInfo，否则返回Optional.empty()
+     */
+    Optional<KeyInfo> activateKey(String apiKey);
+
+    /**
+     * 扣减密钥使用次数
+     * @param apiKey API Key
+     * @return 扣减成功返回true，否则返回false
+     */
+    boolean decrementKeyUses(String apiKey);
+
 }
+

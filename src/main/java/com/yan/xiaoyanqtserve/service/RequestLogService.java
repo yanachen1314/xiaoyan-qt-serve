@@ -13,4 +13,14 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface RequestLogService extends IService<RequestLog> {
 
+    /**
+     * 记录API请求日志
+     *
+     * @param keyValueUsed     本次请求使用的密钥
+     * @param clientIp         发起请求的客户端IP地址
+     * @param responseCode     HTTP响应状态码
+     * @param processingResult 处理结果摘要或错误信息
+     */
+    void recordRequestLog(String keyValueUsed, String clientIp, Integer responseCode, String processingResult);
+
 }
