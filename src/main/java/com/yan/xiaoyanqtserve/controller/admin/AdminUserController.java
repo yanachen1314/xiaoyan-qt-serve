@@ -1,6 +1,7 @@
 package com.yan.xiaoyanqtserve.controller.admin;
 
 import com.yan.xiaoyanqtserve.common.dto.*;
+import com.yan.xiaoyanqtserve.common.enums.Role;
 import com.yan.xiaoyanqtserve.entity.AdminUser;
 import com.yan.xiaoyanqtserve.security.AdminUserDetails;
 import com.yan.xiaoyanqtserve.service.AdminUserService;
@@ -103,7 +104,7 @@ public class AdminUserController {
         AdminUser adminUser = new AdminUser();
         adminUser.setUsername(registerRequest.getUsername());
         adminUser.setPasswordHash(passwordEncoder.encode(registerRequest.getPassword()));
-        adminUser.setRole("ADMIN"); // 默认角色为ADMIN
+        adminUser.setRole(Role.ADMIN.name()); // 默认角色为ADMIN
         adminUser.setEmail(registerRequest.getEmail());
         adminUser.setPhone(registerRequest.getPhone());
         adminUser.setCreatedTime(LocalDateTime.now());
