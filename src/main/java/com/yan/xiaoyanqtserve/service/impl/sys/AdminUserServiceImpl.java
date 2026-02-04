@@ -17,4 +17,18 @@ import org.springframework.stereotype.Service;
 @Service
 public class AdminUserServiceImpl extends ServiceImpl<AdminUserMapper, AdminUser> implements AdminUserService {
 
+    @Override
+    public AdminUser findByUsername(String username) {
+        return baseMapper.findByUsername(username);
+    }
+
+    @Override
+    public boolean updateAdminUser(AdminUser adminUser) {
+        return baseMapper.updateById(adminUser) > 0;
+    }
+
+    @Override
+    public boolean deleteAdminUser(Long id) {
+        return baseMapper.deleteById(id) > 0;
+    }
 }

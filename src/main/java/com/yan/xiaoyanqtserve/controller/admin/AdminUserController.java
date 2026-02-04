@@ -1,8 +1,6 @@
 package com.yan.xiaoyanqtserve.controller.admin;
 
-import com.yan.xiaoyanqtserve.common.dto.AdminUserLoginRequest;
-import com.yan.xiaoyanqtserve.common.dto.AdminUserRegisterRequest;
-import com.yan.xiaoyanqtserve.common.dto.AdminUserResponse;
+import com.yan.xiaoyanqtserve.common.dto.*;
 import com.yan.xiaoyanqtserve.entity.AdminUser;
 import com.yan.xiaoyanqtserve.security.AdminUserDetails;
 import com.yan.xiaoyanqtserve.service.AdminUserService;
@@ -95,10 +93,8 @@ public class AdminUserController {
      */
     @PostMapping("/register")
     public ApiResponse<String> register(@Valid @RequestBody AdminUserRegisterRequest registerRequest) {
-        // 检查用户名是否已存在
-        AdminUser existingUser = adminUserService.lambdaQuery()
-                .eq(AdminUser::getUsername, registerRequest.getUsername())
-                .one();
+         // 检查用户名是否已存在
+         AdminUser existingUser = adminUserService.findByUsername(registerRequest.getUsername());
 
         if (existingUser != null) {
             return ApiResponse.fail("用户名已存在");
@@ -121,5 +117,79 @@ public class AdminUserController {
         } else {
             return ApiResponse.fail("注册失败");
         }
+     }
+
+    /**
+     * 更新管理员信息接口
+     *
+     * @param updateRequest 更新请求参数
+     * @return 更新结果
+     */
+    @PostMapping("/update")
+    public ApiResponse<String> update(@Valid @RequestBody AdminUserUpdateRequest updateRequest) {
+        // 检查管理员是否存在
+        AdminUser existingUser = adminUserService.getById(updateRequest.getId());
+        if (existingUser == null) {
+            return ApiResponse.fail("管理员不存在");
+        }
+
+         // 如果更新用户名，检查是否与其他用户冲突
+         if (updateRequest.getUsername() != null && !updateRequest.getUsername().equals(existingUser.getUsername())) {
+             AdminUser userWithSameName = adminUserService.getOne(
+                 com.baomidou.mybatisplus.core.conditions.query.QueryWrapper.create()
+                     .eq(AdminUser.class, AdminUser::getUsername, updateRequest.getUsername())
+                     .ne(AdminUser.class, AdminUser::getId, updateRequest.getId())
+             );
+             if (userWithSameName != null) {
+                 return ApiResponse.fail("用户名已存在");
+             }
+             existingUser.setUsername(updateRequest.getUsername());
+         }
+
+        // 如果更新密码，则加密存储
+        if (updateRequest.getPassword() != null) {
+            existingUser.setPasswordHash(passwordEncoder.encode(updateRequest.getPassword()));
+        }
+
+        // 更新其他字段
+        if (updateRequest.getEmail() != null) {
+            existingUser.setEmail(updateRequest.getEmail());
+        }
+        if (updateRequest.getPhone() != null) {
+            existingUser.setPhone(updateRequest.getPhone());
+        }
+        
+        existingUser.setUpdatedTime(LocalDateTime.now());
+
+         // 保存更新
+         boolean result = adminUserService.updateAdminUser(existingUser);
+         if (result) {
+             return ApiResponse.success("更新成功");
+         } else {
+             return ApiResponse.fail("更新失败");
+         }
+    }
+
+    /**
+     * 删除管理员接口
+     *
+     * @param deleteRequest 删除请求参数
+     * @return 删除结果
+     */
+    @PostMapping("/delete")
+    public ApiResponse<String> delete(@Valid @RequestBody AdminUserDeleteRequest deleteRequest) {
+        // 检查管理员是否存在
+        AdminUser existingUser = adminUserService.getById(deleteRequest.getId());
+        if (existingUser == null) {
+            return ApiResponse.fail("管理员不存在");
+        }
+
+         // 执行删除操作
+         boolean result = adminUserService.deleteAdminUser(deleteRequest.getId());
+         if (result) {
+             return ApiResponse.success("删除成功");
+         } else {
+             return ApiResponse.fail("删除失败");
+         }
     }
 }

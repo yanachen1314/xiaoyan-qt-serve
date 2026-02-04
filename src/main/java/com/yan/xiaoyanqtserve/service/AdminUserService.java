@@ -13,4 +13,24 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface AdminUserService extends IService<AdminUser> {
 
+    /**
+     * 根据用户名查找用户
+     * @param username 用户名
+     * @return 用户实体
+     */
+    AdminUser findByUsername(String username);
+
+    /**
+     * 更新管理员信息
+     * @param adminUser 管理员实体
+     * @return 操作结果
+     */
+    boolean updateAdminUser(AdminUser adminUser);
+
+    /**
+     * 删除管理员
+     * @param id 管理员ID
+     * @return 操作结果
+     */
+    boolean deleteAdminUser(Long id);
 }
