@@ -1,6 +1,7 @@
 package com.yan.xiaoyanqtserve.service;
 
 import com.yan.xiaoyanqtserve.entity.AdminUser;
+import com.yan.xiaoyanqtserve.common.dto.AdminUserUpdateRequest;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 /**
@@ -26,6 +27,13 @@ public interface AdminUserService extends IService<AdminUser> {
      * @return 操作结果
      */
     boolean updateAdminUser(AdminUser adminUser);
+
+    /**
+     * 根据更新请求更新管理员信息
+     * @param updateRequest 更新请求参数
+     * @return 操作结果
+     */
+    boolean updateAdminUserByRequest(AdminUserUpdateRequest updateRequest);
 
     /**
      * 删除管理员

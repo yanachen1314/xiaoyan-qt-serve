@@ -3,8 +3,13 @@ package com.yan.xiaoyanqtserve.service.impl.sys;
 import com.yan.xiaoyanqtserve.entity.AdminUser;
 import com.yan.xiaoyanqtserve.mapper.AdminUserMapper;
 import com.yan.xiaoyanqtserve.service.AdminUserService;
+import com.yan.xiaoyanqtserve.common.dto.AdminUserUpdateRequest;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.stereotype.Service;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import jakarta.annotation.Resource;
+import java.time.LocalDateTime;
 
 /**
  * <p>
@@ -17,6 +22,9 @@ import org.springframework.stereotype.Service;
 @Service
 public class AdminUserServiceImpl extends ServiceImpl<AdminUserMapper, AdminUser> implements AdminUserService {
 
+    @Resource
+    private PasswordEncoder passwordEncoder;
+
     @Override
     public AdminUser findByUsername(String username) {
         return baseMapper.findByUsername(username);
@@ -25,6 +33,46 @@ public class AdminUserServiceImpl extends ServiceImpl<AdminUserMapper, AdminUser
     @Override
     public boolean updateAdminUser(AdminUser adminUser) {
         return baseMapper.updateById(adminUser) > 0;
+    }
+
+    @Override
+    public boolean updateAdminUserByRequest(AdminUserUpdateRequest updateRequest) {
+        // 检查管理员是否存在
+        AdminUser existingUser = getById(updateRequest.getId());
+        if (existingUser == null) {
+            return false;
+        }
+
+        // 如果更新用户名，检查是否与其他用户冲突
+        if (updateRequest.getUsername() != null && !updateRequest.getUsername().equals(existingUser.getUsername())) {
+            AdminUser userWithSameName = getOne(
+                    new QueryWrapper<AdminUser>()
+                            .eq("username", updateRequest.getUsername())
+                            .ne("id", updateRequest.getId())
+            );
+            if (userWithSameName != null) {
+                return false;
+            }
+            existingUser.setUsername(updateRequest.getUsername());
+        }
+
+        // 如果更新密码，则加密存储
+        if (updateRequest.getPassword() != null) {
+            existingUser.setPasswordHash(passwordEncoder.encode(updateRequest.getPassword()));
+        }
+
+        // 更新其他字段
+        if (updateRequest.getEmail() != null) {
+            existingUser.setEmail(updateRequest.getEmail());
+        }
+        if (updateRequest.getPhone() != null) {
+            existingUser.setPhone(updateRequest.getPhone());
+        }
+        
+        existingUser.setUpdatedTime(LocalDateTime.now());
+
+        // 保存更新
+        return updateAdminUser(existingUser);
     }
 
     @Override

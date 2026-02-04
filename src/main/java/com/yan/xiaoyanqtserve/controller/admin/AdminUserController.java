@@ -15,7 +15,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 
 import java.time.LocalDateTime;
 
@@ -128,44 +127,19 @@ public class AdminUserController {
     @PostMapping("/update")
     @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<String> update(@Valid @RequestBody AdminUserUpdateRequest updateRequest) {
-        // 检查管理员是否存在
-        AdminUser existingUser = adminUserService.getById(updateRequest.getId());
-        if (existingUser == null) {
-            return ApiResponse.fail("管理员不存在");
-        }
-
-        // 如果更新用户名，检查是否与其他用户冲突
-        if (updateRequest.getUsername() != null && !updateRequest.getUsername().equals(existingUser.getUsername())) {
-            AdminUser userWithSameName = adminUserService.getOne(
-                    new QueryWrapper<AdminUser>()
-                            .eq("username", updateRequest.getUsername())
-                            .ne("id", updateRequest.getId()));
-            if (userWithSameName != null) {
-                return ApiResponse.fail("用户名已存在");
-            }
-            existingUser.setUsername(updateRequest.getUsername());
-        }
-
-        // 如果更新密码，则加密存储
-        if (updateRequest.getPassword() != null) {
-            existingUser.setPasswordHash(passwordEncoder.encode(updateRequest.getPassword()));
-        }
-
-        // 更新其他字段
-        if (updateRequest.getEmail() != null) {
-            existingUser.setEmail(updateRequest.getEmail());
-        }
-        if (updateRequest.getPhone() != null) {
-            existingUser.setPhone(updateRequest.getPhone());
-        }
-
-        existingUser.setUpdatedTime(LocalDateTime.now());
-
-        // 保存更新
-        boolean result = adminUserService.updateAdminUser(existingUser);
+        // 调用服务层方法处理更新逻辑
+        boolean result = adminUserService.updateAdminUserByRequest(updateRequest);
         if (result) {
             return ApiResponse.success("更新成功");
         } else {
+            // 检查是否是因为管理员不存在
+            if (adminUserService.getById(updateRequest.getId()) == null) {
+                return ApiResponse.fail("管理员不存在");
+            }
+            // 检查是否是因为用户名已存在
+            if (updateRequest.getUsername() != null) {
+                return ApiResponse.fail("用户名已存在");
+            }
             return ApiResponse.fail("更新失败");
         }
     }
