@@ -59,7 +59,7 @@ public class AdminUserController {
      * @return 注册成功后返回用户信息和JWT令牌
      */
     @PostMapping("/register")
-    public ResponseEntity<ApiResponse<AdminUserResponse>> register(@Valid @RequestBody AdminUserRegisterRequest request) {
+    public ApiResponse<AdminUserResponse> register(@Valid @RequestBody AdminUserRegisterRequest request) {
         log.info("管理员注册请求: {}", request.getUsername());
 
         try {
@@ -70,7 +70,7 @@ public class AdminUserController {
             );
             if (existingUser != null) {
                 log.warn("用户名已存在: {}", request.getUsername());
-                return ResponseUtil.okWithFailBody(BizStatus.CONFLICT, "用户名已存在");
+                return ApiResponse.fail(BizStatus.CONFLICT, "用户名已存在");
             }
 
             // 2. 密码加密处理
@@ -89,7 +89,7 @@ public class AdminUserController {
             boolean saveResult = adminUserService.save(adminUser);
             if (!saveResult) {
                 log.error("管理员注册失败: {}", request.getUsername());
-                return ResponseUtil.okWithFailBody(BizStatus.ERROR, "注册失败，请稍后重试");
+                return ApiResponse.fail(BizStatus.ERROR, "注册失败，请稍后重试");
             }
 
             // 5. 生成 JWT 令牌
@@ -99,10 +99,10 @@ public class AdminUserController {
             AdminUserResponse response = buildAdminUserResponse(adminUser, token);
 
             log.info("管理员注册成功: {}", request.getUsername());
-            return ResponseUtil.okWithBizBody(ApiResponse.success("注册成功", response));
+            return ApiResponse.success("注册成功", response);
         } catch (Exception e) {
             log.error("管理员注册异常: {}", e.getMessage(), e);
-            return ResponseUtil.okWithFailBody(BizStatus.ERROR, "系统异常，请稍后重试");
+            return ApiResponse.fail(BizStatus.ERROR, "系统异常，请稍后重试");
         }
     }
 
@@ -115,7 +115,7 @@ public class AdminUserController {
      * @return 登录成功后返回用户信息和JWT令牌
      */
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<AdminUserResponse>> login(@Valid @RequestBody AdminUserLoginRequest request) {
+    public ApiResponse<AdminUserResponse> login(@Valid @RequestBody AdminUserLoginRequest request) {
         log.info("管理员登录请求: {}", request.getUsername());
 
         try {
@@ -147,10 +147,10 @@ public class AdminUserController {
             AdminUserResponse response = buildAdminUserResponse(adminUser, token);
 
             log.info("管理员登录成功: {}", request.getUsername());
-            return ResponseUtil.okWithBizBody(ApiResponse.success("登录成功", response));
+            return ApiResponse.success("登录成功", response);
         } catch (Exception e) {
             log.error("管理员登录异常: {}", e.getMessage(), e);
-            return ResponseUtil.okWithFailBody(BizStatus.UNAUTHORIZED, "用户名或密码错误");
+            return ApiResponse.fail(BizStatus.UNAUTHORIZED, "用户名或密码错误");
         }
     }
 
