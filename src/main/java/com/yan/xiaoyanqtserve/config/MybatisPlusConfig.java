@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * @author yanchen
+ * 
  */
 @Configuration
 @MapperScan("com.yan.xiaoyanqtserve.mapper")

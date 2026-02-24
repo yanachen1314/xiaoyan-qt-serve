@@ -25,7 +25,7 @@ import java.util.List;
  * MybatisPlus代码生成器
  * V3.5.11
  *
- * @author yanchen
+ * 
  */
 public class MybatisAutoGenerator {
     /**

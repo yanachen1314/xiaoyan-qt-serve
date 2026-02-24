@@ -5,7 +5,7 @@ import org.springframework.lang.Nullable;
 /**
  * 业务状态码
  * 包含通用的HTTP状态码以及自定义的业务状态码
- * @author yanchen
+ * 
  */
 public enum BizStatus {
     //请求成功

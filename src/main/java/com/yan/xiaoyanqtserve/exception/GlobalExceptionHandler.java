@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
 /**
  * 全局异常处理器
  *
- * @author yanchen
+ * 
  * @since 2021/1/28 16:06
  */
 @Slf4j

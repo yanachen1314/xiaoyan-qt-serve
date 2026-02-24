@@ -8,7 +8,7 @@ import java.io.Serial;
 
 /**
  * 自定义业务异常类封装
- * @author yanchen
+ * 
  */
 @EqualsAndHashCode(callSuper = true)
 @Data

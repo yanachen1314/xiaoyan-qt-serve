@@ -18,7 +18,7 @@ import java.util.Map;
 
 /**
  * api key接口
- * @author yanchen
+ * 
  * @since 2026/2/3 16:59
  */
 @RestController
