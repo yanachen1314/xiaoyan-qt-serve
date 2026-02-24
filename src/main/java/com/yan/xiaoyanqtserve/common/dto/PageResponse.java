@@ -7,6 +7,9 @@ import lombok.ToString;
 
 import java.util.List;
 
+/**
+ * 分页响应封装类
+ */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
