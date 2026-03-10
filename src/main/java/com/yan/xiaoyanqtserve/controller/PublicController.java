@@ -3,24 +3,30 @@ package com.yan.xiaoyanqtserve.controller;
 import com.yan.xiaoyanqtserve.common.dto.adminUser.AdminUserLoginRequest;
 import com.yan.xiaoyanqtserve.common.dto.adminUser.AdminUserRegisterRequest;
 import com.yan.xiaoyanqtserve.common.dto.adminUser.AdminUserResponse;
+import com.yan.xiaoyanqtserve.common.dto.key.KeyActiveDto;
 import com.yan.xiaoyanqtserve.common.enums.Role;
 import com.yan.xiaoyanqtserve.entity.AdminUser;
 import com.yan.xiaoyanqtserve.security.AdminUserDetails;
 import com.yan.xiaoyanqtserve.service.AdminUserService;
 import com.yan.xiaoyanqtserve.common.utils.ApiResponse;
 import com.yan.xiaoyanqtserve.common.utils.JwtUtil;
+import com.yan.xiaoyanqtserve.service.impl.KeyInfoManagerService;
 import jakarta.annotation.Resource;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 
 /**
  * 公开控制器
@@ -28,7 +34,9 @@ import java.time.LocalDateTime;
  * @since 2026/3/10 15:11
  */
 @Slf4j
+@Validated
 @RestController
+@RequestMapping("/public")
 public class PublicController {
     @Resource
     private AdminUserService adminUserService;
@@ -41,6 +49,27 @@ public class PublicController {
 
     @Resource
     private JwtUtil jwtUtil;
+
+    @Resource
+    private KeyInfoManagerService managerService;
+
+    /**
+     * 密钥激活接口
+     * @param request HttpServletRequest
+     * @param keyActiveDto 激活密钥参数
+     * @return 激活结果
+     */
+    @PostMapping("/active")
+    public ApiResponse<?> activateKey(HttpServletRequest request, @Valid @RequestBody KeyActiveDto keyActiveDto) {
+
+        // 调用 KeyInfoService 的 activateKey 方法激活密钥
+        managerService.activateKey(keyActiveDto);
+
+        // 激活成功
+        return ApiResponse.success("密钥激活成功","");
+
+    }
+
 
     /**
      * 管理员登录接口

@@ -31,46 +31,6 @@ public class ApiKeyController {
     @Resource
     private RequestLogService requestLogService;
 
-    /**
-     * 密钥激活接口
-     * @param request HttpServletRequest
-     * @return 激活结果
-     */
-    @PostMapping("/active")
-    public ApiResponse<?> activateKey(HttpServletRequest request) {
-        // 从请求头中获取 API Key
-        String apiKey = extractApiKeyFromHeader(request);
-
-        // 验证 API Key 是否存在
-        if (!StringUtils.hasText(apiKey)) {
-            // 记录请求日志
-            requestLogService.recordRequestLog(null, getClientIp(request),
-                    HttpStatus.BAD_REQUEST.value(), "缺少 API Key");
-
-            return ApiResponse.fail(BizStatus.BAD_REQUEST, "缺少 API Key");
-        }
-
-        // 调用 KeyInfoService 的 activateKey 方法激活密钥
-        var optionalKeyInfo = managerService.activateKey(apiKey);
-
-        if (optionalKeyInfo.isPresent()) {
-            // 记录请求日志
-            requestLogService.recordRequestLog(apiKey, getClientIp(request),
-                    HttpStatus.OK.value(), "密钥激活成功");
-
-            // 激活成功
-            return ApiResponse.success("密钥激活成功",
-                    Map.of("activatedTime", optionalKeyInfo.get().getActivationTime())
-            );
-        } else {
-            // 记录请求日志
-            requestLogService.recordRequestLog(apiKey, getClientIp(request),
-                    HttpStatus.BAD_REQUEST.value(), "密钥激活失败，密钥不存在或状态不正确");
-
-            // 激活失败
-            return ApiResponse.fail(BizStatus.BAD_REQUEST, "密钥激活失败，密钥不存在或状态不正确");
-        }
-    }
 
     /**
      * AI处理接口
