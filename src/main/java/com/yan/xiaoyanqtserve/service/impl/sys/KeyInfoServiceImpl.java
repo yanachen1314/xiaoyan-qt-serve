@@ -44,7 +44,7 @@ public class KeyInfoServiceImpl extends ServiceImpl<KeyInfoMapper, KeyInfo> impl
         }
 
         // 更新密钥的激活时间
-        keyInfo.setActivatedTime(LocalDateTime.now());
+        keyInfo.setActivationTime(LocalDateTime.now());
 
         // 保存更新后的密钥信息
         boolean updated = updateById(keyInfo);

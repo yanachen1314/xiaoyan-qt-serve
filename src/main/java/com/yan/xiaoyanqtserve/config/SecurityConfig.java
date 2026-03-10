@@ -110,7 +110,7 @@ public class SecurityConfig {
 
                 // 授权处理
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/admin/login", "/admin/register").permitAll() // 开放接口，无需任何认证
+                        .requestMatchers("/auth/login", "/auth/register").permitAll() // 开放接口，无需任何认证
                         .requestMatchers("/api/**").permitAll() // API Key 接口，需要密钥认证访问 (但后面会被 ApiKeyAuthFilter 拦截验证)
                         .requestMatchers("/admin/**").hasRole(Role.ADMIN.name()) // 管理员接口需要 ADMIN 角色
                         .anyRequest().authenticated() // 其他所有请求都需要认证 (理论上不会到达这里，因为上面已经覆盖了所有路径)
