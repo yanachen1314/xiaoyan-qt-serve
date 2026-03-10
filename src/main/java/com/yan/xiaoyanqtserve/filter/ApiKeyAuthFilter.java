@@ -1,5 +1,6 @@
 package com.yan.xiaoyanqtserve.filter;
 
+import com.yan.xiaoyanqtserve.common.dto.key.ValidationResult;
 import com.yan.xiaoyanqtserve.common.enums.BizStatus;
 import com.yan.xiaoyanqtserve.common.enums.Role;
 import com.yan.xiaoyanqtserve.entity.KeyInfo;
@@ -42,29 +43,27 @@ public class ApiKeyAuthFilter extends OncePerRequestFilter {
         // 1. 从请求头中提取 API Key
         String apiKey = extractApiKeyFromHeader(request);
 
-        // 2. 如果没有 API Key，继续执行后续过滤器链 (让其他安全规则处理，比如 /admin/** 会被拦住)
+        // 2. 如果没有 API Key，继续执行后续过滤器链
         if (!StringUtils.hasText(apiKey)) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        // 3. 使用你的服务验证 API Key，并获取相关密钥信息
-        Optional<KeyInfo> keyInfoOpt = keyInfoManagerService.validateKey(apiKey);
+        // 3. 使用你的服务验证 API Key
+        ValidationResult validationResult = keyInfoManagerService.validateKey(apiKey);
 
-        if (keyInfoOpt.isPresent()) {
+        if (validationResult.isSuccess()) {
             // 4. 如果 API Key 有效，创建一个 Authentication 对象
-            // Principal 可以是 KeyInfo 对象或其 ID，Credentials 通常是 null (因为不是密码认证)
-            // Authorities 可以根据业务需要赋予(ROLE_KEY_USER)
-            KeyInfo keyInfo = keyInfoOpt.get();
+            KeyInfo keyInfo = validationResult.getKeyInfo();
             UsernamePasswordAuthenticationToken authToken =
                     new UsernamePasswordAuthenticationToken(keyInfo, null,
-                            Collections.singletonList(new SimpleGrantedAuthority("ROLE_"+ Role.KEY_USER.name())));
+                            Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + Role.KEY_USER.name())));
 
             // 5. 将认证信息放入 Security Context
             SecurityContextHolder.getContext().setAuthentication(authToken);
         } else {
-            // 6. 如果 API Key 无效，可以选择直接返回错误
-            securityResponseUtil.writeError(response, BizStatus.UNAUTHORIZED, "无效的密钥");
+            // 6. 如果 API Key 无效，返回具体的错误信息
+            securityResponseUtil.writeError(response, BizStatus.UNAUTHORIZED, validationResult.getErrorMessage());
             return; // 阻止请求继续
         }
 
