@@ -60,7 +60,7 @@ public class ApiKeyController {
 
             // 激活成功
             return ApiResponse.success("密钥激活成功",
-                    Map.of("activatedTime", optionalKeyInfo.get().getActivatedTime())
+                    Map.of("activatedTime", optionalKeyInfo.get().getActivationTime())
             );
         } else {
             // 记录请求日志

@@ -70,20 +70,20 @@ public class KeyInfo implements Serializable {
      * 激活次数，0-无次数限制
      */
     @TableField("activations_num")
-    private Integer activations_num;
+    private Integer activationsNum;
 
     /**
      * 激活设备
      */
     @TableField("activation_device")
-    private String activation_device;
+    private String activationDevice;
 
     /**
      * 激活时间
      */
     @TableField("activation_time")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private LocalDateTime activation_time;
+    private LocalDateTime activationTime;
 
     /**
      * 过期时间，可为空表示永不过期
