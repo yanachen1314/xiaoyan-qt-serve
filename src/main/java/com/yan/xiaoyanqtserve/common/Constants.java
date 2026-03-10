@@ -25,6 +25,9 @@ public class Constants {
     // 定义Header前缀
     public static final String HEADER_PREFIX = "Bearer ";
 
+    // 限流前缀Key
+    public static final String RATE_LIMIT_PREFIX = "Rate_limit:";
+
     // 默认字符集
     public static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
 }
