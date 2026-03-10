@@ -91,7 +91,7 @@ public interface SysConfigService extends IService<SysConfig> {
     void delete(Long configId);
 
     /**
-     * 获取模型列表
+     * 获取可用模型列表
      *
      * @return 模型列表
      */

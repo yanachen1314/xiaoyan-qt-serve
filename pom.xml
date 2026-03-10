@@ -21,6 +21,8 @@
         <mybatis-plus.version>3.5.11</mybatis-plus.version>
         <velocity.version>2.3</velocity.version>
         <hutool.version>5.8.40</hutool.version>
+        <openAi.version>0.32.0</openAi.version>
+        <aliDashScope.version>2.20.8</aliDashScope.version>
     </properties>
     <dependencies>
 
@@ -40,6 +42,18 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
+        </dependency>
+
+        <!-- ========================= AI 相关的工具 ========================= -->
+        <!-- OpenAI Java SDK -->
+        <dependency>
+            <groupId>com.openai</groupId>
+            <artifactId>openai-java</artifactId>
+        </dependency>
+        <!-- DashScope Java SDK -->
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>dashscope-sdk-java</artifactId>
         </dependency>
 
         <!--  ========================= Redis ========================= -->
@@ -108,10 +122,13 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
-
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-aop</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.retry</groupId>
+            <artifactId>spring-retry</artifactId>
         </dependency>
 
 
@@ -120,6 +137,24 @@
     <!-- 依赖声明 -->
     <dependencyManagement>
         <dependencies>
+            <!-- OpenAi-->
+            <dependency>
+                <groupId>com.openai</groupId>
+                <artifactId>openai-java</artifactId>
+                <version>${openAi.version}</version>
+            </dependency>
+            <!-- 阿里DashScope-->
+            <dependency>
+                <groupId>com.alibaba</groupId>
+                <artifactId>dashscope-sdk-java</artifactId>
+                <version>${aliDashScope.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.slf4j</groupId>
+                        <artifactId>slf4j-simple</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
             <!-- JWT 工具库（如jjwt）  -->
             <dependency>
                 <groupId>io.jsonwebtoken</groupId>

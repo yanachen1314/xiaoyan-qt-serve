@@ -35,4 +35,6 @@ public class Constants {
     public static final String CONFIG_KEY = "sysConfig:config";
     public static final String CONFIG_MODEL_LIST_KEY = "sysConfig:modelList";
     public static final String CONFIG_MODEL_LIST_PREFIX = "dashscope.model";
+    // 百炼API KEY，config_name
+    public static final String DASHSCOPE_API_KEY = "dashscope.apiKey";
 }

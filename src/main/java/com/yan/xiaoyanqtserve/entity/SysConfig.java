@@ -59,6 +59,12 @@ public class SysConfig implements Serializable {
     private String configType;
 
     /**
+     * 状态，1：启用，0：禁用
+     */
+    @TableField("status")
+    private Integer status;
+
+    /**
      * 说明/备注
      */
     @TableField("remark")

@@ -1,5 +1,6 @@
 package com.yan.xiaoyanqtserve.service.impl.sys;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -66,7 +67,9 @@ public class SysConfigServiceImpl extends ServiceImpl<SysConfigMapper, SysConfig
         redisUtil.delete(Constants.CONFIG_KEY);
         redisUtil.delete(Constants.CONFIG_MODEL_LIST_KEY);
         // 从 DB 重新加载所有配置
-        List<SysConfig> all = sysConfigMapper.selectList(null);
+        LambdaQueryWrapper<SysConfig> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(SysConfig::getStatus, 1);
+        List<SysConfig> all = sysConfigMapper.selectList(wrapper);
         for (SysConfig cfg : all) {
             // 是否是模型列表
             if (isModelList(cfg.getConfigKey())) {
@@ -182,12 +185,13 @@ public class SysConfigServiceImpl extends ServiceImpl<SysConfigMapper, SysConfig
      * @return 配置项列表
      */
     public List<SysConfig> listByKey(String key, boolean isLike) {
-        QueryWrapper<SysConfig> wrapper = new QueryWrapper<>();
+        LambdaQueryWrapper<SysConfig> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(SysConfig::getStatus, 1);
         // 配置项 key, 是否进行模糊匹配
         if (isLike) {
-            wrapper.like("config_key", key);
+            wrapper.like(SysConfig::getConfigKey, key);
         } else {
-            wrapper.eq("config_key", key);
+            wrapper.eq(SysConfig::getConfigKey, key);
         }
         return sysConfigMapper.selectList(wrapper);
     }
@@ -237,7 +241,7 @@ public class SysConfigServiceImpl extends ServiceImpl<SysConfigMapper, SysConfig
     }
 
     /**
-     * 获取模型列表
+     * 获取可用模型列表
      *
      * @return 模型列表，找不到则返回空列表
      */
