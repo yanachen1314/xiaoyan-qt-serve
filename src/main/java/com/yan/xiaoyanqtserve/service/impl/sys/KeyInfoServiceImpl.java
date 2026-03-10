@@ -1,20 +1,12 @@
 package com.yan.xiaoyanqtserve.service.impl.sys;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.yan.xiaoyanqtserve.common.dto.key.GenerateKeyDto;
-import com.yan.xiaoyanqtserve.common.enums.ProductType;
-import com.yan.xiaoyanqtserve.common.utils.LicenseKeyGenerator;
 import com.yan.xiaoyanqtserve.entity.KeyInfo;
 import com.yan.xiaoyanqtserve.mapper.KeyInfoMapper;
 import com.yan.xiaoyanqtserve.service.KeyInfoService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import jakarta.annotation.Resource;
+import jakarta.annotation.Nullable;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
 
 /**
  * <p>
@@ -27,115 +19,17 @@ import java.util.Optional;
 @Service
 public class KeyInfoServiceImpl extends ServiceImpl<KeyInfoMapper, KeyInfo> implements KeyInfoService {
 
-    @Resource
-    private LicenseKeyGenerator licenseKeyGenerator;
-
     /**
-     * 激活密钥
-     * @param apiKey API Key
-     * @return 激活成功返回KeyInfo，否则返回Optional.empty()
+     * 根据密钥值查询密钥信息
+     * @param keyValue 密钥值
+     * @return 密钥信息
      */
+    @Nullable
     @Override
-    public Optional<KeyInfo> activateKey(String apiKey) {
-        // 根据 API Key 查询密钥
+    public KeyInfo getByKeyValue(String keyValue) {
         LambdaQueryWrapper<KeyInfo> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(KeyInfo::getKeyValue, apiKey);
-        KeyInfo keyInfo = getOne(queryWrapper);
-
-        // 验证密钥是否存在
-        if (keyInfo == null) {
-            return Optional.empty();
-        }
-
-        // 验证密钥状态是否为启用
-        if (keyInfo.getStatus() != 1) {
-            return Optional.empty();
-        }
-
-        // 更新密钥的激活时间
-        keyInfo.setActivationTime(LocalDateTime.now());
-
-        // 保存更新后的密钥信息
-        boolean updated = updateById(keyInfo);
-        if (!updated) {
-            return Optional.empty();
-        }
-
-        return Optional.of(keyInfo);
-    }
-
-    /**
-     * 扣减密钥使用次数
-     * @param apiKey API Key
-     * @return 扣减成功返回true，否则返回false
-     */
-    @Override
-    public boolean decrementKeyUses(String apiKey) {
-        // 根据 API Key 查询密钥
-        LambdaQueryWrapper<KeyInfo> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(KeyInfo::getKeyValue, apiKey);
-        KeyInfo keyInfo = getOne(queryWrapper);
-
-        // 验证密钥是否存在
-        if (keyInfo == null) {
-            return false;
-        }
-
-        // 验证密钥状态是否为启用
-        if (keyInfo.getStatus() != 1) {
-            return false;
-        }
-
-        // 处理无限制使用次数的情况（total_uses = 0）
-        if (keyInfo.getTotalUses() == 0) {
-            return true;
-        }
-
-        // 扣减剩余使用次数
-        Integer remainingUses = keyInfo.getRemainingUses();
-        if (remainingUses == null || remainingUses <= 0) {
-            return false;
-        }
-
-        keyInfo.setRemainingUses(remainingUses - 1);
-
-        // 保存更新后的密钥信息
-        return updateById(keyInfo);
-    }
-
-
-    /**
-     * 密钥生成（一小时无限制使用的密钥）
-     * @param generateKeyDto 密钥生成参数
-     */
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public void generateKey(GenerateKeyDto generateKeyDto) {
-
-        List<String> keyList =
-                licenseKeyGenerator.generateKey(generateKeyDto.getKeyNumber());
-
-        List<KeyInfo> entityList = keyList.stream()
-                .map(this::buildKeyInfo)
-                .toList();
-
-        saveBatch(entityList, 500);
-    }
-
-    private KeyInfo buildKeyInfo(String key) {
-
-        KeyInfo keyInfo = new KeyInfo();
-
-        keyInfo.setKeyValue(key);
-        keyInfo.setStatus((byte) 1);
-        keyInfo.setTotalUses(0);
-        keyInfo.setRemainingUses(0);
-        keyInfo.setProductType(ProductType.AI_REWRITE_BASIC.getType());
-        keyInfo.setActivationsNum(1);
-        keyInfo.setRemark("一小时无限制使用的密钥");
-        keyInfo.setCreatedBy(1L);
-
-        return keyInfo;
+        queryWrapper.eq(KeyInfo::getKeyValue, keyValue);
+        return getOne(queryWrapper);
     }
 }
 

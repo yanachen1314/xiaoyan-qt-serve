@@ -1,8 +1,8 @@
 package com.yan.xiaoyanqtserve.controller.admin;
 
 import com.yan.xiaoyanqtserve.common.dto.key.GenerateKeyDto;
-import com.yan.xiaoyanqtserve.service.KeyInfoService;
 import com.yan.xiaoyanqtserve.common.utils.ApiResponse;
+import com.yan.xiaoyanqtserve.service.impl.KeyInfoManagerService;
 import jakarta.annotation.Resource;
 import jakarta.validation.Valid;
 import org.springframework.validation.annotation.Validated;
@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/admin/keyInfo")
 public class KeyInfoController {
     @Resource
-    private KeyInfoService keyInfoService;
+    private KeyInfoManagerService keyInfoManagerService;
 
     /**
      * 密钥生成
@@ -31,7 +31,7 @@ public class KeyInfoController {
      */
     @PostMapping("/generate")
     public ApiResponse<?> generate(@Valid @RequestBody GenerateKeyDto generateKeyDto) {
-        keyInfoService.generateKey(generateKeyDto);
+        keyInfoManagerService.generateKey(generateKeyDto);
         return ApiResponse.success();
     }
 }

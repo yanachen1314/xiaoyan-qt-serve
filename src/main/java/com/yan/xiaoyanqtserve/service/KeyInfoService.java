@@ -1,10 +1,9 @@
 package com.yan.xiaoyanqtserve.service;
 
-import com.yan.xiaoyanqtserve.common.dto.key.GenerateKeyDto;
 import com.yan.xiaoyanqtserve.entity.KeyInfo;
 import com.baomidou.mybatisplus.extension.service.IService;
+import org.springframework.lang.Nullable;
 
-import java.util.Optional;
 
 /**
  * <p>
@@ -17,23 +16,11 @@ import java.util.Optional;
 public interface KeyInfoService extends IService<KeyInfo> {
 
     /**
-     * 激活密钥
-     * @param apiKey API Key
-     * @return 激活成功返回KeyInfo，否则返回Optional.empty()
+     * 根据密钥值查询密钥信息
+     * @param keyValue 密钥值
+     * @return 密钥信息
      */
-    Optional<KeyInfo> activateKey(String apiKey);
-
-    /**
-     * 扣减密钥使用次数
-     * @param apiKey API Key
-     * @return 扣减成功返回true，否则返回false
-     */
-    boolean decrementKeyUses(String apiKey);
-
-    /**
-     * 密钥生成
-     * @param generateKeyDto 密钥生成参数
-     */
-    void generateKey(GenerateKeyDto generateKeyDto);
+    @Nullable
+    KeyInfo getByKeyValue(String keyValue);
 }
 

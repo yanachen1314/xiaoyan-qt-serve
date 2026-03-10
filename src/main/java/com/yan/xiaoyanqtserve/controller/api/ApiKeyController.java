@@ -2,9 +2,9 @@ package com.yan.xiaoyanqtserve.controller.api;
 
 import com.yan.xiaoyanqtserve.common.Constants;
 import com.yan.xiaoyanqtserve.common.enums.BizStatus;
-import com.yan.xiaoyanqtserve.service.KeyInfoService;
 import com.yan.xiaoyanqtserve.service.RequestLogService;
 import com.yan.xiaoyanqtserve.common.utils.ApiResponse;
+import com.yan.xiaoyanqtserve.service.impl.KeyInfoManagerService;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
@@ -26,7 +26,7 @@ import java.util.Map;
 public class ApiKeyController {
 
     @Resource
-    private KeyInfoService keyInfoService;
+    private KeyInfoManagerService keyInfoManagerService;
 
     @Resource
     private RequestLogService requestLogService;
@@ -51,7 +51,7 @@ public class ApiKeyController {
         }
 
         // 调用 KeyInfoService 的 activateKey 方法激活密钥
-        var optionalKeyInfo = keyInfoService.activateKey(apiKey);
+        var optionalKeyInfo = keyInfoManagerService.activateKey(apiKey);
 
         if (optionalKeyInfo.isPresent()) {
             // 记录请求日志
@@ -111,7 +111,7 @@ public class ApiKeyController {
         }
 
         // 调用 KeyInfoService 的 decrementKeyUses 方法扣减使用次数
-        boolean decremented = keyInfoService.decrementKeyUses(apiKey);
+        boolean decremented = keyInfoManagerService.decrementKeyUses(apiKey);
         if (!decremented) {
             // 记录请求日志
             requestLogService.recordRequestLog(apiKey, getClientIp(request),

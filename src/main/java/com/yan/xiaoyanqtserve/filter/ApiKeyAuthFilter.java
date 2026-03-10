@@ -3,7 +3,7 @@ package com.yan.xiaoyanqtserve.filter;
 import com.yan.xiaoyanqtserve.common.enums.BizStatus;
 import com.yan.xiaoyanqtserve.common.enums.Role;
 import com.yan.xiaoyanqtserve.entity.KeyInfo;
-import com.yan.xiaoyanqtserve.service.impl.RequestProcessingService;
+import com.yan.xiaoyanqtserve.service.impl.KeyInfoManagerService;
 import com.yan.xiaoyanqtserve.common.utils.SecurityResponseUtil;
 import jakarta.annotation.Resource;
 import jakarta.servlet.FilterChain;
@@ -32,7 +32,7 @@ public class ApiKeyAuthFilter extends OncePerRequestFilter {
     @Resource
     private SecurityResponseUtil securityResponseUtil;
     @Resource
-    private RequestProcessingService requestProcessingService;
+    private KeyInfoManagerService keyInfoManagerService;
 
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request,
@@ -49,7 +49,7 @@ public class ApiKeyAuthFilter extends OncePerRequestFilter {
         }
 
         // 3. 使用你的服务验证 API Key，并获取相关密钥信息
-        Optional<KeyInfo> keyInfoOpt = requestProcessingService.validateKey(apiKey);
+        Optional<KeyInfo> keyInfoOpt = keyInfoManagerService.validateKey(apiKey);
 
         if (keyInfoOpt.isPresent()) {
             // 4. 如果 API Key 有效，创建一个 Authentication 对象
@@ -88,6 +88,6 @@ public class ApiKeyAuthFilter extends OncePerRequestFilter {
         // 例如，不对 /actuator/health 等路径应用此过滤器
         String path = request.getRequestURI();
         return path.startsWith("/actuator/health") || path.startsWith("/css/") || path.startsWith("/js/")
-                || path.startsWith("/login") || path.startsWith("/register");
+                || path.startsWith("/auth/");
     }
 }
