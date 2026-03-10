@@ -55,7 +55,8 @@ public class KeyInfo implements Serializable {
     private Integer totalUses;
 
     /**
-     * 剩余使用次数(降AI)，0表示已用完
+     * 剩余使用次数(降AI)。
+     * total_uses>0时，re_uses=0表示已用完，re_uses>0表示剩余使用次数；total_uses=0时，re_uses表示无限制
      */
     @TableField("remaining_uses")
     private Integer remainingUses;
@@ -71,6 +72,13 @@ public class KeyInfo implements Serializable {
      */
     @TableField("activations_num")
     private Integer activationsNum;
+
+    /**
+     * 剩余激活次数。
+     * activeNum>0时，reNum=0表示已用完，reNum>0表示剩余激活次数；activeNum=0时，reNum表示无限制
+     */
+    @TableField("remaining_active_num")
+    private Integer remainingActiveNum;
 
     /**
      * 激活设备

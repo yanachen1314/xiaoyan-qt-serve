@@ -26,7 +26,7 @@ import java.util.Map;
 public class ApiKeyController {
 
     @Resource
-    private KeyInfoManagerService keyInfoManagerService;
+    private KeyInfoManagerService managerService ;
 
     @Resource
     private RequestLogService requestLogService;
@@ -51,7 +51,7 @@ public class ApiKeyController {
         }
 
         // 调用 KeyInfoService 的 activateKey 方法激活密钥
-        var optionalKeyInfo = keyInfoManagerService.activateKey(apiKey);
+        var optionalKeyInfo = managerService .activateKey(apiKey);
 
         if (optionalKeyInfo.isPresent()) {
             // 记录请求日志
@@ -111,7 +111,7 @@ public class ApiKeyController {
         }
 
         // 调用 KeyInfoService 的 decrementKeyUses 方法扣减使用次数
-        boolean decremented = keyInfoManagerService.decrementKeyUses(apiKey);
+        boolean decremented = managerService .decrementKeyUses(apiKey);
         if (!decremented) {
             // 记录请求日志
             requestLogService.recordRequestLog(apiKey, getClientIp(request),

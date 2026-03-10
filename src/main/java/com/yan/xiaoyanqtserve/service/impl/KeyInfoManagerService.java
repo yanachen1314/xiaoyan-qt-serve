@@ -1,6 +1,5 @@
 package com.yan.xiaoyanqtserve.service.impl;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.yan.xiaoyanqtserve.common.dto.key.GenerateKeyDto;
 import com.yan.xiaoyanqtserve.common.enums.ProductType;
 import com.yan.xiaoyanqtserve.common.utils.LicenseKeyGenerator;
@@ -29,7 +28,7 @@ public class KeyInfoManagerService {
     private KeyInfoService keyInfoService;
 
     /**
-     * 验证 API Key
+     * 验证 API Key是否还有效
      * @param apiKey API Key
      * @return 校验通过返回KeyInfo，否则返回Optional.empty()
      */
@@ -53,10 +52,17 @@ public class KeyInfoManagerService {
             return Optional.empty();
         }
 
-        // 验证密钥剩余使用次数是否足够
-        Integer remainingUses = keyInfo.getRemainingUses();
+        // 验证密钥是否还有激活次数（activeNum>0时，reNum=0表示已用完，reNum>0表示剩余激活次数；activeNum=0时，reNum表示无限制）
+        Integer activationsNum = keyInfo.getActivationsNum();
+        Integer remainingActiveNum = keyInfo.getRemainingActiveNum();
+        if (activationsNum > 0 && remainingActiveNum == 0) {
+                return Optional.empty();
+        }
+
+        // 验证密钥剩余使用次数是否足够（total_uses>0时，re_uses=0表示已用完，re_uses>0表示剩余使用次数；total_uses=0时，re_uses表示无限制）
         Integer totalUses = keyInfo.getTotalUses();
-        if (totalUses != 0 && (remainingUses == null || remainingUses <= 0)) {
+        Integer remainingUses = keyInfo.getRemainingUses();
+        if (totalUses > 0 && remainingUses == 0) {
             return Optional.empty();
         }
 
@@ -70,9 +76,7 @@ public class KeyInfoManagerService {
      */
     public Optional<KeyInfo> activateKey(String apiKey) {
         // 根据 API Key 查询密钥
-        LambdaQueryWrapper<KeyInfo> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(KeyInfo::getKeyValue, apiKey);
-        KeyInfo keyInfo = keyInfoService.getOne(queryWrapper);
+        KeyInfo keyInfo = keyInfoService.getByKeyValue(apiKey);
 
         // 验证密钥是否存在
         if (keyInfo == null) {
@@ -95,7 +99,6 @@ public class KeyInfoManagerService {
 
         return Optional.of(keyInfo);
     }
-
 
 
     /**
@@ -162,6 +165,7 @@ public class KeyInfoManagerService {
         keyInfo.setRemainingUses(0);
         keyInfo.setProductType(ProductType.AI_REWRITE_BASIC.getType());
         keyInfo.setActivationsNum(1);
+        keyInfo.setRemainingActiveNum(1);
         keyInfo.setRemark("一小时无限制使用的密钥");
         keyInfo.setCreatedBy(1L);
 
