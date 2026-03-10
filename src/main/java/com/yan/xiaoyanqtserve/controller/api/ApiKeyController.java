@@ -31,14 +31,13 @@ public class ApiKeyController {
     @Resource
     private RequestLogService requestLogService;
 
-
     /**
      * AI处理接口
      * @param request HttpServletRequest
      * @param requestBody 请求体
      * @return 处理结果
      */
-    @PostMapping("/ai/deal")
+    @PostMapping("/deal/text")
     public ApiResponse<?> aiDeal(HttpServletRequest request, @RequestBody Map<String, Object> requestBody) {
         // 从请求头中获取 API Key
         String apiKey = extractApiKeyFromHeader(request);
