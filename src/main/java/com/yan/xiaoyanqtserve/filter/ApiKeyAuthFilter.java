@@ -64,7 +64,7 @@ public class ApiKeyAuthFilter extends OncePerRequestFilter {
             SecurityContextHolder.getContext().setAuthentication(authToken);
         } else {
             // 6. 如果 API Key 无效，可以选择直接返回错误
-            securityResponseUtil.writeError(response, BizStatus.UNAUTHORIZED, "无效的 API Key");
+            securityResponseUtil.writeError(response, BizStatus.UNAUTHORIZED, "无效的密钥");
             return; // 阻止请求继续
         }
 
