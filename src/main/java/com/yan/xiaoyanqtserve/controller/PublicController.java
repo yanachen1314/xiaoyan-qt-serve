@@ -6,13 +6,13 @@ import com.yan.xiaoyanqtserve.common.dto.adminUser.AdminUserResponse;
 import com.yan.xiaoyanqtserve.common.dto.key.KeyActiveDto;
 import com.yan.xiaoyanqtserve.common.enums.Role;
 import com.yan.xiaoyanqtserve.entity.AdminUser;
+import com.yan.xiaoyanqtserve.entity.KeyInfo;
 import com.yan.xiaoyanqtserve.security.AdminUserDetails;
 import com.yan.xiaoyanqtserve.service.AdminUserService;
 import com.yan.xiaoyanqtserve.common.utils.ApiResponse;
 import com.yan.xiaoyanqtserve.common.utils.JwtUtil;
 import com.yan.xiaoyanqtserve.service.impl.KeyInfoManagerService;
 import jakarta.annotation.Resource;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -55,18 +55,20 @@ public class PublicController {
 
     /**
      * 密钥激活接口
-     * @param request HttpServletRequest
      * @param keyActiveDto 激活密钥参数
      * @return 激活结果
      */
     @PostMapping("/active")
-    public ApiResponse<?> activateKey(HttpServletRequest request, @Valid @RequestBody KeyActiveDto keyActiveDto) {
-
+    public ApiResponse<?> activateKey(@Valid @RequestBody KeyActiveDto keyActiveDto) {
         // 调用 KeyInfoService 的 activateKey 方法激活密钥
-        managerService.activateKey(keyActiveDto);
+        KeyInfo keyInfo = managerService.activateKey(keyActiveDto);
 
         // 激活成功
-        return ApiResponse.success("密钥激活成功","");
+        return ApiResponse.success("密钥激活成功",Map.of(
+                "apiKey",keyInfo.getKeyValue(),
+                "device",keyInfo.getActivationDevice(),
+                "expiryTime",keyInfo.getExpiryTime()
+        ));
 
     }
 

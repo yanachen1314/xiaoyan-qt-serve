@@ -83,14 +83,16 @@ public class KeyInfoManagerService {
      * @param keyActiveDto 激活密钥参数
      */
     @Transactional(rollbackFor = Exception.class)
-    public void activateKey(KeyActiveDto keyActiveDto) {
+    public KeyInfo activateKey(KeyActiveDto keyActiveDto) {
         // 根据 API Key 查询密钥
         ValidationResult validationResult = validateKey(keyActiveDto.getApiKey());
 
         // 校验失败，返回错误信息
         if (!validationResult.isSuccess()) {
             throw new BizException(validationResult.getErrorCode(),
-                    validationResult.getErrorMessage() == null ? validationResult.getErrorCode().msg(): validationResult.getErrorMessage());
+                    validationResult.getErrorMessage() == null ?
+                    validationResult.getErrorCode().msg() :
+                    validationResult.getErrorMessage());
         }
 
         KeyInfo keyInfo = validationResult.getKeyInfo();
@@ -108,6 +110,7 @@ public class KeyInfoManagerService {
         if (!updated) {
             throw new BizException("密钥激活异常，请稍后再试！");
         }
+        return keyInfo;
     }
 
 
