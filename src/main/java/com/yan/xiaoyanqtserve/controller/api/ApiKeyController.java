@@ -1,14 +1,20 @@
 package com.yan.xiaoyanqtserve.controller.api;
 
 import com.yan.xiaoyanqtserve.common.Constants;
+import com.yan.xiaoyanqtserve.common.dto.AigcDealDto;
 import com.yan.xiaoyanqtserve.common.enums.BizStatus;
+import com.yan.xiaoyanqtserve.common.utils.SecurityContextUtil;
+import com.yan.xiaoyanqtserve.security.AdminUserDetails;
 import com.yan.xiaoyanqtserve.service.RequestLogService;
 import com.yan.xiaoyanqtserve.common.utils.ApiResponse;
 import com.yan.xiaoyanqtserve.service.impl.KeyInfoManagerService;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.StringUtils;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,73 +27,27 @@ import java.util.Map;
  * @author yanchen
  * @since 2026/2/3 16:59
  */
+@Slf4j
+@Validated
 @RestController
 @RequestMapping("/api")
 public class ApiKeyController {
 
     @Resource
-    private KeyInfoManagerService managerService ;
-
-    @Resource
-    private RequestLogService requestLogService;
+    private SecurityContextUtil securityContextUtil;
 
     /**
      * AI处理接口
-     * @param request HttpServletRequest
-     * @param requestBody 请求体
+     * @param aigcDealDto AI处理参数
      * @return 处理结果
      */
     @PostMapping("/deal/text")
-    public ApiResponse<?> aiDeal(HttpServletRequest request, @RequestBody Map<String, Object> requestBody) {
-        // 从请求头中获取 API Key
-        String apiKey = extractApiKeyFromHeader(request);
-
-        // 验证 API Key 是否存在
-        if (!StringUtils.hasText(apiKey)) {
-            // 记录请求日志
-            requestLogService.recordRequestLog(null, getClientIp(request),
-                    HttpStatus.BAD_REQUEST.value(), "缺少 API Key");
-
-            return ApiResponse.fail(BizStatus.BAD_REQUEST, "缺少 API Key");
-        }
-
-        // 验证请求参数
-        if (!requestBody.containsKey("content")) {
-            // 记录请求日志
-            requestLogService.recordRequestLog(apiKey, getClientIp(request),
-                    HttpStatus.BAD_REQUEST.value(), "缺少必要的请求参数 content");
-
-            return ApiResponse.fail(BizStatus.BAD_REQUEST, "缺少必要的请求参数 content");
-        }
-
-        String content = requestBody.get("content").toString();
-        if (!StringUtils.hasText(content)) {
-            // 记录请求日志
-            requestLogService.recordRequestLog(apiKey, getClientIp(request),
-                    HttpStatus.BAD_REQUEST.value(), "content 参数不能为空");
-
-            return ApiResponse.fail(BizStatus.BAD_REQUEST, "content 参数不能为空");
-        }
-
-        // 调用 KeyInfoService 的 decrementKeyUses 方法扣减使用次数
-        boolean decremented = managerService .decrementKeyUses(apiKey);
-        if (!decremented) {
-            // 记录请求日志
-            requestLogService.recordRequestLog(apiKey, getClientIp(request),
-                    HttpStatus.BAD_REQUEST.value(), "密钥使用次数扣减失败，密钥不存在或状态不正确");
-
-            return ApiResponse.fail(BizStatus.BAD_REQUEST, "密钥使用次数扣减失败，密钥不存在或状态不正确");
-        }
-
-        // 执行核心业务逻辑（示例：AIGC 降重）
-        String processedContent = processAiContent(content);
-
-        // 记录请求日志
-        requestLogService.recordRequestLog(apiKey, getClientIp(request),
-                HttpStatus.OK.value(), "AI 处理成功");
-
+    public ApiResponse<?> aiDeal(@Valid @RequestBody AigcDealDto aigcDealDto) {
+        AdminUserDetails currentAdminUser = securityContextUtil.getCurrentAdminUser();
+        log.info("请求内容: {}", aigcDealDto.getOriginalText());
+        log.info("请求用户: {}", currentAdminUser);
         // 返回处理结果
-        return ApiResponse.success("AI 处理成功", Map.of("processedContent", processedContent));
+        return ApiResponse.success("AI 处理成功", Map.of("processedContent", 123));
     }
 
     /**

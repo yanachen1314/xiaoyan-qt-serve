@@ -98,7 +98,7 @@ public class KeyInfoManagerService {
         KeyInfo keyInfo = validationResult.getKeyInfo();
         // 更新密钥的激活设备
         keyInfo.setActivationDevice(keyActiveDto.getDeviceID());
-        // 扣减密钥的激活次数
+        // 扣减密钥的激活次数todo
         keyInfo.setRemainingActiveNum(keyInfo.getRemainingActiveNum() - 1);
         // 更新密钥的激活时间
         LocalDateTime now = LocalDateTime.now();
