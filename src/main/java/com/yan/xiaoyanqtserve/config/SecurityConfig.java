@@ -131,7 +131,6 @@ public class SecurityConfig {
                 .securityMatcher("/public/**")
                 .authorizeHttpRequests(auth ->
                         auth.anyRequest().permitAll());
-
         return http.build();
     }
 
@@ -183,7 +182,6 @@ public class SecurityConfig {
                         auth.anyRequest()
                                 .hasRole(Role.ADMIN.name()))
                 .addFilterBefore(jwtAuthFilter,UsernamePasswordAuthenticationFilter.class);
-
         return http.build();
     }
 
