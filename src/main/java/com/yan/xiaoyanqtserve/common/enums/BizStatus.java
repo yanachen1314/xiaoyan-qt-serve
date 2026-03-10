@@ -8,6 +8,7 @@ import org.springframework.lang.Nullable;
  * @author yanchen
  */
 public enum BizStatus {
+    // =========== HTTP 状态码 ==========
     //请求成功
     SUCCESS(200, "请求成功"),
     //对象创建成功
@@ -41,10 +42,12 @@ public enum BizStatus {
 
     //系统内部错误
     ERROR(500, "系统内部错误"),
+
+    // ======== 自定义业务状态码 ==========
     //接口未实现
-    NOT_IMPLEMENTED(501, "接口未实现"),
+    NOT_IMPLEMENTED(1101, "接口未实现"),
     // 验证码已发送
-    CODE_HAS_SENT(502, "验证码已发送，请勿重复发送！");
+    CODE_HAS_SENT(1201, "验证码已发送，请勿重复发送！");
 
 
     BizStatus(int code, String msg) {

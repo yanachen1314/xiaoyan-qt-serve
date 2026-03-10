@@ -84,7 +84,7 @@ public class ApiKeyAuthFilter extends OncePerRequestFilter {
 
     // 决定此过滤器是否应用于特定请求路径
     @Override
-    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+    protected boolean shouldNotFilter(HttpServletRequest request) {
         // 例如，不对 /actuator/health 等路径应用此过滤器
         String path = request.getRequestURI();
         return path.startsWith("/actuator/health") || path.startsWith("/css/") || path.startsWith("/js/")
