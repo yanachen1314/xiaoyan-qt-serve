@@ -41,7 +41,7 @@ public class MybatisAutoGenerator {
     /**
      * 要生成的数据库表名，按需要修改
      */
-    public static final String[] tableNameList = {"admin_user","key_info","request_log"};
+    public static final String[] tableNameList = {"sys_config"};
     /**
      * 设置父包名
      */

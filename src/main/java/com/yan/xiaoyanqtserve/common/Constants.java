@@ -30,4 +30,9 @@ public class Constants {
 
     // 默认字符集
     public static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
+
+    // 系统配置
+    public static final String CONFIG_KEY = "sysConfig:config";
+    public static final String CONFIG_MODEL_LIST_KEY = "sysConfig:modelList";
+    public static final String CONFIG_MODEL_LIST_PREFIX = "dashscope.model";
 }
