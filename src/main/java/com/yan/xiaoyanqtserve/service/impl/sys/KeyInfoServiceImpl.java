@@ -2,13 +2,18 @@ package com.yan.xiaoyanqtserve.service.impl.sys;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.yan.xiaoyanqtserve.common.dto.key.GenerateKeyDto;
+import com.yan.xiaoyanqtserve.common.enums.ProductType;
+import com.yan.xiaoyanqtserve.common.utils.LicenseKeyGenerator;
 import com.yan.xiaoyanqtserve.entity.KeyInfo;
 import com.yan.xiaoyanqtserve.mapper.KeyInfoMapper;
 import com.yan.xiaoyanqtserve.service.KeyInfoService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -21,6 +26,9 @@ import java.util.Optional;
  */
 @Service
 public class KeyInfoServiceImpl extends ServiceImpl<KeyInfoMapper, KeyInfo> implements KeyInfoService {
+
+    @Resource
+    private LicenseKeyGenerator licenseKeyGenerator;
 
     /**
      * 激活密钥
@@ -95,9 +103,39 @@ public class KeyInfoServiceImpl extends ServiceImpl<KeyInfoMapper, KeyInfo> impl
         return updateById(keyInfo);
     }
 
+
+    /**
+     * 密钥生成（一小时无限制使用的密钥）
+     * @param generateKeyDto 密钥生成参数
+     */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void generateKey(GenerateKeyDto generateKeyDto) {
 
+        List<String> keyList =
+                licenseKeyGenerator.generateKey(generateKeyDto.getKeyNumber());
+
+        List<KeyInfo> entityList = keyList.stream()
+                .map(this::buildKeyInfo)
+                .toList();
+
+        saveBatch(entityList, 500);
+    }
+
+    private KeyInfo buildKeyInfo(String key) {
+
+        KeyInfo keyInfo = new KeyInfo();
+
+        keyInfo.setKeyValue(key);
+        keyInfo.setStatus((byte) 1);
+        keyInfo.setTotalUses(0);
+        keyInfo.setRemainingUses(0);
+        keyInfo.setProductType(ProductType.AI_REWRITE_BASIC.getType());
+        keyInfo.setActivationsNum(1);
+        keyInfo.setRemark("一小时无限制使用的密钥");
+        keyInfo.setCreatedBy(1L);
+
+        return keyInfo;
     }
 }
 

@@ -11,11 +11,12 @@ import lombok.Data;
  */
 @Data
 public class GenerateKeyDto {
-
     /**
-     * 密钥状态: 0-禁用, 1-启用
+     * 密钥数量
      */
-    private Byte status = 1;
+    @NotNull(message = "密钥数量不能为空")
+    @Min(value = 1, message = "密钥数量不能小于1")
+    private Integer keyNumber;
 
     /**
      * 总使用次数(降AI)，0表示无限制

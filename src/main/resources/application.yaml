@@ -1,3 +1,10 @@
+
+# 自定义配置
+xiaoyan:
+  license:
+    # 加密密钥
+    key: P9X7M2K4ZQ8F1T6W3R5N0A8L2Y7B4C9D6E1H5J3U8V2S4
+
 server:
   # HTTP请求、响应头信息的最大大小
   port: 8080
