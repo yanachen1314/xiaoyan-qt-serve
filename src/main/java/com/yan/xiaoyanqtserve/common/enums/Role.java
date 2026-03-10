@@ -1,7 +1,7 @@
 package com.yan.xiaoyanqtserve.common.enums;
 
 /**
- *
+ * Security中角色枚举
  * @author yanchen
  * @since 2026/2/3 17:38
  */

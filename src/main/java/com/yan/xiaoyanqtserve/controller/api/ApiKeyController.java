@@ -1,4 +1,4 @@
-package com.yan.xiaoyanqtserve.controller;
+package com.yan.xiaoyanqtserve.controller.api;
 
 import com.yan.xiaoyanqtserve.common.Constants;
 import com.yan.xiaoyanqtserve.common.enums.BizStatus;
@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.Map;
 
 /**
- * api key接口
+ * API密钥处理接口
  * @author yanchen
  * @since 2026/2/3 16:59
  */
