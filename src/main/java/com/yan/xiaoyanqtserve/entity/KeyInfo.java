@@ -9,6 +9,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
@@ -26,6 +27,7 @@ import java.time.LocalDateTime;
 @TableName("key_info")
 public class KeyInfo implements Serializable {
 
+    @Serial
     private static final long serialVersionUID = 1L;
 
     /**
@@ -47,13 +49,13 @@ public class KeyInfo implements Serializable {
     private Byte status;
 
     /**
-     * 总使用次数，0表示无限制
+     * 总使用次数(降AI)，0表示无限制
      */
     @TableField("total_uses")
     private Integer totalUses;
 
     /**
-     * 剩余使用次数，0表示无限制或已用完
+     * 剩余使用次数(降AI)，0表示已用完
      */
     @TableField("remaining_uses")
     private Integer remainingUses;
@@ -65,11 +67,23 @@ public class KeyInfo implements Serializable {
     private String productType;
 
     /**
+     * 激活次数，0-无次数限制
+     */
+    @TableField("activations_num")
+    private Integer activations_num;
+
+    /**
+     * 激活设备
+     */
+    @TableField("activation_device")
+    private String activation_device;
+
+    /**
      * 激活时间
      */
-    @TableField("activated_time")
+    @TableField("activation_time")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private LocalDateTime activatedTime;
+    private LocalDateTime activation_time;
 
     /**
      * 过期时间，可为空表示永不过期
