@@ -2,7 +2,7 @@ package com.yan.xiaoyanqtserve.controller.admin;
 
 import com.yan.xiaoyanqtserve.common.dto.key.GenerateKeyDto;
 import com.yan.xiaoyanqtserve.service.KeyInfoService;
-import com.yan.xiaoyanqtserve.util.ApiResponse;
+import com.yan.xiaoyanqtserve.common.utils.ApiResponse;
 import jakarta.annotation.Resource;
 import jakarta.validation.Valid;
 import org.springframework.validation.annotation.Validated;

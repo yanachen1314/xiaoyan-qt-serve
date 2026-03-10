@@ -1,4 +1,4 @@
-package com.yan.xiaoyanqtserve.util;
+package com.yan.xiaoyanqtserve.common.utils;
 
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;

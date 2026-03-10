@@ -4,7 +4,7 @@ import com.yan.xiaoyanqtserve.common.dto.adminUser.AdminUserDeleteRequest;
 import com.yan.xiaoyanqtserve.common.dto.adminUser.AdminUserUpdateRequest;
 import com.yan.xiaoyanqtserve.entity.AdminUser;
 import com.yan.xiaoyanqtserve.service.AdminUserService;
-import com.yan.xiaoyanqtserve.util.ApiResponse;
+import com.yan.xiaoyanqtserve.common.utils.ApiResponse;
 import jakarta.annotation.Resource;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;

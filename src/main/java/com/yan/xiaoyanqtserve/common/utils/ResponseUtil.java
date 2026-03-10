@@ -1,4 +1,4 @@
-package com.yan.xiaoyanqtserve.util;
+package com.yan.xiaoyanqtserve.common.utils;
 
 import com.yan.xiaoyanqtserve.common.enums.BizStatus;
 import lombok.extern.slf4j.Slf4j;

@@ -1,4 +1,4 @@
-package com.yan.xiaoyanqtserve.util;
+package com.yan.xiaoyanqtserve.common.utils;
 
 import com.yan.xiaoyanqtserve.common.Constants;
 import io.jsonwebtoken.Jwts;

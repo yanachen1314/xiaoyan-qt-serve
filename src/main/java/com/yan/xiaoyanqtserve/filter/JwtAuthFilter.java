@@ -1,7 +1,7 @@
 package com.yan.xiaoyanqtserve.filter;
 
 import com.yan.xiaoyanqtserve.security.AdminUserDetailsService;
-import com.yan.xiaoyanqtserve.util.JwtUtil;
+import com.yan.xiaoyanqtserve.common.utils.JwtUtil;
 import jakarta.annotation.Resource;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

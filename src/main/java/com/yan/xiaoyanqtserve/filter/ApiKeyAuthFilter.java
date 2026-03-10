@@ -4,7 +4,7 @@ import com.yan.xiaoyanqtserve.common.enums.BizStatus;
 import com.yan.xiaoyanqtserve.common.enums.Role;
 import com.yan.xiaoyanqtserve.entity.KeyInfo;
 import com.yan.xiaoyanqtserve.service.impl.RequestProcessingService;
-import com.yan.xiaoyanqtserve.util.SecurityResponseUtil;
+import com.yan.xiaoyanqtserve.common.utils.SecurityResponseUtil;
 import jakarta.annotation.Resource;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

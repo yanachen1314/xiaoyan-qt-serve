@@ -1,4 +1,4 @@
-package com.yan.xiaoyanqtserve.util;
+package com.yan.xiaoyanqtserve.common.utils;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.yan.xiaoyanqtserve.common.dto.PageResponse;

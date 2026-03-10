@@ -4,7 +4,7 @@ import com.yan.xiaoyanqtserve.common.Constants;
 import com.yan.xiaoyanqtserve.common.enums.BizStatus;
 import com.yan.xiaoyanqtserve.service.KeyInfoService;
 import com.yan.xiaoyanqtserve.service.RequestLogService;
-import com.yan.xiaoyanqtserve.util.ApiResponse;
+import com.yan.xiaoyanqtserve.common.utils.ApiResponse;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;

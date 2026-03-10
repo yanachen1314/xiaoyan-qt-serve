@@ -1,8 +1,8 @@
 package com.yan.xiaoyanqtserve.exception;
 
 import com.yan.xiaoyanqtserve.common.enums.BizStatus;
-import com.yan.xiaoyanqtserve.util.ApiResponse;
-import com.yan.xiaoyanqtserve.util.ResponseUtil;
+import com.yan.xiaoyanqtserve.common.utils.ApiResponse;
+import com.yan.xiaoyanqtserve.common.utils.ResponseUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
