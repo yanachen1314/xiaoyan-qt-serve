@@ -45,7 +45,8 @@ public class ApiKeyAuthFilter extends OncePerRequestFilter {
 
         // 2. 如果没有 API Key，继续执行后续过滤器链
         if (!StringUtils.hasText(apiKey)) {
-            filterChain.doFilter(request, response);
+            // filterChain.doFilter(request, response);
+            securityResponseUtil.writeError(response, BizStatus.UNAUTHORIZED, "缺少 API Key");
             return;
         }
 
@@ -63,7 +64,8 @@ public class ApiKeyAuthFilter extends OncePerRequestFilter {
             SecurityContextHolder.getContext().setAuthentication(authToken);
         } else {
             // 6. 如果 API Key 无效，返回具体的错误信息
-            securityResponseUtil.writeError(response, BizStatus.UNAUTHORIZED, validationResult.getErrorMessage());
+            securityResponseUtil.writeError(response, validationResult.getErrorCode(),
+                    validationResult.getErrorMessage() == null ? validationResult.getErrorCode().msg(): validationResult.getErrorMessage());
             return; // 阻止请求继续
         }
 
@@ -84,9 +86,8 @@ public class ApiKeyAuthFilter extends OncePerRequestFilter {
     // 决定此过滤器是否应用于特定请求路径
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        // 例如，不对 /actuator/health 等路径应用此过滤器
+        // 以"/api"开头的请求需要应用此过滤器
         String path = request.getRequestURI();
-        return path.startsWith("/actuator/health") || path.startsWith("/css/") || path.startsWith("/js/")
-                || path.startsWith("/auth/");
+        return !path.startsWith("/api");
     }
 }

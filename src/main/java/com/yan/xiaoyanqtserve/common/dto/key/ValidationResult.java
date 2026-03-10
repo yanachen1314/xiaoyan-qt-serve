@@ -1,5 +1,6 @@
 package com.yan.xiaoyanqtserve.common.dto.key;
 
+import com.yan.xiaoyanqtserve.common.enums.BizStatus;
 import com.yan.xiaoyanqtserve.entity.KeyInfo;
 import lombok.Getter;
 
@@ -9,22 +10,12 @@ import lombok.Getter;
  */
 @Getter
 public class ValidationResult {
-    private boolean success;
-    private KeyInfo keyInfo;
-    private String errorMessage;
-    private ValidationErrorCode errorCode;
+    private final boolean success;
+    private final KeyInfo keyInfo;
+    private final String errorMessage;
+    private final BizStatus errorCode;
 
-    public enum ValidationErrorCode {
-        KEY_NOT_FOUND, //密钥不存在
-        KEY_FORMAT_INVALID, //密钥格式非法
-        KEY_INACTIVE, //密钥未启用
-        KEY_EXPIRED, //密钥已过期
-        ACTIVATIONS_EXHAUSTED, //密钥激活次数已用完
-        USES_EXHAUSTED, //密钥功能使用次数已用完
-        VALID //密钥验证成功
-    }
-
-    private ValidationResult(boolean success, KeyInfo keyInfo, String errorMessage, ValidationErrorCode errorCode) {
+    private ValidationResult(boolean success, KeyInfo keyInfo, String errorMessage, BizStatus errorCode) {
         this.success = success;
         this.keyInfo = keyInfo;
         this.errorMessage = errorMessage;
@@ -32,11 +23,15 @@ public class ValidationResult {
     }
 
     public static ValidationResult success(KeyInfo keyInfo) {
-        return new ValidationResult(true, keyInfo, null, ValidationErrorCode.VALID);
+        return new ValidationResult(true, keyInfo, null, BizStatus.KEY_VALID);
     }
 
-    public static ValidationResult failure(String errorMessage, ValidationErrorCode errorCode) {
+    public static ValidationResult failure(String errorMessage, BizStatus errorCode) {
         return new ValidationResult(false, null, errorMessage, errorCode);
+    }
+
+    public static ValidationResult failure(BizStatus errorCode) {
+        return new ValidationResult(false, null, null, errorCode);
     }
 
 }

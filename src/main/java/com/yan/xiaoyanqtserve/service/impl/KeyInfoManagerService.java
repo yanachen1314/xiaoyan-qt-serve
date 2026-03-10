@@ -3,6 +3,7 @@ package com.yan.xiaoyanqtserve.service.impl;
 import com.yan.xiaoyanqtserve.common.dto.key.GenerateKeyDto;
 import com.yan.xiaoyanqtserve.common.dto.key.ValidationResult;
 import com.yan.xiaoyanqtserve.common.enums.ProductType;
+import com.yan.xiaoyanqtserve.common.enums.BizStatus;
 import com.yan.xiaoyanqtserve.common.utils.LicenseKeyGenerator;
 import com.yan.xiaoyanqtserve.entity.KeyInfo;
 import com.yan.xiaoyanqtserve.service.KeyInfoService;
@@ -39,37 +40,37 @@ public class KeyInfoManagerService {
 
         // 验证密钥是否存在
         if (keyInfo == null) {
-            return ValidationResult.failure("密钥不存在", ValidationResult.ValidationErrorCode.KEY_NOT_FOUND);
+            return ValidationResult.failure( BizStatus.KEY_NOT_FOUND);
         }
 
         // 验证密钥格式是否非法
         if (!licenseKeyGenerator.verify(apiKey)) {
-            return ValidationResult.failure("密钥格式无效", ValidationResult.ValidationErrorCode.KEY_FORMAT_INVALID);
+            return ValidationResult.failure( BizStatus.KEY_FORMAT_INVALID);
         }
 
         // 验证密钥状态是否为启用（status = 1）
         if (keyInfo.getStatus() != 1) {
-            return ValidationResult.failure("密钥未启用", ValidationResult.ValidationErrorCode.KEY_INACTIVE);
+            return ValidationResult.failure(BizStatus.KEY_INACTIVE);
         }
 
         // 验证密钥是否已过期
         LocalDateTime expiryTime = keyInfo.getExpiryTime();
         if (expiryTime != null && expiryTime.isBefore(LocalDateTime.now())) {
-            return ValidationResult.failure("密钥已过期", ValidationResult.ValidationErrorCode.KEY_EXPIRED);
+            return ValidationResult.failure( BizStatus.KEY_EXPIRED);
         }
 
-        // 验证密钥是否还有激活次数
+        // 验证密钥是否还有激活次数（activeNum>0时，reNum=0表示已用完，reNum>0表示剩余激活次数；activeNum=0时，reNum表示无限制）
         Integer activationsNum = keyInfo.getActivationsNum();
         Integer remainingActiveNum = keyInfo.getRemainingActiveNum();
         if (activationsNum > 0 && remainingActiveNum == 0) {
-            return ValidationResult.failure("激活次数已用完", ValidationResult.ValidationErrorCode.ACTIVATIONS_EXHAUSTED);
+            return ValidationResult.failure( BizStatus.KEY_NON_ACTIVATIONS);
         }
 
-        // 验证密钥剩余使用次数是否足够
+        // 验证密钥剩余使用次数是否足够（total_uses>0时，re_uses=0表示已用完，re_uses>0表示剩余使用次数；total_uses=0时，re_uses表示无限制）
         Integer totalUses = keyInfo.getTotalUses();
         Integer remainingUses = keyInfo.getRemainingUses();
         if (totalUses > 0 && remainingUses == 0) {
-            return ValidationResult.failure("使用次数已用完", ValidationResult.ValidationErrorCode.USES_EXHAUSTED);
+            return ValidationResult.failure(BizStatus.KEY_NON_USES);
         }
 
         return ValidationResult.success(keyInfo);

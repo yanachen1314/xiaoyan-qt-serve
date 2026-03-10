@@ -51,7 +51,7 @@ public class ApiKeyController {
         }
 
         // 调用 KeyInfoService 的 activateKey 方法激活密钥
-        var optionalKeyInfo = managerService .activateKey(apiKey);
+        var optionalKeyInfo = managerService.activateKey(apiKey);
 
         if (optionalKeyInfo.isPresent()) {
             // 记录请求日志
