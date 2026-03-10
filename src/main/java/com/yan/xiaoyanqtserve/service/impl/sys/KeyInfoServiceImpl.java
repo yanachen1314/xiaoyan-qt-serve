@@ -1,6 +1,7 @@
 package com.yan.xiaoyanqtserve.service.impl.sys;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.yan.xiaoyanqtserve.common.dto.key.GenerateKeyDto;
 import com.yan.xiaoyanqtserve.entity.KeyInfo;
 import com.yan.xiaoyanqtserve.mapper.KeyInfoMapper;
 import com.yan.xiaoyanqtserve.service.KeyInfoService;
@@ -92,6 +93,11 @@ public class KeyInfoServiceImpl extends ServiceImpl<KeyInfoMapper, KeyInfo> impl
 
         // 保存更新后的密钥信息
         return updateById(keyInfo);
+    }
+
+    @Override
+    public void generateKey(GenerateKeyDto generateKeyDto) {
+
     }
 }
 

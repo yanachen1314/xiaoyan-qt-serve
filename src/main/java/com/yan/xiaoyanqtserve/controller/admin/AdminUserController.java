@@ -1,6 +1,7 @@
 package com.yan.xiaoyanqtserve.controller.admin;
 
-import com.yan.xiaoyanqtserve.common.dto.*;
+import com.yan.xiaoyanqtserve.common.dto.adminUser.AdminUserDeleteRequest;
+import com.yan.xiaoyanqtserve.common.dto.adminUser.AdminUserUpdateRequest;
 import com.yan.xiaoyanqtserve.entity.AdminUser;
 import com.yan.xiaoyanqtserve.service.AdminUserService;
 import com.yan.xiaoyanqtserve.util.ApiResponse;

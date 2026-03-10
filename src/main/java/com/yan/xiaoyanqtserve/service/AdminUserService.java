@@ -1,7 +1,7 @@
 package com.yan.xiaoyanqtserve.service;
 
 import com.yan.xiaoyanqtserve.entity.AdminUser;
-import com.yan.xiaoyanqtserve.common.dto.AdminUserUpdateRequest;
+import com.yan.xiaoyanqtserve.common.dto.adminUser.AdminUserUpdateRequest;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 /**

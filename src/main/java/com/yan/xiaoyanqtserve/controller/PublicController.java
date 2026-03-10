@@ -1,8 +1,8 @@
 package com.yan.xiaoyanqtserve.controller;
 
-import com.yan.xiaoyanqtserve.common.dto.AdminUserLoginRequest;
-import com.yan.xiaoyanqtserve.common.dto.AdminUserRegisterRequest;
-import com.yan.xiaoyanqtserve.common.dto.AdminUserResponse;
+import com.yan.xiaoyanqtserve.common.dto.adminUser.AdminUserLoginRequest;
+import com.yan.xiaoyanqtserve.common.dto.adminUser.AdminUserRegisterRequest;
+import com.yan.xiaoyanqtserve.common.dto.adminUser.AdminUserResponse;
 import com.yan.xiaoyanqtserve.common.enums.Role;
 import com.yan.xiaoyanqtserve.entity.AdminUser;
 import com.yan.xiaoyanqtserve.security.AdminUserDetails;

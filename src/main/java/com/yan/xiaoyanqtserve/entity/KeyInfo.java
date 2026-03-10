@@ -95,14 +95,14 @@ public class KeyInfo implements Serializable {
     /**
      * 备注信息
      */
-    @TableField("notes")
-    private String notes;
+    @TableField("remark")
+    private String remark;
 
     /**
      * 创建该密钥的管理员ID，关联admin_user表
      */
-    @TableField("admin_created_by")
-    private Long adminCreatedBy;
+    @TableField("created_by")
+    private Long createdBy;
 
     /**
      * 创建时间

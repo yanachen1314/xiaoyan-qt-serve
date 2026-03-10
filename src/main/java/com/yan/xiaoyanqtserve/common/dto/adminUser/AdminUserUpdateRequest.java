@@ -1,31 +1,34 @@
-package com.yan.xiaoyanqtserve.common.dto;
+package com.yan.xiaoyanqtserve.common.dto.adminUser;
 
 import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 /**
- * 管理员注册请求DTO
- * 包含注册所需的用户名、密码、邮箱和电话字段
+ * 管理员信息更新请求DTO
+ * 包含更新管理员所需的字段
  */
 @Data
-public class AdminUserRegisterRequest {
+public class AdminUserUpdateRequest {
+
+    /**
+     * 管理员ID
+     * 不能为空
+     */
+    private Long id;
 
     /**
      * 用户名
-     * 不能为空，长度在3-50之间
+     * 可选，长度在3-50之间
      */
-    @NotBlank(message = "用户名不能为空")
     @Size(min = 3, max = 50, message = "用户名长度必须在3-50之间")
     private String username;
 
     /**
      * 密码
-     * 不能为空，长度至少8位，包含字母和数字
+     * 可选，长度至少8位，包含字母和数字
      */
-    @NotBlank(message = "密码不能为空")
     @Size(min = 8, message = "密码长度至少8位")
     @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d).+$", message = "密码必须包含字母和数字")
     private String password;

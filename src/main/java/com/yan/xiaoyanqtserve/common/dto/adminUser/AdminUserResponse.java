@@ -1,4 +1,4 @@
-package com.yan.xiaoyanqtserve.common.dto;
+package com.yan.xiaoyanqtserve.common.dto.adminUser;
 
 import lombok.Data;
 

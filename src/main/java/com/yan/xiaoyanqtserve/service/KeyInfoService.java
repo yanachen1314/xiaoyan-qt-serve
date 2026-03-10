@@ -1,5 +1,6 @@
 package com.yan.xiaoyanqtserve.service;
 
+import com.yan.xiaoyanqtserve.common.dto.key.GenerateKeyDto;
 import com.yan.xiaoyanqtserve.entity.KeyInfo;
 import com.baomidou.mybatisplus.extension.service.IService;
 
@@ -29,5 +30,10 @@ public interface KeyInfoService extends IService<KeyInfo> {
      */
     boolean decrementKeyUses(String apiKey);
 
+    /**
+     * 密钥生成
+     * @param generateKeyDto 密钥生成参数
+     */
+    void generateKey(GenerateKeyDto generateKeyDto);
 }
 

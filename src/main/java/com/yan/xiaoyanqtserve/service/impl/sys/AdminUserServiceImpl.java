@@ -3,7 +3,7 @@ package com.yan.xiaoyanqtserve.service.impl.sys;
 import com.yan.xiaoyanqtserve.entity.AdminUser;
 import com.yan.xiaoyanqtserve.mapper.AdminUserMapper;
 import com.yan.xiaoyanqtserve.service.AdminUserService;
-import com.yan.xiaoyanqtserve.common.dto.AdminUserUpdateRequest;
+import com.yan.xiaoyanqtserve.common.dto.adminUser.AdminUserUpdateRequest;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.stereotype.Service;
