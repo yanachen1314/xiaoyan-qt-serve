@@ -12,9 +12,11 @@ import jakarta.annotation.Resource;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -83,7 +85,110 @@ public class SecurityConfig {
         return source;
     }
 
+
+    /**
+     * 公共安全配置
+     *
+     * @param http HttpSecurity
+     * @throws Exception 抛出
+     */
+    public void baseConfig(HttpSecurity http) throws Exception {
+        http
+                // 启用 WebMvc Cors 配置
+                .cors(cors -> {
+                })
+
+                // 禁用 表单登录/登出、session管理、csrf防护、匿名身份等默认配置，如果不disable。会默认创建默认filter
+                .csrf(AbstractHttpConfigurer::disable)
+                .formLogin(AbstractHttpConfigurer::disable)
+                .httpBasic(AbstractHttpConfigurer::disable)
+                .logout(AbstractHttpConfigurer::disable)
+                .anonymous(Customizer.withDefaults())
+                // 请求缓存用于重定向，前后端分离项目无需重定向，请求缓存也用不上
+                .requestCache(cache -> cache.requestCache(new NullRequestCache()))
+                // 禁用 session或者设置为无状态
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+
+                // 异常处理：无权限
+                .exceptionHandling(exception -> exception
+                        .accessDeniedHandler((req, res, authEx) ->
+                                responseUtil.writeError(res, BizStatus.FORBIDDEN, "无权限访问")));
+
+    }
+
+    /**
+     *  公共接口链（最高优先级）
+     * @param http HttpSecurity
+     * @return SecurityFilterChain
+     * @throws Exception 抛出
+     */
     @Bean
+    @Order(1)
+    public SecurityFilterChain publicChain(HttpSecurity http) throws Exception {
+        baseConfig(http);
+        http
+                .securityMatcher("/public/**")
+                .authorizeHttpRequests(auth ->
+                        auth.anyRequest().permitAll());
+
+        return http.build();
+    }
+
+    /**
+     * API KEY 安全链
+     * @param http HttpSecurity
+     * @return SecurityFilterChain
+     * @throws Exception 抛出
+     */
+    @Bean
+    @Order(2)
+    public SecurityFilterChain apiChain(HttpSecurity http) throws Exception {
+        baseConfig(http);
+        http
+                .securityMatcher("/api/**")
+                // 异常处理：未认证
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint((req, res, ex) ->
+                                        responseUtil.writeError(
+                                                res,
+                                                BizStatus.UNAUTHORIZED,
+                                                "API Key 无效"))
+                )
+                .authorizeHttpRequests(auth ->
+                        auth.anyRequest()
+                                .hasRole(Role.KEY_USER.name()))
+                .addFilterBefore(apiKeyAuthFilter,UsernamePasswordAuthenticationFilter.class);
+        return http.build();
+    }
+
+    /**
+     * Admin JWT 安全链
+     * @param http HttpSecurity
+     * @return SecurityFilterChain
+     * @throws Exception 抛出
+     */
+    @Bean
+    @Order(3)
+    public SecurityFilterChain adminChain(HttpSecurity http) throws Exception {
+        baseConfig(http);
+        http
+                .securityMatcher("/admin/**")
+                // 异常处理：未认证
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint((req, res, ex) ->
+                                        responseUtil.writeError(res,BizStatus.UNAUTHORIZED,"登录已失效")))
+
+                .authorizeHttpRequests(auth ->
+                        auth.anyRequest()
+                                .hasRole(Role.ADMIN.name()))
+                .addFilterBefore(jwtAuthFilter,UsernamePasswordAuthenticationFilter.class);
+
+        return http.build();
+    }
+
+
+/*
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return http
                 // 启用 WebMvc Cors 配置
@@ -95,7 +200,7 @@ public class SecurityConfig {
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .logout(AbstractHttpConfigurer::disable)
-                .anonymous(AbstractHttpConfigurer::disable)
+                .anonymous(Customizer.withDefaults())
                 // 请求缓存用于重定向，前后端分离项目无需重定向，请求缓存也用不上
                 .requestCache(cache -> cache.requestCache(new NullRequestCache()))
                 // 禁用 session或者设置为无状态
@@ -120,5 +225,6 @@ public class SecurityConfig {
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
+*/
 
 }

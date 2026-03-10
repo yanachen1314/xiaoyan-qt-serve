@@ -83,11 +83,4 @@ public class ApiKeyAuthFilter extends OncePerRequestFilter {
         return null;
     }
 
-    // 决定此过滤器是否应用于特定请求路径
-    @Override
-    protected boolean shouldNotFilter(HttpServletRequest request) {
-        // 以"/api"开头的请求需要应用此过滤器
-        String path = request.getRequestURI();
-        return !path.startsWith("/api");
-    }
 }

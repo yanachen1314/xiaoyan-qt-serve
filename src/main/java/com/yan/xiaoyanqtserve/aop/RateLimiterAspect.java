@@ -3,6 +3,7 @@ package com.yan.xiaoyanqtserve.aop;
 import com.yan.xiaoyanqtserve.common.Constants;
 import com.yan.xiaoyanqtserve.common.annotaions.RateLimiter;
 import com.yan.xiaoyanqtserve.common.utils.SecurityContextUtil;
+import com.yan.xiaoyanqtserve.entity.KeyInfo;
 import com.yan.xiaoyanqtserve.exception.BizException;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
@@ -17,8 +18,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.time.Instant;
 import java.util.Collections;
-
-import static com.yan.xiaoyanqtserve.common.enums.RateLimiterType.IP;
+import java.util.Objects;
 
 @Aspect
 @Component
@@ -73,7 +73,12 @@ public class RateLimiterAspect {
     }
 
     private String getCurrentApiKey() {
-        return securityContextUtil.getCurrentAdminUsername();
+        KeyInfo apiKeyUser = securityContextUtil.getApiKeyUser();
+        if(securityContextUtil.isApiKeyUser() && Objects.nonNull(apiKeyUser)){
+            return apiKeyUser.getKeyValue();
+        }else{
+            throw new BizException("密钥不存在");
+        }
     }
 
     private String getClientIpAddress(HttpServletRequest request) {

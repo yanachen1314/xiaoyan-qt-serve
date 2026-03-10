@@ -4,6 +4,7 @@ import com.yan.xiaoyanqtserve.common.Constants;
 import com.yan.xiaoyanqtserve.common.dto.AigcDealDto;
 import com.yan.xiaoyanqtserve.common.enums.BizStatus;
 import com.yan.xiaoyanqtserve.common.utils.SecurityContextUtil;
+import com.yan.xiaoyanqtserve.entity.KeyInfo;
 import com.yan.xiaoyanqtserve.security.AdminUserDetails;
 import com.yan.xiaoyanqtserve.service.RequestLogService;
 import com.yan.xiaoyanqtserve.common.utils.ApiResponse;
@@ -13,6 +14,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -43,9 +45,11 @@ public class ApiKeyController {
      */
     @PostMapping("/deal/text")
     public ApiResponse<?> aiDeal(@Valid @RequestBody AigcDealDto aigcDealDto) {
-        AdminUserDetails currentAdminUser = securityContextUtil.getCurrentAdminUser();
+        KeyInfo apiKeyUser = securityContextUtil.getApiKeyUser();
+        UserDetails adminUser = securityContextUtil.getAdminUser();
+        log.info("【请求用户】APIKEY：{} ， ADMIN：{}", apiKeyUser, adminUser);
+        log.info("【身份】APIKEY：{} ， ADMIN：{}",securityContextUtil.isApiKeyUser(),securityContextUtil.isAdmin());
         log.info("请求内容: {}", aigcDealDto.getOriginalText());
-        log.info("请求用户: {}", currentAdminUser);
         // 返回处理结果
         return ApiResponse.success("AI 处理成功", Map.of("processedContent", 123));
     }
