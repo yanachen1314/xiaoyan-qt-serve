@@ -196,6 +196,13 @@ public class KeyInfoManagerService {
             }
 
             KeyInfo keyInfo = keyValid.getKeyInfo();
+            if(keyInfo.getStatus() == 1
+                    && keyInfo.getActivated() == 1
+                    && keyInfo.getActivationDevice().equals(keyActiveDto.getDeviceID())){
+                // 已激活，直接返回使用
+                return keyInfo;
+            }
+
             // 总激活次数
             Integer actNum = keyInfo.getActivationsNum();
             // 剩余激活次数
