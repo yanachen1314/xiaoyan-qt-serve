@@ -1,24 +1,14 @@
 # 自定义配置
 xiaoyan:
   license:
-    # 加密密钥
-    key: P9X7M2K4ZQ8F1T6W3R5N0A8L2Y7B4C9D6E1H5J3U8V2S4
-
-server:
-  # HTTP请求、响应头信息的最大大小
-  port: 8080
-  max-http-request-header-size: 102400
+    # 卡密加密密钥
+    key: ${LICENSE_KEY}
 
 spring:
   application:
     name: xiaoyanQt-serve
-
-  # ======================= 数据源配置 (开发环境) =======================
-  datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://127.0.0.1:3306/db_xiaoyan_ai_qt?useSSL=true&useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai # 指向本地MySQL
-    username: root
-    password: root
+  profiles:
+    active: dev
   servlet:
     multipart:
       # 单个文件的最大大小
@@ -26,20 +16,11 @@ spring:
       # 整个请求的最大大小（可以包含多个文件）
       max-request-size: 15MB
       enabled: true
-  data:
-    # ===================== Redis 配置 (开发环境) =======================
-    redis:
-      host: 127.0.0.1 # 指向本地Redis
-      port: 6379
-      password: root # 开发用密码
-      database: 0
-      timeout: 10000
-      lettuce:
-        pool:
-          max-active: 10
-          max-idle: 8
-          min-idle: 2
-          max-wait: 2000
+
+server:
+  # HTTP请求、响应头信息的最大大小
+  port: 8080
+  max-http-request-header-size: 102400
 
 # ===================== mybatis-plus 配置 =======================
 mybatis-plus:
