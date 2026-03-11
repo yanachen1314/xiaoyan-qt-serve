@@ -319,11 +319,11 @@ public class KeyInfoManagerService {
         Byte activated = keyInfo.getActivated();
         if (activated != null && activated == 1) {
             // 检查是否同一设备
-            // if (Objects.equals(keyInfo.getActivationDevice(), deviceID)) {
-            //     return keyInfo; // 已激活且设备一致，直接返回
-            // } else {
-            //     throw new BizException(BizStatus.KEY_ALREADY_ACTIVATED, "密钥已在其他设备激活，请先解绑");
-            // }
+            if (Objects.equals(keyInfo.getActivationDevice(), deviceID)) {
+                return ValidationResult.success(keyInfo); // 已激活且设备一致，直接返回
+            } else {
+                throw new BizException(BizStatus.KEY_ALREADY_ACTIVATED, "密钥已在其他设备激活");
+            }
         }
 
         // 2.3 检查激活次数是否充足（仅当有限次数时）
