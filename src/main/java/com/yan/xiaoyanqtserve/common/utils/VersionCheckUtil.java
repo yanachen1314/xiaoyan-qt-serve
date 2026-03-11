@@ -48,20 +48,15 @@ public class VersionCheckUtil {
 
             if (sVal > cVal) {
                 String level = (i == 0) ? "major" : (i == 1) ? "minor" : "patch";
-                String msg;
-                switch (level) {
-                    case "major":
-                        msg = String.format("发现重大更新 %s（当前 %s），建议立即升级。", serverVersion, clientVersion);
-                        break;
-                    case "minor":
-                        msg = String.format("发现新功能版本 %s（当前 %s），建议升级体验新特性。", serverVersion, clientVersion);
-                        break;
-                    case "patch":
-                        msg = String.format("发现修复版本 %s（当前 %s），建议升级以获得稳定性提升。", serverVersion, clientVersion);
-                        break;
-                    default:
-                        msg = String.format("发现新版本 %s（当前 %s），建议更新。", serverVersion, clientVersion);
-                }
+                String msg = switch (level) {
+                    case "major" ->
+                            String.format("发现重大更新 %s（当前 %s），建议立即升级。", serverVersion, clientVersion);
+                    case "minor" ->
+                            String.format("发现新功能版本 %s（当前 %s），建议升级体验新特性。", serverVersion, clientVersion);
+                    case "patch" ->
+                            String.format("发现修复版本 %s（当前 %s），建议升级以获得稳定性提升。", serverVersion, clientVersion);
+                    default -> String.format("发现新版本 %s（当前 %s），建议更新。", serverVersion, clientVersion);
+                };
                 return VersionComparisonResult.builder()
                         .latest(false)
                         .updateRequired(true)

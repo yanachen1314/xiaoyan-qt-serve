@@ -68,7 +68,7 @@ public class PublicController {
      */
     @RateLimiter(key = "active", time = 1, count = 10, limitBy = RateLimiterType.IP)
     @PostMapping("/active")
-    public ApiResponse<?> activateKey(@Valid @RequestBody KeyActiveDto keyActiveDto) {
+    public ApiResponse<KeyActiveVo> activateKey(@Valid @RequestBody KeyActiveDto keyActiveDto) {
         // 调用 KeyInfoService 的 activateKey 方法激活密钥
         KeyInfo keyInfo = managerService.activateKey(keyActiveDto);
 
@@ -89,7 +89,7 @@ public class PublicController {
      * @return 版本检查结果
      */
     @GetMapping("/check/{version}")
-    public ApiResponse<?> autoCheckVersion(@PathVariable("version") String version) {
+    public ApiResponse<VersionCheckVo> autoCheckVersion(@PathVariable("version") String version) {
         // 1. 获取服务器最新版本
         String versionKey = "system.version";
         String latestVersion = sysConfigService.getValue(versionKey);
