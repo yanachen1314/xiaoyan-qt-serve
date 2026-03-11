@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * API密钥处理接口
@@ -46,58 +47,11 @@ public class ApiKeyController {
     @PostMapping("/deal/text")
     public ApiResponse<?> aiDeal(@Valid @RequestBody AigcDealDto aigcDealDto) {
         KeyInfo apiKeyUser = securityContextUtil.getApiKeyUser();
-        UserDetails adminUser = securityContextUtil.getAdminUser();
-        log.info("【请求用户】APIKEY：{} ， ADMIN：{}", apiKeyUser, adminUser);
-        log.info("【身份】APIKEY：{} ， ADMIN：{}",securityContextUtil.isApiKeyUser(),securityContextUtil.isAdmin());
-        log.info("请求内容: {}", aigcDealDto.getOriginalText());
+        if(!securityContextUtil.isApiKeyUser() || Objects.isNull(apiKeyUser)){
+            return ApiResponse.fail(BizStatus.KEY_NOT_FOUND);
+        }
+
         // 返回处理结果
-        return ApiResponse.success("AI 处理成功", Map.of("processedContent", 123));
-    }
-
-    /**
-     * 从请求头中提取 API Key
-     * @param request HttpServletRequest
-     * @return API Key
-     */
-    private String extractApiKeyFromHeader(HttpServletRequest request) {
-        String header = request.getHeader(Constants.HEADER_KEY_NAME);
-        if (StringUtils.hasText(header) && header.startsWith(Constants.HEADER_PREFIX)) {
-            // 返回 header 值
-            return header.substring(Constants.HEADER_PREFIX.length()).trim();
-        }
-        return null;
-    }
-
-    /**
-     * 执行 AI 核心业务逻辑（示例：AIGC 降重）
-     * @param content 原始内容
-     * @return 处理后的内容
-     */
-    private String processAiContent(String content) {
-        // 这里是示例实现，实际项目中应该调用真实的 AI 模型
-        // 示例：简单的文本处理，模拟 AIGC 降重功能
-        return "处理后的内容：" + content.replace(" ", " ");
-    }
-
-    /**
-     * 获取客户端IP地址
-     * @param request HttpServletRequest
-     * @return 客户端IP地址
-     */
-    private String getClientIp(HttpServletRequest request) {
-        String ip = request.getHeader("X-Forwarded-For");
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getHeader("Proxy-Client-IP");
-        }
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getHeader("WL-Proxy-Client-IP");
-        }
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getRemoteAddr();
-        }
-        return ip;
+        return ApiResponse.success("处理成功", Map.of("processedContent", 123));
     }
 }
-
-
-

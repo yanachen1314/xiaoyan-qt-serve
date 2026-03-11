@@ -112,7 +112,7 @@ public class KeyInfoManagerService {
             KeyInfo keyInfo = validationResult.getKeyInfo();
             // 更新密钥的激活设备
             keyInfo.setActivationDevice(keyActiveDto.getDeviceID());
-            // 扣减密钥的激活次数todo
+            // 扣减密钥的激活次数
             keyInfo.setRemainingActiveNum(keyInfo.getRemainingActiveNum() - 1);
             // 更新密钥的激活时间
             LocalDateTime now = LocalDateTime.now();
@@ -130,6 +130,40 @@ public class KeyInfoManagerService {
             redisLockUtil.unlock(lockKey);
         }
 
+    }
+
+    /**
+     * 密钥生成（一小时无限制使用的密钥）
+     * @param generateKeyDto 密钥生成参数
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public void generateKey(GenerateKeyDto generateKeyDto) {
+
+        List<String> keyList =
+                licenseKeyGenerator.generateKey(generateKeyDto.getKeyNumber());
+
+        List<KeyInfo> entityList = keyList.stream()
+                .map(this::buildKeyInfo)
+                .toList();
+
+        keyInfoService.saveBatch(entityList, 500);
+    }
+
+    private KeyInfo buildKeyInfo(String key) {
+
+        KeyInfo keyInfo = new KeyInfo();
+
+        keyInfo.setKeyValue(key);
+        keyInfo.setStatus((byte) 1);
+        keyInfo.setTotalUses(0);
+        keyInfo.setRemainingUses(0);
+        keyInfo.setProductType(ProductType.AI_REWRITE_BASIC.getType());
+        keyInfo.setActivationsNum(1);
+        keyInfo.setRemainingActiveNum(1);
+        keyInfo.setRemark("一小时无限制使用的密钥");
+        keyInfo.setCreatedBy(1L);
+
+        return keyInfo;
     }
 
 
@@ -167,40 +201,5 @@ public class KeyInfoManagerService {
 
         // 保存更新后的密钥信息
         return keyInfoService.updateById(keyInfo);
-    }
-
-
-    /**
-     * 密钥生成（一小时无限制使用的密钥）
-     * @param generateKeyDto 密钥生成参数
-     */
-    @Transactional(rollbackFor = Exception.class)
-    public void generateKey(GenerateKeyDto generateKeyDto) {
-
-        List<String> keyList =
-                licenseKeyGenerator.generateKey(generateKeyDto.getKeyNumber());
-
-        List<KeyInfo> entityList = keyList.stream()
-                .map(this::buildKeyInfo)
-                .toList();
-
-        keyInfoService.saveBatch(entityList, 500);
-    }
-
-    private KeyInfo buildKeyInfo(String key) {
-
-        KeyInfo keyInfo = new KeyInfo();
-
-        keyInfo.setKeyValue(key);
-        keyInfo.setStatus((byte) 1);
-        keyInfo.setTotalUses(0);
-        keyInfo.setRemainingUses(0);
-        keyInfo.setProductType(ProductType.AI_REWRITE_BASIC.getType());
-        keyInfo.setActivationsNum(1);
-        keyInfo.setRemainingActiveNum(1);
-        keyInfo.setRemark("一小时无限制使用的密钥");
-        keyInfo.setCreatedBy(1L);
-
-        return keyInfo;
     }
 }
