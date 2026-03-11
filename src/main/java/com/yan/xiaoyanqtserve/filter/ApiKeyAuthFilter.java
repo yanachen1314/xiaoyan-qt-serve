@@ -55,7 +55,7 @@ public class ApiKeyAuthFilter extends OncePerRequestFilter {
         }
 
         // 3. 使用你的服务验证 API Key
-        ValidationResult validationResult = keyInfoManagerService.validateKey(apiKey);
+        ValidationResult validationResult = keyInfoManagerService.filterKeyValid(apiKey);
 
         if (validationResult.isSuccess()) {
             // 4. 如果 API Key 有效，创建一个 Authentication 对象

@@ -72,7 +72,7 @@ public class KeyInfoManagerService {
      * @param apiKey 待验证的 API Key 字符串
      * @return 验证结果：成功时返回 {@link ValidationResult#success(KeyInfo)}，失败时返回带具体错误码的失败结果
      */
-    public ValidationResult validateKey(String apiKey) {
+    public ValidationResult filterKeyValid(String apiKey) {
         // 1. 查询密钥信息
         KeyInfo keyInfo = keyInfoService.getByKeyValue(apiKey);
         if (keyInfo == null) {
@@ -97,8 +97,9 @@ public class KeyInfoManagerService {
             return ValidationResult.failure(BizStatus.KEY_NOT_ACTIVATED);
         }
 
-        // 5. 校验激活次数是否充足（仅在已激活前提下进行）
-        Integer actNum = keyInfo.getActivationsNum();
+        // 5. 此时已激活，但是过滤器中无需验证是否还有激活次数：已激活的密钥，无论剩余激活次数多少，均可继续调用服务
+        // 但必须进行权益数量校验
+/*        Integer actNum = keyInfo.getActivationsNum();
         Integer remAct = keyInfo.getRemainingActiveNum();
 
         // 防御性校验：字段为空视为无效状态
@@ -123,7 +124,7 @@ public class KeyInfoManagerService {
         } else {
             // actNum < 0：非法值，拒绝
             return ValidationResult.failure(BizStatus.KEY_INVALID_STATE);
-        }
+        }*/
 
         // 6. 校验使用次数是否充足（同理，仅在已激活前提下）
         Integer totalUses = keyInfo.getTotalUses();
@@ -159,58 +160,6 @@ public class KeyInfoManagerService {
         return ValidationResult.success(keyInfo);
     }
 
-    /**
-     * 激活密钥
-     *
-     * @param keyActiveDto 激活密钥参数
-     */
-    @Transactional(rollbackFor = Exception.class)
-    public KeyInfo activateKey1(KeyActiveDto keyActiveDto) {
-        // 锁的唯一标识
-        String lockKey = "Lock_" + keyActiveDto.getApiKey();
-        if (!redisLockUtil.lock(lockKey, 10)) {
-            throw new BizException("系统繁忙，请稍后再试！");
-        }
-
-        try {
-            // 根据 API Key 查询密钥
-            ValidationResult validationResult = validateKey(keyActiveDto.getApiKey());
-
-            // 校验失败，返回错误信息
-            if (!validationResult.isSuccess()) {
-                throw new BizException(validationResult.getErrorCode(),
-                        validationResult.getErrorMessage() == null ?
-                                validationResult.getErrorCode().msg() :
-                                validationResult.getErrorMessage());
-            }
-
-            KeyInfo keyInfo = validationResult.getKeyInfo();
-            keyInfo.setTotalUses(0);
-            keyInfo.setRemainingUses(0);
-            keyInfo.setActivationsNum(0);
-            keyInfo.setRemainingActiveNum(keyInfo.getRemainingActiveNum() - 1);
-            keyInfo.setActivated((byte) 1);
-
-            // 更新密钥的激活设备
-            keyInfo.setActivationDevice(keyActiveDto.getDeviceID());
-            // 更新密钥的激活时间
-            LocalDateTime now = LocalDateTime.now();
-            keyInfo.setActivationTime(now);
-            // 设置密钥的到期时间（一个小时后过期）
-            keyInfo.setExpiryTime(now.plusHours(1));
-            keyInfo.setRemark("一小时无限制使用的密钥");
-            // 保存更新后的密钥信息
-            boolean updated = keyInfoService.updateById(keyInfo);
-            if (!updated) {
-                throw new BizException("密钥激活异常，请稍后再试！");
-            }
-            return keyInfo;
-        } finally {
-            // 一定要在finally中释放锁，确保异常时也能释放
-            redisLockUtil.unlock(lockKey);
-        }
-    }
-
 
     /**
      * 激活密钥。
@@ -239,53 +188,18 @@ public class KeyInfoManagerService {
         }
 
         try {
-            // 1. 查询密钥
-            KeyInfo keyInfo = keyInfoService.getByKeyValue(keyActiveDto.getApiKey());
-            if (keyInfo == null) {
-                throw new BizException(BizStatus.KEY_NOT_FOUND, "密钥不存在");
+            // 1. 校验密钥
+            ValidationResult keyValid = activeKeyValid(keyActiveDto.getApiKey(), keyActiveDto.getDeviceID());
+            if (!keyValid.isSuccess()) {
+                throw new BizException(keyValid.getErrorCode(),
+                        keyValid.getErrorMessage() == null ? keyValid.getErrorCode().msg() : keyValid.getErrorMessage());
             }
 
-            // 2. 校验激活资格（独立于 validateKey）
-            // 2.1 状态必须启用
-            if (keyInfo.getStatus() != 1) {
-                throw new BizException(BizStatus.KEY_INACTIVE, "密钥已被禁用");
-            }
-
-            // 2.2 必须未激活（activated = 0）
-            Byte activated = keyInfo.getActivated();
-            if (activated != null && activated == 1) {
-                // 幂等性检查：是否同一设备？
-                if (Objects.equals(keyInfo.getActivationDevice(), keyActiveDto.getDeviceID())) {
-                    return keyInfo; // 已激活且设备一致，直接返回
-                } else {
-                    throw new BizException(BizStatus.KEY_ALREADY_ACTIVATED, "密钥已在其他设备激活，请先解绑");
-                }
-            }
-
-            // 2.3 检查激活次数是否充足（仅当有限次数时）
+            KeyInfo keyInfo = keyValid.getKeyInfo();
+            // 总激活次数
             Integer actNum = keyInfo.getActivationsNum();
+            // 剩余激活次数
             Integer remAct = keyInfo.getRemainingActiveNum();
-
-            if (actNum != null && actNum > 0) {
-                if (remAct == null || remAct <= 0) {
-                    throw new BizException(BizStatus.KEY_NON_ACTIVATIONS, "激活次数已用完");
-                }
-            } else if (actNum != null && actNum == 0) {
-                // 无限激活：remaining_active_num 必须为 0（按约定）
-                if (remAct != null && remAct != 0) {
-                    log.warn("Invalid remaining_active_num for unlimited activation key: key={}, actNum=0, remAct={}",
-                            keyInfo.getKeyValue(), remAct);
-                    throw new BizException(BizStatus.KEY_INVALID_STATE, "密钥数据异常，请联系管理员");
-                }
-            } else {
-                throw new BizException(BizStatus.KEY_INVALID_STATE, "激活次数配置异常");
-            }
-
-            // 2.4 检查过期（未激活的密钥也可能过期）
-            LocalDateTime expiryTime = keyInfo.getExpiryTime();
-            if (expiryTime != null && expiryTime.isBefore(LocalDateTime.now())) {
-                throw new BizException(BizStatus.KEY_EXPIRED, "密钥已过期");
-            }
 
             // 3. 构建更新对象（推荐：只更新需变更字段，避免覆盖 null 值）
             KeyInfo updateEntity = new KeyInfo();
@@ -295,7 +209,7 @@ public class KeyInfoManagerService {
             updateEntity.setActivated((byte) 1);
 
             // 3.2 扣减激活次数（仅限有限次数场景）
-            if (actNum != null && actNum > 0 && remAct != null) {
+            if (actNum > 0) {
                 updateEntity.setRemainingActiveNum(remAct - 1);
             }
             // 若 actNum == 0（无限次），remaining_active_num 保持原值（应为 0），无需更新
@@ -388,6 +302,58 @@ public class KeyInfoManagerService {
         }
     }
 
+    private ValidationResult activeKeyValid(String apiKey, String deviceID) {
+        // 1. 查询密钥
+        KeyInfo keyInfo = keyInfoService.getByKeyValue(apiKey);
+        if (keyInfo == null) {
+            return ValidationResult.failure("密钥不存在", BizStatus.KEY_NOT_FOUND);
+        }
+
+        // 2. 校验激活资格（独立于 validateKey）
+        // 2.1 状态必须启用
+        if (keyInfo.getStatus() != 1) {
+            return ValidationResult.failure("密钥已被禁用", BizStatus.KEY_INACTIVE);
+        }
+
+        // 2.2 如果激活过（activated = 1）
+        Byte activated = keyInfo.getActivated();
+        if (activated != null && activated == 1) {
+            // 检查是否同一设备
+            // if (Objects.equals(keyInfo.getActivationDevice(), deviceID)) {
+            //     return keyInfo; // 已激活且设备一致，直接返回
+            // } else {
+            //     throw new BizException(BizStatus.KEY_ALREADY_ACTIVATED, "密钥已在其他设备激活，请先解绑");
+            // }
+        }
+
+        // 2.3 检查激活次数是否充足（仅当有限次数时）
+        Integer actNum = keyInfo.getActivationsNum();
+        Integer remAct = keyInfo.getRemainingActiveNum();
+
+        if (actNum != null && actNum > 0) {
+            // 有限激活次数： remaining_active_num 必须不为 null 且 > 0
+            if (remAct == null || remAct <= 0) {
+                return ValidationResult.failure("激活次数已用完", BizStatus.KEY_NON_ACTIVATIONS);
+            }
+        } else if (actNum != null && actNum == 0) {
+            // 无限激活次数：remaining_active_num 必须为 0（按约定）
+            if (remAct != null && remAct != 0) {
+                log.warn("密钥数据异常: key={}, actNum=0, remAct={}", keyInfo.getKeyValue(), remAct);
+                return ValidationResult.failure("密钥数据异常，请联系管理员", BizStatus.KEY_INVALID_STATE);
+            }
+        } else {
+            log.warn("激活次数配置异常: key={}, actNum={}, remAct={}", keyInfo.getKeyValue(),actNum, remAct);
+            return ValidationResult.failure("激活次数配置异常", BizStatus.KEY_INVALID_STATE);
+        }
+
+        // 2.4 检查过期（未激活的密钥也可能过期）
+        LocalDateTime expiryTime = keyInfo.getExpiryTime();
+        if (expiryTime != null && expiryTime.isBefore(LocalDateTime.now())) {
+            return ValidationResult.failure("密钥已过期", BizStatus.KEY_EXPIRED);
+        }
+
+        return ValidationResult.success(keyInfo);
+    }
 
     /**
      * 密钥生成（一小时无限制使用的密钥）
