@@ -1,9 +1,10 @@
-# 自定义配置
+# ===================== 自定义配置 =======================
 xiaoyan:
   license:
     # 卡密加密密钥
     key: ${LICENSE_KEY}
 
+# ===================== spring 配置 =======================
 spring:
   application:
     name: xiaoyanQt-serve
