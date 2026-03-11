@@ -2,7 +2,7 @@
 xiaoyan:
   license:
     # 卡密加密密钥
-    key: ${LICENSE_KEY}
+    key: ${LICENSE_KEY:P9X7M2K4ZQ8F1T6W3R5N0A8L2Y7B4C9D6E1H5J3U8V2S4}
 
 # ===================== spring 配置 =======================
 spring:
