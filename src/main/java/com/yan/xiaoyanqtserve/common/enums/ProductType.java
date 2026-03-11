@@ -9,8 +9,9 @@ import lombok.Getter;
  */
 @Getter
 public enum ProductType {
-    AI_REWRITE_BASIC("ai_rewrite_basic", "基础AIGC降重"),
-    AI_REWRITE_VIP("ai_rewrite_vip", "VIP AIGC降重");
+    ONE_HOUR_UNLIMITED_USES("one_hour_unlimited_uses", "一小时内无使用限制"),
+    AIGC_BASIC("aigc_basic", "基础AIGC降重"),
+    AIGC_VIP("aigc_vip", "VIP AIGC降重");
 
     /**
      * 类型

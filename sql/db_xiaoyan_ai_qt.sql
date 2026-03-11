@@ -11,7 +11,7 @@
  Target Server Version : 80028 (8.0.28)
  File Encoding         : 65001
 
- Date: 03/02/2026 22:54:53
+ Date: 11/03/2026 15:25:02
 */
 
 SET NAMES utf8mb4;
@@ -25,7 +25,7 @@ CREATE TABLE `admin_user`  (
   `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键ID',
   `username` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '管理员账号名，用于登录',
   `password_hash` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '密码哈希值，推荐使用BCrypt等强哈希算法',
-  `role` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT 'ADMIN' COMMENT '角色，例如: ADMIN, OPERATOR',
+  `role` enum('ADMIN') CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT 'ADMIN' COMMENT '角色，例如: ADMIN, OPERATOR',
   `email` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '邮箱地址，可选',
   `phone` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '联系电话，可选',
   `last_login_time` datetime NULL DEFAULT NULL COMMENT '最后登录时间',
@@ -34,7 +34,7 @@ CREATE TABLE `admin_user`  (
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `username`(`username` ASC) USING BTREE,
   INDEX `idx_username`(`username` ASC) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '管理员用户表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '管理员用户表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for key_info
@@ -44,13 +44,17 @@ CREATE TABLE `key_info`  (
   `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键ID',
   `key_value` varchar(35) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '32位密钥值，唯一索引',
   `status` tinyint NOT NULL DEFAULT 1 COMMENT '密钥状态: 0-禁用, 1-启用',
-  `total_uses` int NOT NULL DEFAULT 0 COMMENT '总使用次数，0表示无限制',
-  `remaining_uses` int NOT NULL DEFAULT 0 COMMENT '剩余使用次数，0表示无限制或已用完',
+  `total_uses` int NOT NULL DEFAULT 0 COMMENT '总使用次数(降AI)，0表示无限制',
+  `remaining_uses` int NOT NULL DEFAULT 0 COMMENT '剩余使用次数(降AI)。\r\ntotal_uses>0时，re_uses=0表示已用完，re_uses>0表示剩余使用次数；total_uses=0时，re_uses表示无限制',
   `product_type` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '产品类型或套餐标识，例如: \"ai_rewrite_vip\", \"ai_rewrite_basic\"',
-  `activated_time` datetime NULL DEFAULT NULL COMMENT '激活时间',
+  `activations_num` int NOT NULL DEFAULT 0 COMMENT '激活次数，0-无次数限制',
+  `remaining_active_num` int NOT NULL DEFAULT 0 COMMENT '剩余激活次数。\r\nactiveNum>0时，reNum=0表示已用完，reNum>0表示剩余激活次数；activeNum=0时，reNum表示无限制',
+  `activated` tinyint NOT NULL DEFAULT 0 COMMENT '激活状态: 0-未激活, 1-已激活',
+  `activation_device` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '激活设备',
+  `activation_time` datetime NULL DEFAULT NULL COMMENT '激活时间',
   `expiry_time` datetime NULL DEFAULT NULL COMMENT '过期时间，可为空表示永不过期',
-  `notes` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL COMMENT '备注信息',
-  `admin_created_by` bigint NULL DEFAULT NULL COMMENT '创建该密钥的管理员ID，关联admin_user表',
+  `remark` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL COMMENT '备注信息',
+  `created_by` bigint NULL DEFAULT NULL COMMENT '创建该密钥的管理员ID，关联admin_user表',
   `created_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `updated_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`) USING BTREE,
@@ -59,8 +63,8 @@ CREATE TABLE `key_info`  (
   INDEX `idx_status`(`status` ASC) USING BTREE,
   INDEX `idx_remaining_uses`(`remaining_uses` ASC) USING BTREE,
   INDEX `idx_expiry_time`(`expiry_time` ASC) USING BTREE,
-  INDEX `idx_admin_created_by`(`admin_created_by` ASC) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '密钥信息表' ROW_FORMAT = Dynamic;
+  INDEX `idx_created_by`(`created_by` ASC) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 101 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '密钥信息表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for request_log
@@ -77,6 +81,24 @@ CREATE TABLE `request_log`  (
   INDEX `idx_key_value_used`(`key_value_used` ASC) USING BTREE,
   INDEX `idx_request_time`(`request_time` ASC) USING BTREE,
   INDEX `idx_client_ip`(`client_ip` ASC) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = 'API请求日志表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = 'API请求日志表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Table structure for sys_config
+-- ----------------------------
+DROP TABLE IF EXISTS `sys_config`;
+CREATE TABLE `sys_config`  (
+  `config_id` int NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+  `config_key` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '配置项 Key，如 system.email、dashscope.apiKey',
+  `config_value` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '配置值',
+  `config_group` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '分组，如 system、dashscope',
+  `config_type` enum('string','int','boolean','json') CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT 'string' COMMENT '类型：string、int、boolean、json',
+  `status` int NOT NULL DEFAULT 1 COMMENT '状态，1：启用，0：禁用',
+  `remark` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '说明/备注',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  PRIMARY KEY (`config_id`) USING BTREE,
+  UNIQUE INDEX `config_key`(`config_key` ASC) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 14 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '系统全局可变配置表' ROW_FORMAT = Dynamic;
 
 SET FOREIGN_KEY_CHECKS = 1;

@@ -49,23 +49,23 @@ public class KeyInfo implements Serializable {
     private Byte status;
 
     /**
+     * 产品类型或套餐标识，例如: "ai_rewrite_vip", "ai_rewrite_basic"
+     */
+    @TableField("product_type")
+    private String productType;
+
+    /**
      * 总使用次数(降AI)，0表示无限制
      */
     @TableField("total_uses")
     private Integer totalUses;
 
     /**
-     * 剩余使用次数(降AI)。
-     * total_uses>0时，re_uses=0表示已用完，re_uses>0表示剩余使用次数；total_uses=0时，re_uses表示无限制
+     * 剩余使用次数(降AI)，表示已用完或无限制。
+     * total_uses>0时，re_uses=0表示已用完，re_uses>0表示剩余使用次数；total_uses=0时，re_uses必须设置0表示无限制
      */
     @TableField("remaining_uses")
     private Integer remainingUses;
-
-    /**
-     * 产品类型或套餐标识，例如: "ai_rewrite_vip", "ai_rewrite_basic"
-     */
-    @TableField("product_type")
-    private String productType;
 
     /**
      * 激活次数，0-无次数限制
@@ -74,11 +74,17 @@ public class KeyInfo implements Serializable {
     private Integer activationsNum;
 
     /**
-     * 剩余激活次数。
-     * activeNum>0时，reNum=0表示已用完，reNum>0表示剩余激活次数；activeNum=0时，reNum表示无限制
+     * 剩余激活次数，表示已用完或无限制。
+     * activeNum>0时，reNum=0表示已用完，reNum>0表示剩余激活次数；activeNum=0时，reNum必须设置0表示无限制
      */
     @TableField("remaining_active_num")
     private Integer remainingActiveNum;
+
+    /**
+     * 激活状态: 0-未激活, 1-已激活
+     */
+    @TableField("activated")
+    private Byte activated;
 
     /**
      * 激活设备

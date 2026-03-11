@@ -50,12 +50,15 @@ public enum BizStatus {
     CODE_HAS_SENT(1201, "验证码已发送，请勿重复发送！"),
 
     KEY_VALID(1500, "密钥验证成功"),
-    KEY_NOT_FOUND(1501, "密钥不存在"),
-    KEY_FORMAT_INVALID(1502, "密钥格式非法"),
-    KEY_INACTIVE(1503, "密钥未启用"),
-    KEY_EXPIRED(1504, "密钥已过期"),
-    KEY_NON_ACTIVATIONS(1505, "密钥激活次数已用完"),
-    KEY_NON_USES(1506, "密钥功能使用次数已用完");
+    KEY_INVALID_STATE(1501, "密钥数值非法"),
+    KEY_INVALID_FORMAT(1502, "密钥格式非法"),
+    KEY_NOT_FOUND(1503, "密钥不存在"),
+    KEY_INACTIVE(1504, "密钥未启用"),
+    KEY_EXPIRED(1505, "密钥已过期"),
+
+    KEY_NOT_ACTIVATED(1506, "密钥未激活"),
+    KEY_NON_ACTIVATIONS(1507, "密钥激活次数已用完"),
+    KEY_NON_USES(1508, "密钥功能使用次数已用完");
 
 
     BizStatus(int code, String msg) {
