@@ -1,8 +1,9 @@
-package com.yan.xiaoyanqtserve.common.dto;
+package com.yan.xiaoyanqtserve.common.dto.aigc;
 
 import lombok.Data;
 
 /**
+ * 模型处理结果封装
  * @author yanchen
  * @since 2025/8/12 12:47
  */
@@ -20,5 +21,4 @@ public class AigcModelResultDto {
     private Integer outputTokens;
     // 模型输入输出的token数之和
     private Integer totalTokens;
-
 }

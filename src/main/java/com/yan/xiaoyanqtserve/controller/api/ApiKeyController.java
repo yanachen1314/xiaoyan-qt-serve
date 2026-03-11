@@ -1,21 +1,13 @@
 package com.yan.xiaoyanqtserve.controller.api;
 
-import com.yan.xiaoyanqtserve.common.Constants;
-import com.yan.xiaoyanqtserve.common.dto.AigcDealDto;
+import com.yan.xiaoyanqtserve.common.dto.aigc.AigcRequestDto;
 import com.yan.xiaoyanqtserve.common.enums.BizStatus;
 import com.yan.xiaoyanqtserve.common.utils.SecurityContextUtil;
 import com.yan.xiaoyanqtserve.entity.KeyInfo;
-import com.yan.xiaoyanqtserve.security.AdminUserDetails;
-import com.yan.xiaoyanqtserve.service.RequestLogService;
 import com.yan.xiaoyanqtserve.common.utils.ApiResponse;
-import com.yan.xiaoyanqtserve.service.impl.KeyInfoManagerService;
 import jakarta.annotation.Resource;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -41,11 +33,11 @@ public class ApiKeyController {
 
     /**
      * AI处理接口
-     * @param aigcDealDto AI处理参数
+     * @param aigcRequestDto AI处理参数
      * @return 处理结果
      */
     @PostMapping("/deal/text")
-    public ApiResponse<?> aiDeal(@Valid @RequestBody AigcDealDto aigcDealDto) {
+    public ApiResponse<?> aiDeal(@Valid @RequestBody AigcRequestDto aigcRequestDto) {
         KeyInfo apiKeyUser = securityContextUtil.getApiKeyUser();
         if(!securityContextUtil.isApiKeyUser() || Objects.isNull(apiKeyUser)){
             return ApiResponse.fail(BizStatus.KEY_NOT_FOUND);

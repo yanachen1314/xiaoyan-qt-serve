@@ -10,7 +10,7 @@ import com.alibaba.dashscope.exception.ApiException;
 import com.alibaba.dashscope.exception.InputRequiredException;
 import com.alibaba.dashscope.exception.NoApiKeyException;
 import com.yan.xiaoyanqtserve.common.Constants;
-import com.yan.xiaoyanqtserve.common.dto.AigcModelResultDto;
+import com.yan.xiaoyanqtserve.common.dto.aigc.AigcModelResultDto;
 import com.yan.xiaoyanqtserve.common.enums.ConfigType;
 import com.yan.xiaoyanqtserve.exception.BizException;
 import com.yan.xiaoyanqtserve.service.SysConfigService;
