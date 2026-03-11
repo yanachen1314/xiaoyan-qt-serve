@@ -104,7 +104,6 @@ public class PublicController {
                     .currentVersion(version)
                     .latest(true)
                     .updateRequired(false)
-                    .updateLevel("none")
                     .message("服务器版本信息未配置，请联系管理员")
                     .linkUrl(linkUrl)
                     .build());
@@ -119,7 +118,6 @@ public class PublicController {
                 .currentVersion(version)
                 .latest(result.isLatest())
                 .updateRequired(result.isUpdateRequired())
-                .updateLevel(result.getUpdateLevel())
                 .message(result.getMessage())
                 .linkUrl(linkUrl)
                 .build();

@@ -25,10 +25,7 @@ public class VersionCheckVo {
      * 是否需要更新
      */
     private Boolean updateRequired;
-    /**
-     * 更新级别 major/minor/patch/none/unknown
-     */
-    private String updateLevel;
+
     /**
      * 提示语
      */
