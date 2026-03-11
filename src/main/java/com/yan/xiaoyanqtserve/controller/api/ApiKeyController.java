@@ -43,7 +43,7 @@ public class ApiKeyController {
      * @return 处理结果
      */
     @PostMapping("/deal/text")
-    public ApiResponse<?> aiDeal(@Valid @RequestBody AigcRequestDto aigcRequestDto) {
+    public ApiResponse<AigcResponseDto> aigcDealText(@Valid @RequestBody AigcRequestDto aigcRequestDto) {
         KeyInfo apiKeyUser = securityContextUtil.getApiKeyUser();
         if(!securityContextUtil.isApiKeyUser() || Objects.isNull(apiKeyUser)){
             return ApiResponse.fail(BizStatus.KEY_NOT_FOUND);

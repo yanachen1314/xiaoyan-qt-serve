@@ -5,6 +5,7 @@ import com.yan.xiaoyanqtserve.common.dto.aigc.AigcResponseDto;
 import com.yan.xiaoyanqtserve.common.utils.MainUtil;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -26,11 +27,10 @@ public class AigcService {
     // 文本段落最大字符数
     private static final Integer AIGC_MAX_CHAR_INPUT = 1000;
     // 段落最小字符数
-    private static final Integer AIGC_MIN_CHAR_INPUT = 100;
+    private static final Integer AIGC_MIN_CHAR_INPUT = 10;
 
     /**
      * 文本处理（支持多个段落）
-     *
      * @param content     待处理的内容（包含多个段落）
      * @return 处理后的结果
      */
@@ -41,8 +41,6 @@ public class AigcService {
             throw new RuntimeException("没有有效的段落内容！");
         }
 
-        log.info("paragraphs List: {}", paragraphs);
-
         // 计算总字符数（总消耗点币）
         Integer totalCharCount = paragraphs.stream()
                 .mapToInt(MainUtil::accurateCharCount)
@@ -50,9 +48,28 @@ public class AigcService {
         // 验证输入文本（最大1000）
         if (totalCharCount > AIGC_MAX_CHAR_INPUT) {
             throw new RuntimeException(
-                    "输入内容字符数不在允许范围内（" + AIGC_MIN_CHAR_INPUT + "-" + AIGC_MAX_CHAR_INPUT + "）");
+                    "输入字符非法，仅允许" + AIGC_MIN_CHAR_INPUT + "-" + AIGC_MAX_CHAR_INPUT + "字");
+        }
+        if (totalCharCount < AIGC_MIN_CHAR_INPUT) {
+            throw new RuntimeException(
+                    "输入字符非法，仅允许" + AIGC_MIN_CHAR_INPUT + "-" + AIGC_MAX_CHAR_INPUT + "字");
         }
 
+        // 使用模型处理文本，返回处理结果
+        String outputText = dealTextByModel(content, paragraphs);
+
+        // 处理成功，返回结果
+        return new AigcResponseDto(outputText, totalCharCount);
+    }
+
+    /**
+     * 使用模型处理文本
+     * @param content 输入的原始文本
+     * @param paragraphs 原始文本的段落列表
+     * @return 处理后的结果
+     */
+    @NotNull
+    private String dealTextByModel(String content, List<String> paragraphs) {
         // 并行处理每个段落
         List<AigcModelResultDto> modelResults = paragraphs.parallelStream()
                 .map(modelService::chatModel)
@@ -78,10 +95,7 @@ public class AigcService {
         integratedResult.setInputTokens(totalInputTokens);
         integratedResult.setOutputTokens(totalOutputTokens);
         integratedResult.setTotalTokens(totalInputTokens + totalOutputTokens);
-
-
-        // 处理成功，返回结果
-        return new AigcResponseDto(outputText, totalCharCount);
+        return outputText;
     }
 
     /**

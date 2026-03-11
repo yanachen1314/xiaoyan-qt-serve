@@ -42,17 +42,17 @@ public class KeyInfoManagerService {
      * @return 验证结果
      */
     public ValidationResult validateKey(String apiKey) {
-        // 验证密钥格式是否非法
-        if (!licenseKeyGenerator.verify(apiKey)) {
-            return ValidationResult.failure(BizStatus.KEY_FORMAT_INVALID);
-        }
-
         // 根据 API Key 查询数据库中的 KeyInfo 记录
         KeyInfo keyInfo = keyInfoService.getByKeyValue(apiKey);
 
         // 验证密钥是否存在
         if (keyInfo == null) {
             return ValidationResult.failure(BizStatus.KEY_NOT_FOUND);
+        }
+
+        // 验证密钥格式是否非法
+        if (!licenseKeyGenerator.verify(apiKey)) {
+            return ValidationResult.failure(BizStatus.KEY_FORMAT_INVALID);
         }
 
         // 验证密钥状态是否为启用（status = 1）
