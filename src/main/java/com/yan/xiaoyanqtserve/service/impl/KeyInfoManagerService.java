@@ -6,10 +6,12 @@ import com.yan.xiaoyanqtserve.common.dto.key.ValidationResult;
 import com.yan.xiaoyanqtserve.common.enums.ProductType;
 import com.yan.xiaoyanqtserve.common.enums.BizStatus;
 import com.yan.xiaoyanqtserve.common.utils.LicenseKeyGenerator;
+import com.yan.xiaoyanqtserve.common.utils.RedisLockUtil;
 import com.yan.xiaoyanqtserve.entity.KeyInfo;
 import com.yan.xiaoyanqtserve.exception.BizException;
 import com.yan.xiaoyanqtserve.service.KeyInfoService;
 import jakarta.annotation.Resource;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,6 +23,7 @@ import java.util.List;
  * @author yanchen
  * @since 2026/2/3 18:18
  */
+@Slf4j
 @Service
 public class KeyInfoManagerService {
 
@@ -29,6 +32,9 @@ public class KeyInfoManagerService {
 
     @Resource
     private KeyInfoService keyInfoService;
+
+    @Resource
+    private RedisLockUtil redisLockUtil;
 
     /**
      * 验证 API Key是否还有效
@@ -84,33 +90,46 @@ public class KeyInfoManagerService {
      */
     @Transactional(rollbackFor = Exception.class)
     public KeyInfo activateKey(KeyActiveDto keyActiveDto) {
-        // 根据 API Key 查询密钥
-        ValidationResult validationResult = validateKey(keyActiveDto.getApiKey());
+        // 锁的唯一标识
+        String lockKey = "Lock_" + keyActiveDto.getApiKey();
 
-        // 校验失败，返回错误信息
-        if (!validationResult.isSuccess()) {
-            throw new BizException(validationResult.getErrorCode(),
-                    validationResult.getErrorMessage() == null ?
-                    validationResult.getErrorCode().msg() :
-                    validationResult.getErrorMessage());
+        if (!redisLockUtil.lock(lockKey, 10)) {
+            throw new BizException("系统繁忙，请稍后再试！");
         }
 
-        KeyInfo keyInfo = validationResult.getKeyInfo();
-        // 更新密钥的激活设备
-        keyInfo.setActivationDevice(keyActiveDto.getDeviceID());
-        // 扣减密钥的激活次数todo
-        keyInfo.setRemainingActiveNum(keyInfo.getRemainingActiveNum() - 1);
-        // 更新密钥的激活时间
-        LocalDateTime now = LocalDateTime.now();
-        keyInfo.setActivationTime(now);
-        // 设置密钥的到期时间（一个小时后过期）
-        keyInfo.setExpiryTime(now.plusHours(1));
-        // 保存更新后的密钥信息
-        boolean updated = keyInfoService.updateById(keyInfo);
-        if (!updated) {
-            throw new BizException("密钥激活异常，请稍后再试！");
+        try {
+            // 根据 API Key 查询密钥
+            ValidationResult validationResult = validateKey(keyActiveDto.getApiKey());
+
+            // 校验失败，返回错误信息
+            if (!validationResult.isSuccess()) {
+                throw new BizException(validationResult.getErrorCode(),
+                        validationResult.getErrorMessage() == null ?
+                                validationResult.getErrorCode().msg() :
+                                validationResult.getErrorMessage());
+            }
+
+            KeyInfo keyInfo = validationResult.getKeyInfo();
+            // 更新密钥的激活设备
+            keyInfo.setActivationDevice(keyActiveDto.getDeviceID());
+            // 扣减密钥的激活次数todo
+            keyInfo.setRemainingActiveNum(keyInfo.getRemainingActiveNum() - 1);
+            // 更新密钥的激活时间
+            LocalDateTime now = LocalDateTime.now();
+            keyInfo.setActivationTime(now);
+            // 设置密钥的到期时间（一个小时后过期）
+            keyInfo.setExpiryTime(now.plusHours(1));
+            // 保存更新后的密钥信息
+            boolean updated = keyInfoService.updateById(keyInfo);
+            if (!updated) {
+                throw new BizException("密钥激活异常，请稍后再试！");
+            }
+            return keyInfo;
+        } finally {
+            // 一定要在finally中释放锁，确保异常时也能释放
+            redisLockUtil.unlock(lockKey);
         }
-        return keyInfo;
+
     }
 
 
