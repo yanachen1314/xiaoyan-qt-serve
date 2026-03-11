@@ -16,7 +16,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * 请求处理服务
@@ -163,10 +165,9 @@ public class KeyInfoManagerService {
      * @param keyActiveDto 激活密钥参数
      */
     @Transactional(rollbackFor = Exception.class)
-    public KeyInfo activateKey(KeyActiveDto keyActiveDto) {
+    public KeyInfo activateKey1(KeyActiveDto keyActiveDto) {
         // 锁的唯一标识
         String lockKey = "Lock_" + keyActiveDto.getApiKey();
-
         if (!redisLockUtil.lock(lockKey, 10)) {
             throw new BizException("系统繁忙，请稍后再试！");
         }
@@ -208,8 +209,185 @@ public class KeyInfoManagerService {
             // 一定要在finally中释放锁，确保异常时也能释放
             redisLockUtil.unlock(lockKey);
         }
-
     }
+
+
+    /**
+     * 激活密钥。
+     * <p>
+     * 业务规则：
+     * <ul>
+     *   <li>激活资格：密钥必须启用（status=1）、未激活（activated=0）、未过期</li>
+     *   <li>激活次数处理：
+     *     <ul>
+     *       <li>{@code activations_num > 0}：从 {@code remaining_active_num} 扣 1，扣至 0 后不能再激活</li>
+     *       <li>{@code activations_num = 0}：无限制激活，{@code remaining_active_num} 保持 0</li>
+     *     </ul>
+     *   </li>
+     *   <li>激活后状态：{@code activated = 1}，记录设备、时间，并按 {@code product_type} 设置使用权益</li>
+     *   <li>幂等性：同一设备重复激活 → 返回已激活状态；不同设备 → 报错</li>
+     * </ul>
+     *
+     * @param keyActiveDto 激活参数（apiKey + deviceID）
+     * @return 激活成功的密钥信息
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public KeyInfo activateKey(KeyActiveDto keyActiveDto) {
+        String lockKey = "Lock_" + keyActiveDto.getApiKey();
+        if (!redisLockUtil.lock(lockKey, 10)) {
+            throw new BizException("系统繁忙，请稍后再试！");
+        }
+
+        try {
+            // 1. 查询密钥
+            KeyInfo keyInfo = keyInfoService.getByKeyValue(keyActiveDto.getApiKey());
+            if (keyInfo == null) {
+                throw new BizException(BizStatus.KEY_NOT_FOUND, "密钥不存在");
+            }
+
+            // 2. 校验激活资格（独立于 validateKey）
+            // 2.1 状态必须启用
+            if (keyInfo.getStatus() != 1) {
+                throw new BizException(BizStatus.KEY_INACTIVE, "密钥已被禁用");
+            }
+
+            // 2.2 必须未激活（activated = 0）
+            Byte activated = keyInfo.getActivated();
+            if (activated != null && activated == 1) {
+                // 幂等性检查：是否同一设备？
+                if (Objects.equals(keyInfo.getActivationDevice(), keyActiveDto.getDeviceID())) {
+                    return keyInfo; // 已激活且设备一致，直接返回
+                } else {
+                    throw new BizException(BizStatus.KEY_ALREADY_ACTIVATED, "密钥已在其他设备激活，请先解绑");
+                }
+            }
+
+            // 2.3 检查激活次数是否充足（仅当有限次数时）
+            Integer actNum = keyInfo.getActivationsNum();
+            Integer remAct = keyInfo.getRemainingActiveNum();
+
+            if (actNum != null && actNum > 0) {
+                if (remAct == null || remAct <= 0) {
+                    throw new BizException(BizStatus.KEY_NON_ACTIVATIONS, "激活次数已用完");
+                }
+            } else if (actNum != null && actNum == 0) {
+                // 无限激活：remaining_active_num 必须为 0（按约定）
+                if (remAct != null && remAct != 0) {
+                    log.warn("Invalid remaining_active_num for unlimited activation key: key={}, actNum=0, remAct={}",
+                            keyInfo.getKeyValue(), remAct);
+                    throw new BizException(BizStatus.KEY_INVALID_STATE, "密钥数据异常，请联系管理员");
+                }
+            } else {
+                throw new BizException(BizStatus.KEY_INVALID_STATE, "激活次数配置异常");
+            }
+
+            // 2.4 检查过期（未激活的密钥也可能过期）
+            LocalDateTime expiryTime = keyInfo.getExpiryTime();
+            if (expiryTime != null && expiryTime.isBefore(LocalDateTime.now())) {
+                throw new BizException(BizStatus.KEY_EXPIRED, "密钥已过期");
+            }
+
+            // 3. 构建更新对象（推荐：只更新需变更字段，避免覆盖 null 值）
+            KeyInfo updateEntity = new KeyInfo();
+            updateEntity.setId(keyInfo.getId());
+
+            // 3.1 设置激活状态
+            updateEntity.setActivated((byte) 1);
+
+            // 3.2 扣减激活次数（仅限有限次数场景）
+            if (actNum != null && actNum > 0 && remAct != null) {
+                updateEntity.setRemainingActiveNum(remAct - 1);
+            }
+            // 若 actNum == 0（无限次），remaining_active_num 保持原值（应为 0），无需更新
+
+            // 3.3 设置激活信息
+            updateEntity.setActivationDevice(keyActiveDto.getDeviceID());
+            LocalDateTime now = LocalDateTime.now();
+            updateEntity.setActivationTime(now);
+
+            // 3.4 根据 product_type 配置使用权益（关键！）
+            configureUsageRights(updateEntity, keyInfo.getProductType(), now);
+
+            // 3.5 更新备注（可选）
+            updateEntity.setRemark(String.format("激活时间: %s | 设备: %s",
+                    now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
+                    keyActiveDto.getDeviceID()));
+
+            // 4. 执行更新（MyBatis-Plus updateById 会自动忽略 null 字段）
+            boolean updated = keyInfoService.updateById(updateEntity);
+            if (!updated) {
+                throw new BizException("密钥激活失败，请重试");
+            }
+
+            // 5. 合并更新结果到返回对象（确保调用方拿到最新值）
+            keyInfo.setActivated((byte) 1);
+            keyInfo.setActivationDevice(updateEntity.getActivationDevice());
+            keyInfo.setActivationTime(updateEntity.getActivationTime());
+            keyInfo.setRemark(updateEntity.getRemark());
+
+            // 仅当 updateEntity 显式设置了字段时才覆盖（避免 null 覆盖原值）
+            if (updateEntity.getRemainingActiveNum() != null) {
+                keyInfo.setRemainingActiveNum(updateEntity.getRemainingActiveNum());
+            }
+            if (updateEntity.getTotalUses() != null) {
+                keyInfo.setTotalUses(updateEntity.getTotalUses());
+            }
+            if (updateEntity.getRemainingUses() != null) {
+                keyInfo.setRemainingUses(updateEntity.getRemainingUses());
+            }
+            if (updateEntity.getExpiryTime() != null) {
+                keyInfo.setExpiryTime(updateEntity.getExpiryTime());
+            }
+
+            return keyInfo;
+
+        } finally {
+            redisLockUtil.unlock(lockKey);
+        }
+    }
+
+    /**
+     * 根据产品类型配置激活后的使用权益。
+     * <p>
+     * 注意：此方法只设置 {@code total_uses}, {@code remaining_uses}, {@code expiry_time}，
+     * 其他字段（如 activated）由调用方设置。
+     *
+     * @param target 待更新的 KeyInfo 对象（非 null）
+     * @param productType 产品类型标识（如 "ai_vip_hourly"）
+     * @param activationTime 激活时间（用于计算过期时间）
+     */
+    private void configureUsageRights(KeyInfo target, String productType, LocalDateTime activationTime) {
+        Objects.requireNonNull(target, "target cannot be null");
+        Objects.requireNonNull(productType, "productType cannot be null");
+
+        switch (productType) {
+            case "ai_vip_hourly":
+                target.setTotalUses(0);          // 0 = 无限制
+                target.setRemainingUses(0);      // 无限制时必须为 0
+                target.setExpiryTime(activationTime.plusHours(1));
+                break;
+
+            case "ai_basic_100":
+                target.setTotalUses(100);
+                target.setRemainingUses(100);    // 激活后可用 100 次
+                target.setExpiryTime(null);      // 永            break;
+
+            case "ai_pro":
+                target.setTotalUses(0);
+                target.setRemainingUses(0);
+                target.setExpiryTime(activationTime.plusDays(30));
+                break;
+
+            default:
+                // 安全兜底：1小时无限制
+                log.warn("未知 productType: {}, 使用默认配置: 1小时无限制", productType);
+                target.setTotalUses(0);
+                target.setRemainingUses(0);
+                target.setExpiryTime(activationTime.plusHours(1));
+                break;
+        }
+    }
+
 
     /**
      * 密钥生成（一小时无限制使用的密钥）

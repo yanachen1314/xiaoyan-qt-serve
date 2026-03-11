@@ -7,7 +7,10 @@ import com.yan.xiaoyanqtserve.common.dto.adminUser.AdminUserResponse;
 import com.yan.xiaoyanqtserve.common.dto.key.KeyActiveDto;
 import com.yan.xiaoyanqtserve.common.enums.RateLimiterType;
 import com.yan.xiaoyanqtserve.common.enums.Role;
+import com.yan.xiaoyanqtserve.common.utils.VersionCheckUtil;
 import com.yan.xiaoyanqtserve.common.vo.KeyActiveVo;
+import com.yan.xiaoyanqtserve.common.vo.VersionCheckVo;
+import com.yan.xiaoyanqtserve.common.vo.VersionComparisonResult;
 import com.yan.xiaoyanqtserve.entity.AdminUser;
 import com.yan.xiaoyanqtserve.entity.KeyInfo;
 import com.yan.xiaoyanqtserve.security.AdminUserDetails;
@@ -27,7 +30,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
-import java.util.Map;
 
 /**
  * 公开控制器
@@ -59,10 +61,12 @@ public class PublicController {
 
     /**
      * 密钥激活接口
+     * <p>
+     * 一个IP地址每秒只能请求10次
      * @param keyActiveDto 激活密钥参数
      * @return 激活结果
      */
-    @RateLimiter(key = "active", limitBy = RateLimiterType.API_KEY)
+    @RateLimiter(key = "active", time = 1, count = 10, limitBy = RateLimiterType.IP)
     @PostMapping("/active")
     public ApiResponse<?> activateKey(@Valid @RequestBody KeyActiveDto keyActiveDto) {
         // 调用 KeyInfoService 的 activateKey 方法激活密钥
@@ -80,17 +84,47 @@ public class PublicController {
 
     /**
      * 自动检查版本接口
-     * @return 检查结果
+     *
+     * @param version 客户端当前版本，格式如 "v1.0.0" 或 "1.0.0"
+     * @return 版本检查结果
      */
     @GetMapping("/check/{version}")
     public ApiResponse<?> autoCheckVersion(@PathVariable("version") String version) {
+        // 1. 获取服务器最新版本
         String versionKey = "system.version";
-        String value = sysConfigService.getValue(versionKey);
-        return ApiResponse.success(Map.of(
-                "latest",version.equals(value),
-                "version",value,
-                "linkUrl","" // 软件的网盘链接地址
-        ));
+        String latestVersion = sysConfigService.getValue(versionKey);
+
+        String linkKey = "system.updateLink";
+        String linkUrl = sysConfigService.getValue(linkKey);
+
+        if (latestVersion == null || latestVersion.trim().isEmpty()) {
+            log.error("System config key '{}' is missing or empty.", versionKey);
+            return ApiResponse.success(VersionCheckVo.builder()
+                    .version("v0.0.0")
+                    .currentVersion(version)
+                    .latest(true)
+                    .updateRequired(false)
+                    .updateLevel("none")
+                    .message("服务器版本信息未配置，请联系管理员")
+                    .linkUrl(linkUrl)
+                    .build());
+        }
+
+        // 2. 比较版本
+        VersionComparisonResult result = VersionCheckUtil.compareVersions(version, latestVersion);
+
+        // 3. 构建响应
+        VersionCheckVo vo = VersionCheckVo.builder()
+                .version(latestVersion)
+                .currentVersion(version)
+                .latest(result.isLatest())
+                .updateRequired(result.isUpdateRequired())
+                .updateLevel(result.getUpdateLevel())
+                .message(result.getMessage())
+                .linkUrl(linkUrl)
+                .build();
+
+        return ApiResponse.success(vo);
     }
 
 

@@ -1,8 +1,10 @@
 package com.yan.xiaoyanqtserve.controller.api;
 
+import com.yan.xiaoyanqtserve.common.annotaions.RateLimiter;
 import com.yan.xiaoyanqtserve.common.dto.aigc.AigcRequestDto;
 import com.yan.xiaoyanqtserve.common.dto.aigc.AigcResponseDto;
 import com.yan.xiaoyanqtserve.common.enums.BizStatus;
+import com.yan.xiaoyanqtserve.common.enums.RateLimiterType;
 import com.yan.xiaoyanqtserve.common.utils.SecurityContextUtil;
 import com.yan.xiaoyanqtserve.entity.KeyInfo;
 import com.yan.xiaoyanqtserve.common.utils.ApiResponse;
@@ -42,6 +44,7 @@ public class ApiKeyController {
      * @param aigcRequestDto AI处理参数
      * @return 处理结果
      */
+    @RateLimiter(key = "active", time = 1, count = 1, limitBy = RateLimiterType.API_KEY)
     @PostMapping("/deal/text")
     public ApiResponse<AigcResponseDto> aigcDealText(@Valid @RequestBody AigcRequestDto aigcRequestDto) {
         KeyInfo apiKeyUser = securityContextUtil.getApiKeyUser();
