@@ -1,10 +1,13 @@
 package com.yan.xiaoyanqtserve.controller.api;
 
 import com.yan.xiaoyanqtserve.common.dto.aigc.AigcRequestDto;
+import com.yan.xiaoyanqtserve.common.dto.aigc.AigcResponseDto;
 import com.yan.xiaoyanqtserve.common.enums.BizStatus;
 import com.yan.xiaoyanqtserve.common.utils.SecurityContextUtil;
 import com.yan.xiaoyanqtserve.entity.KeyInfo;
 import com.yan.xiaoyanqtserve.common.utils.ApiResponse;
+import com.yan.xiaoyanqtserve.service.impl.AigcService;
+import com.yan.xiaoyanqtserve.service.impl.KeyInfoManagerService;
 import jakarta.annotation.Resource;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
@@ -31,6 +34,9 @@ public class ApiKeyController {
     @Resource
     private SecurityContextUtil securityContextUtil;
 
+    @Resource
+    private AigcService aigcService;
+
     /**
      * AI处理接口
      * @param aigcRequestDto AI处理参数
@@ -42,8 +48,10 @@ public class ApiKeyController {
         if(!securityContextUtil.isApiKeyUser() || Objects.isNull(apiKeyUser)){
             return ApiResponse.fail(BizStatus.KEY_NOT_FOUND);
         }
+        AigcResponseDto aigcResponseDto = aigcService.dealText(aigcRequestDto.getOriginalText());
 
+        // todo: 记录请求日志
         // 返回处理结果
-        return ApiResponse.success("处理成功", Map.of("processedContent", 123));
+        return ApiResponse.success("处理成功",aigcResponseDto);
     }
 }

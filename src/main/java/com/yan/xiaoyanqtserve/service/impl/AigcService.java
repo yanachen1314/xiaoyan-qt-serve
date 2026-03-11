@@ -47,7 +47,6 @@ public class AigcService {
         Integer totalCharCount = paragraphs.stream()
                 .mapToInt(MainUtil::accurateCharCount)
                 .sum();
-
         // 验证输入文本（最大1000）
         if (totalCharCount > AIGC_MAX_CHAR_INPUT) {
             throw new RuntimeException(
