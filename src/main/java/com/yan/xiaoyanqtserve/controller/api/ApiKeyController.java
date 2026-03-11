@@ -1,5 +1,6 @@
 package com.yan.xiaoyanqtserve.controller.api;
 
+import cn.hutool.core.thread.ThreadUtil;
 import com.yan.xiaoyanqtserve.common.annotaions.RateLimiter;
 import com.yan.xiaoyanqtserve.common.dto.aigc.AigcRequestDto;
 import com.yan.xiaoyanqtserve.common.dto.aigc.AigcResponseDto;
@@ -47,6 +48,7 @@ public class ApiKeyController {
     @RateLimiter(key = "active", time = 1, count = 1, limitBy = RateLimiterType.API_KEY)
     @PostMapping("/deal/text")
     public ApiResponse<AigcResponseDto> aigcDealText(@Valid @RequestBody AigcRequestDto aigcRequestDto) {
+        ThreadUtil.sleep(1500);
         KeyInfo apiKeyUser = securityContextUtil.getApiKeyUser();
         if(!securityContextUtil.isApiKeyUser() || Objects.isNull(apiKeyUser)){
             return ApiResponse.fail(BizStatus.KEY_NOT_FOUND);
