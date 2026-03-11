@@ -10,7 +10,7 @@
     </parent>
     <groupId>com.yan</groupId>
     <artifactId>xiaoyanQt-serve</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>1.0.0</version>
     <name>xiaoyanQt-serve</name>
     <description>xiaoyanQt-serve</description>
 
