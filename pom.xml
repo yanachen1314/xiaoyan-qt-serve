@@ -9,10 +9,10 @@
         <relativePath/>
     </parent>
     <groupId>com.yan</groupId>
-    <artifactId>xiaoyan-qt-serve</artifactId>
+    <artifactId>xiaoyanqt-serve</artifactId>
     <version>1.0.0</version>
-    <name>xiaoyan-qt-serve</name>
-    <description>xiaoyan-qt-serve</description>
+    <name>xiaoyanqt-serve</name>
+    <description>xiaoyanqt-serve</description>
 
     <properties>
         <java.version>17</java.version>
