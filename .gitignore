@@ -1,4 +1,5 @@
 HELP.md
+.env
 target/
 .trae/
 .mvn/wrapper/maven-wrapper.jar
