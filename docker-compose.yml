@@ -1,10 +1,9 @@
 # docker-compose.yml
-version: '3.8'
 
 services:
   xiaoyan-backend:
     build: . # 构建当前目录下的 Dockerfile
-    image: xiaoyanaiqt:latest # 指定构建后的镜像名称和标签
+    image: xiaoyanqt-serve-1.0.0 # 指定构建后的镜像名称和标签
     container_name: xiaoyanqt-serve
     network_mode: "host" # 关键：使用 host 网络模式，容器内 localhost 指向宿主机
     env_file:
