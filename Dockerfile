@@ -1,11 +1,11 @@
-# 使用官方 Java 17 运行时作为基础镜像
-FROM openjdk:17-jre
+# 使用 Eclipse Temurin（IBM 提供的 OpenJDK 发行版，更稳定）
+FROM eclipse-temurin:17-jre-alpine
 
 # 设置工作目录
 WORKDIR /home/yan/project/xiaoyanqt-serve
 
 # 将本地的 JAR 文件复制到容器中
-COPY xiaoyanQt-serve-1.0.0.jar app.jar
+COPY xiaoyanqt-serve-1.0.0.jar app.jar
 
 # 暴露应用运行的端口
 EXPOSE 8080
