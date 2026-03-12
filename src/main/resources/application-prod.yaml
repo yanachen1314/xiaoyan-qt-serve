@@ -7,14 +7,14 @@ spring:
   # ======================= 数据源配置 (开发环境) =======================
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://${host.localhost}:3306/db_xiaoyan_ai_qt?useSSL=true&useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai # 指向本地MySQL
+    url: jdbc:mysql://${host.localhost}:${MYSQL_PORT}/db_xiaoyan_ai_qt?useSSL=true&useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai # 指向本地MySQL
     username: ${MYSQL_USERNAME} # 从环境变量获取
     password: ${MYSQL_PASSWORD} # 从环境变量获取
   data:
     # ===================== Redis 配置 (开发环境) =======================
     redis:
       host: ${host.localhost}
-      port: 6379
+      port: ${REDIS_PORT}
       password: ${REDIS_PASSWORD} # 从环境变量获取
       database: 0
       timeout: 10000
