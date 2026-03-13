@@ -3,7 +3,7 @@ package com.yan.xiaoyanqtserve.common.utils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.yan.xiaoyanqtserve.common.enums.BizStatus;
-import com.yan.xiaoyanqtserve.exception.BizException;
+import com.yan.xiaoyanqtserve.common.exception.BizException;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.jackson.io.JacksonSerializer;
 import io.jsonwebtoken.security.SecurityException;

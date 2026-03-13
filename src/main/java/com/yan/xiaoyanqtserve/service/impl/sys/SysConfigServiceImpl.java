@@ -12,7 +12,7 @@ import com.yan.xiaoyanqtserve.common.dto.adminUser.SysConfigDto;
 import com.yan.xiaoyanqtserve.common.enums.ConfigType;
 import com.yan.xiaoyanqtserve.common.utils.RedisUtil;
 import com.yan.xiaoyanqtserve.entity.SysConfig;
-import com.yan.xiaoyanqtserve.exception.BizException;
+import com.yan.xiaoyanqtserve.common.exception.BizException;
 import com.yan.xiaoyanqtserve.mapper.SysConfigMapper;
 import com.yan.xiaoyanqtserve.service.SysConfigService;
 import jakarta.annotation.PostConstruct;

@@ -1,4 +1,4 @@
-package com.yan.xiaoyanqtserve.exception;
+package com.yan.xiaoyanqtserve.common.exception;
 
 import com.yan.xiaoyanqtserve.common.enums.BizStatus;
 import lombok.Data;

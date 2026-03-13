@@ -12,7 +12,7 @@ import com.alibaba.dashscope.exception.NoApiKeyException;
 import com.yan.xiaoyanqtserve.common.Constants;
 import com.yan.xiaoyanqtserve.common.dto.aigc.AigcModelResultDto;
 import com.yan.xiaoyanqtserve.common.enums.ConfigType;
-import com.yan.xiaoyanqtserve.exception.BizException;
+import com.yan.xiaoyanqtserve.common.exception.BizException;
 import com.yan.xiaoyanqtserve.service.SysConfigService;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
