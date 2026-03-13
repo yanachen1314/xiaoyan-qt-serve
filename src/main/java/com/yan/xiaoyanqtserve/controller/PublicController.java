@@ -39,7 +39,7 @@ import java.time.LocalDateTime;
 @Slf4j
 @Validated
 @RestController
-@RequestMapping("/public")
+@RequestMapping("/api/public")
 public class PublicController {
     @Resource
     private AdminUserService adminUserService;

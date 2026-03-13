@@ -121,7 +121,7 @@ public class SecurityConfig {
     public SecurityFilterChain publicChain(HttpSecurity http) throws Exception {
         baseConfig(http);
         http
-                .securityMatcher("/public/**")
+                .securityMatcher("/api/public/**")
                 .authorizeHttpRequests(auth ->
                         auth.anyRequest().permitAll());
         return http.build();
@@ -138,7 +138,7 @@ public class SecurityConfig {
     public SecurityFilterChain apiChain(HttpSecurity http) throws Exception {
         baseConfig(http);
         http
-                .securityMatcher("/api/**")
+                .securityMatcher("/api/key/**")
                 // 异常处理：未认证
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint((req, res, ex) ->
@@ -165,7 +165,7 @@ public class SecurityConfig {
     public SecurityFilterChain adminChain(HttpSecurity http) throws Exception {
         baseConfig(http);
         http
-                .securityMatcher("/admin/**")
+                .securityMatcher("/api/admin/**")
                 // 异常处理：未认证
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint((req, res, ex) ->
@@ -177,45 +177,4 @@ public class SecurityConfig {
                 .addFilterBefore(jwtAuthFilter,UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
-
-
-/*
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        return http
-                // 启用 WebMvc Cors 配置
-                .cors(cors -> {
-                })
-
-                // 禁用 表单登录/登出、session管理、csrf防护、匿名身份等默认配置，如果不disable。会默认创建默认filter
-                .csrf(AbstractHttpConfigurer::disable)
-                .formLogin(AbstractHttpConfigurer::disable)
-                .httpBasic(AbstractHttpConfigurer::disable)
-                .logout(AbstractHttpConfigurer::disable)
-                .anonymous(Customizer.withDefaults())
-                // 请求缓存用于重定向，前后端分离项目无需重定向，请求缓存也用不上
-                .requestCache(cache -> cache.requestCache(new NullRequestCache()))
-                // 禁用 session或者设置为无状态
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-
-                // 异常处理：未认证 & 无权限
-                .exceptionHandling(exception -> exception
-                        .authenticationEntryPoint(
-                                (req, res, authEx) -> responseUtil.writeError(res, BizStatus.UNAUTHORIZED, "登录已失效"))
-                        .accessDeniedHandler(
-                                (req, res, accEx) -> responseUtil.writeError(res, BizStatus.FORBIDDEN, "无权限访问")))
-
-                // 授权处理
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/public/**").permitAll() // 开放接口，无需任何认证
-                        .requestMatchers("/api/**").hasRole(Role.KEY_USER.name()) // API Key 接口，需要密钥认证访问 (但后面会被 ApiKeyAuthFilter 拦截验证)
-                        .requestMatchers("/admin/**").hasRole(Role.ADMIN.name()) // 管理员接口需要 ADMIN 角色
-                        .anyRequest().authenticated() // 其他所有请求都需要认证 (理论上不会到达这里，因为上面已经覆盖了所有路径)
-                )
-
-                .addFilterBefore(apiKeyAuthFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
-                .build();
-    }
-*/
-
 }

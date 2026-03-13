@@ -31,7 +31,7 @@ import java.util.Objects;
 @Slf4j
 @Validated
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/key")
 public class ApiKeyController {
 
     @Resource

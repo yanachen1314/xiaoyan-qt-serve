@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @since 2026-02-03
  */
 @RestController
-@RequestMapping("/admin/requestLog")
+@RequestMapping("/api/admin/requestLog")
 public class RequestLogController {
 
 }
