@@ -168,38 +168,4 @@ public class PublicController {
         }
     }
 
-    /**
-     * 管理员注册接口
-     *
-     * @param registerRequest 注册请求参数
-     * @return 注册结果
-     */
-    @PostMapping("/auth/register")
-    public ApiResponse<String> register(@Valid @RequestBody AdminUserRegisterRequest registerRequest) {
-        // 检查用户名是否已存在
-        AdminUser existingUser = adminUserService.findByUsername(registerRequest.getUsername());
-
-        if (existingUser != null) {
-            return ApiResponse.fail("用户名已存在");
-        }
-
-        // 创建新用户
-        AdminUser adminUser = new AdminUser();
-        adminUser.setUsername(registerRequest.getUsername());
-        adminUser.setPasswordHash(passwordEncoder.encode(registerRequest.getPassword()));
-        adminUser.setRole(Role.ADMIN.name()); // 默认角色为ADMIN
-        adminUser.setEmail(registerRequest.getEmail());
-        adminUser.setPhone(registerRequest.getPhone());
-        adminUser.setCreatedTime(LocalDateTime.now());
-        adminUser.setUpdatedTime(LocalDateTime.now());
-
-        // 保存用户
-        boolean result = adminUserService.save(adminUser);
-        if (result) {
-            return ApiResponse.success("注册成功");
-        } else {
-            return ApiResponse.fail("注册失败");
-        }
-    }
-
 }

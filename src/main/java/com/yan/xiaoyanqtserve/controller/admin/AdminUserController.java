@@ -1,6 +1,10 @@
 package com.yan.xiaoyanqtserve.controller.admin;
 
+import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.yan.xiaoyanqtserve.common.dto.adminUser.AdminUserDeleteRequest;
+import com.yan.xiaoyanqtserve.common.dto.adminUser.AdminUserRegisterRequest;
 import com.yan.xiaoyanqtserve.common.dto.adminUser.AdminUserUpdateRequest;
 import com.yan.xiaoyanqtserve.entity.AdminUser;
 import com.yan.xiaoyanqtserve.service.AdminUserService;
@@ -9,7 +13,10 @@ import jakarta.annotation.Resource;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDateTime;
 
 /**
  * 管理员用户控制器
@@ -25,6 +32,70 @@ public class AdminUserController {
 
     @Resource
     private AdminUserService adminUserService;
+
+    @Resource
+    private PasswordEncoder passwordEncoder;
+
+    /**
+     * 获取管理员分页列表
+     *
+     * @param page 页码
+     * @param size 每页数量
+     * @param keyword 搜索关键词（用户名）
+     * @return 分页结果
+     */
+    @GetMapping("/list")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<Page<AdminUser>> list(
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "10") Integer size,
+            @RequestParam(required = false) String keyword
+    ) {
+        Page<AdminUser> adminUserPage = new Page<>(page, size);
+        
+        QueryWrapper<AdminUser> queryWrapper = new QueryWrapper<>();
+        if (StrUtil.isNotBlank(keyword)) {
+            queryWrapper.like("username", keyword);
+        }
+        queryWrapper.orderByDesc("id");
+        
+        Page<AdminUser> result = adminUserService.page(adminUserPage, queryWrapper);
+        return ApiResponse.success(result);
+    }
+
+    /**
+     * 添加管理员
+     *
+     * @param registerRequest 注册请求参数
+     * @return 添加结果
+     */
+    @PostMapping("/register")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<String> register(@Valid @RequestBody AdminUserRegisterRequest registerRequest) {
+        // 检查用户名是否已存在
+        AdminUser existingUser = adminUserService.findByUsername(registerRequest.getUsername());
+        if (existingUser != null) {
+            return ApiResponse.fail("用户名已存在");
+        }
+
+        // 创建新管理员
+        AdminUser adminUser = new AdminUser();
+        adminUser.setUsername(registerRequest.getUsername());
+        adminUser.setPasswordHash(passwordEncoder.encode(registerRequest.getPassword()));
+        adminUser.setRole("ADMIN");
+        adminUser.setEmail(registerRequest.getEmail());
+        adminUser.setPhone(registerRequest.getPhone());
+        adminUser.setCreatedTime(LocalDateTime.now());
+        adminUser.setUpdatedTime(LocalDateTime.now());
+
+        // 保存管理员
+        boolean result = adminUserService.save(adminUser);
+        if (result) {
+            return ApiResponse.success("添加成功");
+        } else {
+            return ApiResponse.fail("添加失败");
+        }
+    }
 
     /**
      * 更新管理员信息接口
