@@ -22,8 +22,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.Collections;
-import java.util.Optional;
-
 import static com.yan.xiaoyanqtserve.common.Constants.HEADER_PREFIX;
 import static com.yan.xiaoyanqtserve.common.Constants.HEADER_KEY_NAME;
 

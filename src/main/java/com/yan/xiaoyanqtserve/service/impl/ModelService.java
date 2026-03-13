@@ -59,7 +59,7 @@ public class ModelService {
      * @param inputText 输入文本
      * @return 结果DTO
      */
-    @Retryable(value = { BizException.class }, maxAttempts = 3, // 最大尝试3次
+    @Retryable(retryFor = { BizException.class }, maxAttempts = 3, // 最大尝试3次
             backoff = @Backoff(delay = 200, multiplier = 2) // 延迟200毫秒，每次延迟时间递增为2倍
     )
     public AigcModelResultDto chatModel(String inputText) {
