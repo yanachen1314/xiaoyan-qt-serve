@@ -17,13 +17,12 @@ import com.yan.xiaoyanqtserve.common.utils.ApiResponse;
 import com.yan.xiaoyanqtserve.common.utils.JwtUtil;
 import com.yan.xiaoyanqtserve.service.SysConfigService;
 import com.yan.xiaoyanqtserve.service.impl.KeyInfoManagerService;
-import jakarta.annotation.Resource;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -38,24 +37,17 @@ import java.time.LocalDateTime;
 @Validated
 @RestController
 @RequestMapping("/api/public")
+@RequiredArgsConstructor
 public class PublicController {
-    @Resource
-    private AdminUserService adminUserService;
+    private final AdminUserService adminUserService;
 
-    @Resource
-    private AuthenticationManager authenticationManager;
+    private final AuthenticationManager authenticationManager;
 
-    @Resource
-    private PasswordEncoder passwordEncoder;
+    private final JwtUtil jwtUtil;
 
-    @Resource
-    private JwtUtil jwtUtil;
+    private final KeyInfoManagerService managerService;
 
-    @Resource
-    private KeyInfoManagerService managerService;
-
-    @Resource
-    private SysConfigService sysConfigService;
+    private final SysConfigService sysConfigService;
 
     /**
      * 密钥激活接口
