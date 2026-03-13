@@ -2,11 +2,9 @@ package com.yan.xiaoyanqtserve.controller;
 
 import com.yan.xiaoyanqtserve.common.annotaions.RateLimiter;
 import com.yan.xiaoyanqtserve.common.dto.adminUser.AdminUserLoginRequest;
-import com.yan.xiaoyanqtserve.common.dto.adminUser.AdminUserRegisterRequest;
 import com.yan.xiaoyanqtserve.common.dto.adminUser.AdminUserResponse;
 import com.yan.xiaoyanqtserve.common.dto.key.KeyActiveDto;
 import com.yan.xiaoyanqtserve.common.enums.RateLimiterType;
-import com.yan.xiaoyanqtserve.common.enums.Role;
 import com.yan.xiaoyanqtserve.common.utils.VersionCheckUtil;
 import com.yan.xiaoyanqtserve.common.vo.KeyActiveVo;
 import com.yan.xiaoyanqtserve.common.vo.VersionCheckVo;

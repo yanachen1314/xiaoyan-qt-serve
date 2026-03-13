@@ -4,6 +4,7 @@ import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.yan.xiaoyanqtserve.common.dto.adminUser.AdminUserDeleteRequest;
+import com.yan.xiaoyanqtserve.common.dto.adminUser.AdminUserPageRequest;
 import com.yan.xiaoyanqtserve.common.dto.adminUser.AdminUserRegisterRequest;
 import com.yan.xiaoyanqtserve.common.dto.adminUser.AdminUserUpdateRequest;
 import com.yan.xiaoyanqtserve.entity.AdminUser;
@@ -39,23 +40,24 @@ public class AdminUserController {
     /**
      * 获取管理员分页列表
      *
-     * @param page 页码
-     * @param size 每页数量
-     * @param keyword 搜索关键词（用户名）
+     * @param pageRequest 分页查询参数
      * @return 分页结果
      */
-    @GetMapping("/list")
+    @PostMapping("/list")
     @PreAuthorize("hasRole('ADMIN')")
-    public ApiResponse<Page<AdminUser>> list(
-            @RequestParam(defaultValue = "1") Integer page,
-            @RequestParam(defaultValue = "10") Integer size,
-            @RequestParam(required = false) String keyword
-    ) {
-        Page<AdminUser> adminUserPage = new Page<>(page, size);
+    public ApiResponse<Page<AdminUser>> list(@RequestBody AdminUserPageRequest pageRequest) {
+        Page<AdminUser> adminUserPage = new Page<>(pageRequest.getCurrentPage(), pageRequest.getPageSize());
         
         QueryWrapper<AdminUser> queryWrapper = new QueryWrapper<>();
-        if (StrUtil.isNotBlank(keyword)) {
-            queryWrapper.like("username", keyword);
+        // 多条件模糊查询
+        if (StrUtil.isNotBlank(pageRequest.getUsername())) {
+            queryWrapper.like("username", pageRequest.getUsername());
+        }
+        if (StrUtil.isNotBlank(pageRequest.getEmail())) {
+            queryWrapper.like("email", pageRequest.getEmail());
+        }
+        if (StrUtil.isNotBlank(pageRequest.getPhone())) {
+            queryWrapper.like("phone", pageRequest.getPhone());
         }
         queryWrapper.orderByDesc("id");
         
