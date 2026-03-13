@@ -38,7 +38,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         final String requestURI = request.getRequestURI();
 
         // 如果是 /admin/** 路径，才尝试处理 JWT
-        if (requestURI.startsWith("/admin/")) {
+        if (requestURI.startsWith("/api/admin/")) {
             final String header = request.getHeader(HEADER_AUTH_NAME);
             String username = null;
             String jwtToken = null;

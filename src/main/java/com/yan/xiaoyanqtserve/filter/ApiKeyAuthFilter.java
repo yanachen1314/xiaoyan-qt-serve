@@ -40,7 +40,7 @@ public class ApiKeyAuthFilter extends OncePerRequestFilter {
                                     @NonNull HttpServletResponse response,
                                     @NonNull FilterChain filterChain) throws ServletException, IOException {
 
-        if (!request.getRequestURI().startsWith("/api/")) {
+        if (!request.getRequestURI().startsWith("/api/key")) {
             filterChain.doFilter(request, response);
             return;
         }
