@@ -1,12 +1,14 @@
 package com.yan.xiaoyanqtserve.service.impl.sys;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.yan.xiaoyanqtserve.entity.KeyInfo;
 import com.yan.xiaoyanqtserve.mapper.KeyInfoMapper;
 import com.yan.xiaoyanqtserve.service.KeyInfoService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import jakarta.annotation.Nullable;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 /**
  * <p>
@@ -31,5 +33,36 @@ public class KeyInfoServiceImpl extends ServiceImpl<KeyInfoMapper, KeyInfo> impl
         queryWrapper.eq(KeyInfo::getKeyValue, keyValue);
         return getOne(queryWrapper);
     }
-}
 
+    /**
+     * 分页查询密钥列表
+     * @param page 页码
+     * @param pageSize 每页大小
+     * @param status 密钥状态（可选）
+     * @param activated 激活状态（可选）
+     * @param productType 产品类型（可选）
+     * @return 分页结果
+     */
+    @Override
+    public Page<KeyInfo> getList(Integer page, Integer pageSize, Byte status, Byte activated, String productType) {
+        Page<KeyInfo> keyInfoPage = new Page<>(page, pageSize);
+        
+        LambdaQueryWrapper<KeyInfo> queryWrapper = new LambdaQueryWrapper<>();
+        
+        // 添加查询条件
+        if (status != null) {
+            queryWrapper.eq(KeyInfo::getStatus, status);
+        }
+        if (activated != null) {
+            queryWrapper.eq(KeyInfo::getActivated, activated);
+        }
+        if (StringUtils.hasText(productType)) {
+            queryWrapper.eq(KeyInfo::getProductType, productType);
+        }
+        
+        // 按创建时间倒序
+        queryWrapper.orderByDesc(KeyInfo::getCreatedTime);
+        
+        return this.page(keyInfoPage, queryWrapper);
+    }
+}
