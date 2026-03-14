@@ -2,6 +2,7 @@ package com.yan.xiaoyanqtserve.controller.admin;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.yan.xiaoyanqtserve.common.dto.key.GenerateKeyDto;
+import com.yan.xiaoyanqtserve.common.dto.key.KeyInfoPageRequest;
 import com.yan.xiaoyanqtserve.common.utils.ApiResponse;
 import com.yan.xiaoyanqtserve.entity.KeyInfo;
 import com.yan.xiaoyanqtserve.service.KeyInfoService;
@@ -40,22 +41,12 @@ public class KeyInfoController {
 
     /**
      * 分页查询密钥列表
-     * @param page 页码
-     * @param pageSize 每页大小
-     * @param status 密钥状态（可选）
-     * @param activated 激活状态（可选）
-     * @param productType 产品类型（可选）
+     * @param pageRequest 分页查询参数
      * @return 分页结果
      */
-    @GetMapping("/list")
-    public ApiResponse<Page<KeyInfo>> getList(
-            @RequestParam(defaultValue = "1") Integer page,
-            @RequestParam(defaultValue = "20") Integer pageSize,
-            @RequestParam(required = false) Byte status,
-            @RequestParam(required = false) Byte activated,
-            @RequestParam(required = false) String productType
-    ) {
-        Page<KeyInfo> keyInfoPage = keyInfoService.getList(page, pageSize, status, activated, productType);
+    @PostMapping("/list")
+    public ApiResponse<Page<KeyInfo>> list(@RequestBody KeyInfoPageRequest pageRequest) {
+        Page<KeyInfo> keyInfoPage = keyInfoService.getList(pageRequest);
         return ApiResponse.success(keyInfoPage);
     }
 }

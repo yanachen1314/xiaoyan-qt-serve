@@ -2,6 +2,7 @@ package com.yan.xiaoyanqtserve.service.impl.sys;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.yan.xiaoyanqtserve.common.dto.key.KeyInfoPageRequest;
 import com.yan.xiaoyanqtserve.entity.KeyInfo;
 import com.yan.xiaoyanqtserve.mapper.KeyInfoMapper;
 import com.yan.xiaoyanqtserve.service.KeyInfoService;
@@ -36,28 +37,27 @@ public class KeyInfoServiceImpl extends ServiceImpl<KeyInfoMapper, KeyInfo> impl
 
     /**
      * 分页查询密钥列表
-     * @param page 页码
-     * @param pageSize 每页大小
-     * @param status 密钥状态（可选）
-     * @param activated 激活状态（可选）
-     * @param productType 产品类型（可选）
+     * @param pageRequest 分页查询参数
      * @return 分页结果
      */
     @Override
-    public Page<KeyInfo> getList(Integer page, Integer pageSize, Byte status, Byte activated, String productType) {
-        Page<KeyInfo> keyInfoPage = new Page<>(page, pageSize);
+    public Page<KeyInfo> getList(KeyInfoPageRequest pageRequest) {
+        Page<KeyInfo> keyInfoPage = new Page<>(pageRequest.getCurrentPage(), pageRequest.getPageSize());
         
         LambdaQueryWrapper<KeyInfo> queryWrapper = new LambdaQueryWrapper<>();
         
         // 添加查询条件
-        if (status != null) {
-            queryWrapper.eq(KeyInfo::getStatus, status);
+        if (StringUtils.hasText(pageRequest.getKeyValue())) {
+            queryWrapper.like(KeyInfo::getKeyValue, pageRequest.getKeyValue());
         }
-        if (activated != null) {
-            queryWrapper.eq(KeyInfo::getActivated, activated);
+        if (pageRequest.getStatus() != null) {
+            queryWrapper.eq(KeyInfo::getStatus, pageRequest.getStatus());
         }
-        if (StringUtils.hasText(productType)) {
-            queryWrapper.eq(KeyInfo::getProductType, productType);
+        if (pageRequest.getActivated() != null) {
+            queryWrapper.eq(KeyInfo::getActivated, pageRequest.getActivated());
+        }
+        if (StringUtils.hasText(pageRequest.getProductType())) {
+            queryWrapper.eq(KeyInfo::getProductType, pageRequest.getProductType());
         }
         
         // 按创建时间倒序
