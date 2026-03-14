@@ -1,8 +1,10 @@
 package com.yan.xiaoyanqtserve.controller.admin;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.google.protobuf.Api;
 import com.yan.xiaoyanqtserve.common.dto.adminUser.ConfigPageRequest;
 import com.yan.xiaoyanqtserve.common.dto.adminUser.SysConfigDto;
+import com.yan.xiaoyanqtserve.common.utils.ApiResponse;
 import com.yan.xiaoyanqtserve.entity.SysConfig;
 import com.yan.xiaoyanqtserve.service.SysConfigService;
 import jakarta.validation.Valid;
@@ -31,8 +33,8 @@ public class SysConfigController {
      * @return 分页结果
      */
     @PostMapping("/list")
-    public IPage<SysConfig> list(@RequestBody ConfigPageRequest configPageRequest) {
-        return sysConfigService.listByPage(configPageRequest);
+    public ApiResponse<IPage<SysConfig>> list(@RequestBody ConfigPageRequest configPageRequest) {
+        return ApiResponse.success(sysConfigService.listByPage(configPageRequest));
     }
 
     /**
@@ -42,9 +44,9 @@ public class SysConfigController {
      * @return 配置结果
      */
     @PostMapping("/add")
-    public String add(@RequestBody @Valid SysConfigDto configDto) {
+    public ApiResponse<String> add(@RequestBody @Valid SysConfigDto configDto) {
         sysConfigService.saveConfig(configDto);
-        return "新增成功";
+        return ApiResponse.success("新增成功",null);
     }
 
     /**
@@ -54,9 +56,9 @@ public class SysConfigController {
      * @return 更新结果
      */
     @PostMapping("/update")
-    public String update(@RequestBody @Valid SysConfig config) {
+    public ApiResponse<String> update(@RequestBody @Valid SysConfig config) {
         sysConfigService.update(config);
-        return "更新成功";
+        return ApiResponse.success("更新成功",null);
     }
 
     /**
@@ -66,9 +68,9 @@ public class SysConfigController {
      * @return 删除结果
      */
     @PostMapping("/delete/{configId}")
-    public String delete(@PathVariable Long configId) {
+    public ApiResponse<String> delete(@PathVariable Long configId) {
         sysConfigService.delete(configId);
-        return "删除成功";
+        return ApiResponse.success("删除成功",null);
     }
 
     /**
@@ -77,7 +79,7 @@ public class SysConfigController {
      * @return 模型列表
      */
     @GetMapping("/modelList")
-    public List<String> getModelList() {
-        return sysConfigService.getModelList();
+    public ApiResponse<List<String>> getModelList() {
+        return ApiResponse.success(sysConfigService.getModelList());
     }
 }
