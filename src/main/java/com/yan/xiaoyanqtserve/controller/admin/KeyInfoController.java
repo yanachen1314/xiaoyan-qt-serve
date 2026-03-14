@@ -45,7 +45,7 @@ public class KeyInfoController {
      * @return 分页结果
      */
     @PostMapping("/list")
-    public ApiResponse<Page<KeyInfo>> list(@RequestBody KeyInfoPageRequest pageRequest) {
+    public ApiResponse<Page<KeyInfo>> list(@Valid @RequestBody KeyInfoPageRequest pageRequest) {
         Page<KeyInfo> keyInfoPage = keyInfoService.getList(pageRequest);
         return ApiResponse.success(keyInfoPage);
     }
