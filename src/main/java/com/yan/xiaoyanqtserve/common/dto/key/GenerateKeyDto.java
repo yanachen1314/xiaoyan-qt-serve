@@ -26,8 +26,7 @@ public class GenerateKeyDto {
     private Integer totalUses;
 
     /**
-     * 产品类型或套餐标识，例如: "ai_rewrite_vip", "ai_rewrite_basic"
-     * @see com.yan.xiaoyanqtserve.common.enums.ProductType
+     * 产品类型或套餐标识
      */
     @NotNull(message = "密钥产品类型不能为空")
     private String productType;

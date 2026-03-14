@@ -3,7 +3,6 @@ package com.yan.xiaoyanqtserve.service.impl;
 import com.yan.xiaoyanqtserve.common.dto.key.GenerateKeyDto;
 import com.yan.xiaoyanqtserve.common.dto.key.KeyActiveDto;
 import com.yan.xiaoyanqtserve.common.dto.key.ValidationResult;
-import com.yan.xiaoyanqtserve.common.enums.ProductType;
 import com.yan.xiaoyanqtserve.common.enums.BizStatus;
 import com.yan.xiaoyanqtserve.common.utils.LicenseKeyGenerator;
 import com.yan.xiaoyanqtserve.common.utils.RedisLockUtil;
@@ -387,7 +386,7 @@ public class KeyInfoManagerService {
         keyInfo.setStatus((byte) 1);
 
         // 设置套餐类型
-        keyInfo.setProductType(ProductType.AIGC_BASIC.getType());
+        keyInfo.setProductType("");
 
         // 设置默认值，激活时再设置权益
         keyInfo.setTotalUses(0);
