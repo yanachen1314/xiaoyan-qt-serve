@@ -226,7 +226,7 @@ public class KeyInfoManagerService {
             updateEntity.setActivationTime(now);
 
             // 3.4 根据 product_type 配置使用权益（关键！）
-            configureUsageRights(updateEntity, keyInfo.getProductType(), now);
+            configureUsageRights(updateEntity, 1, now);
 
             // 3.5 更新备注（可选）
             updateEntity.setRemark(String.format("激活时间: %s | 设备: %s",
@@ -276,23 +276,23 @@ public class KeyInfoManagerService {
      * @param productType 产品类型标识（如 "ai_vip_hourly"）
      * @param activationTime 激活时间（用于计算过期时间）
      */
-    private void configureUsageRights(KeyInfo target, String productType, LocalDateTime activationTime) {
+    private void configureUsageRights(KeyInfo target, Integer productType, LocalDateTime activationTime) {
         Objects.requireNonNull(target, "target cannot be null");
         Objects.requireNonNull(productType, "productType cannot be null");
 
         switch (productType) {
-            case "ai_vip_hourly":
+            case 1:
                 target.setTotalUses(0);          // 0 = 无限制
                 target.setRemainingUses(0);      // 无限制时必须为 0
                 target.setExpiryTime(activationTime.plusHours(1));
                 break;
 
-            case "ai_basic_100":
+            case 2:
                 target.setTotalUses(100);
                 target.setRemainingUses(100);    // 激活后可用 100 次
                 target.setExpiryTime(null);      // 永            break;
 
-            case "ai_pro":
+            case 3:
                 target.setTotalUses(0);
                 target.setRemainingUses(0);
                 target.setExpiryTime(activationTime.plusDays(30));
@@ -386,7 +386,7 @@ public class KeyInfoManagerService {
         keyInfo.setStatus((byte) 1);
 
         // 设置套餐类型
-        keyInfo.setProductType("");
+        keyInfo.setProductType(1);
 
         // 设置默认值，激活时再设置权益
         keyInfo.setTotalUses(0);

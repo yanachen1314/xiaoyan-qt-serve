@@ -49,10 +49,10 @@ public class KeyInfo implements Serializable {
     private Byte status;
 
     /**
-     * 产品类型或套餐标识，例如: "ai_rewrite_vip", "ai_rewrite_basic"
+     * 对应产品ID
      */
     @TableField("product_type")
-    private String productType;
+    private Integer productType;
 
     /**
      * 总使用次数(降AI)，0表示无限制
