@@ -1,5 +1,8 @@
 package com.yan.xiaoyanqtserve.service;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.yan.xiaoyanqtserve.common.dto.product.ProductTypeDto;
+import com.yan.xiaoyanqtserve.common.dto.product.ProductTypePageRequest;
 import com.yan.xiaoyanqtserve.entity.ProductType;
 import com.baomidou.mybatisplus.extension.service.IService;
 
@@ -13,4 +16,22 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface ProductTypeService extends IService<ProductType> {
 
+    /**
+     * 分页查询产品类型列表
+     * @param pageRequest 分页查询参数
+     * @return 分页结果
+     */
+    Page<ProductType> getList(ProductTypePageRequest pageRequest);
+
+    /**
+     * 新增产品类型
+     * @param dto 产品类型信息
+     */
+    void add(ProductTypeDto dto);
+
+    /**
+     * 修改产品类型
+     * @param dto 产品类型信息
+     */
+    void update(ProductTypeDto dto);
 }
