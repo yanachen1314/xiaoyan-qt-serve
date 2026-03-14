@@ -9,6 +9,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
@@ -26,6 +27,7 @@ import java.time.LocalDateTime;
 @TableName("product_type")
 public class ProductType implements Serializable {
 
+    @Serial
     private static final long serialVersionUID = 1L;
 
     /**
@@ -49,8 +51,20 @@ public class ProductType implements Serializable {
     /**
      * 产品所用权益价值，单位：分钟
      */
-    @TableField("product_equity")
-    private Integer productEquity;
+    @TableField("equity_time")
+    private Integer equityTime;
+
+    /**
+     * 产品所代表的使用次数（降AI），0：无限制，>0：有限使用次数
+     */
+    @TableField("equity_usage_num")
+    private Integer equityUsageNum;
+
+    /**
+     * 产品所代表的卡密激活次数，0：无限制，>0：有限激活次数
+     */
+    @TableField("equity_active_num")
+    private Integer equityActiveNum;
 
     /**
      * 产品描述
