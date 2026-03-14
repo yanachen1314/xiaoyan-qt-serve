@@ -22,15 +22,15 @@ public class KeyInfoPageRequest extends PageRequest {
     /**
      * 密钥状态（0-禁用，1-启用）
      */
-    @Min(value = 0, message = "密钥状态最小值为 0")
-    @Max(value = 1, message = "密钥状态最大值为 1")
+    @Min(value = 0, message = "该值仅允许0或1")
+    @Max(value = 1, message = "该值仅允许0或1")
     private Byte status;
 
     /**
      * 激活状态（0-未激活，1-已激活）
      */
-    @Min(value = 0, message = "激活状态最小值为 0")
-    @Max(value = 1, message = "激活状态最大值为 1")
+    @Min(value = 0, message = "该值仅允许0或1")
+    @Max(value = 1, message = "该值仅允许0或1")
     private Byte activated;
 
     /**
