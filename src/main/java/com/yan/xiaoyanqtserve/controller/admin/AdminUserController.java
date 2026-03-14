@@ -28,7 +28,7 @@ import java.time.LocalDateTime;
  */
 @Slf4j
 @RestController
-@RequestMapping("/api/admin")
+@RequestMapping("/api/admin/user")
 @RequiredArgsConstructor
 public class AdminUserController {
 

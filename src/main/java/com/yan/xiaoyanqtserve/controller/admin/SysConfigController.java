@@ -20,7 +20,7 @@ import java.util.List;
  * @since 2026-03-10
  */
 @RestController
-@RequestMapping("/api/sysConfig")
+@RequestMapping("/api/admin/sysConfig")
 @RequiredArgsConstructor
 public class SysConfigController {
 
