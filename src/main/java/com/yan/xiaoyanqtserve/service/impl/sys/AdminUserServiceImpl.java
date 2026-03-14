@@ -79,4 +79,25 @@ public class AdminUserServiceImpl extends ServiceImpl<AdminUserMapper, AdminUser
     public boolean deleteAdminUser(Long id) {
         return baseMapper.deleteById(id) > 0;
     }
+
+    @Override
+    public boolean resetPasswordByContact(String contact, String newPassword) {
+        // 根据手机号或邮箱查找用户
+        QueryWrapper<AdminUser> queryWrapper = new QueryWrapper<>();
+        queryWrapper.and(wrapper -> 
+            wrapper.eq("phone", contact).or().eq("email", contact)
+        );
+        
+        AdminUser adminUser = getOne(queryWrapper);
+        
+        if (adminUser == null) {
+            return false;
+        }
+        
+        // 更新密码
+        adminUser.setPasswordHash(passwordEncoder.encode(newPassword));
+        adminUser.setUpdatedTime(LocalDateTime.now());
+        
+        return updateAdminUser(adminUser);
+    }
 }

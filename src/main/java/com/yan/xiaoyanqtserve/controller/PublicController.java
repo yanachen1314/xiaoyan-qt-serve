@@ -3,6 +3,7 @@ package com.yan.xiaoyanqtserve.controller;
 import com.yan.xiaoyanqtserve.common.annotaions.RateLimiter;
 import com.yan.xiaoyanqtserve.common.dto.adminUser.AdminUserLoginRequest;
 import com.yan.xiaoyanqtserve.common.dto.adminUser.AdminUserResponse;
+import com.yan.xiaoyanqtserve.common.dto.adminUser.PasswordResetRequest;
 import com.yan.xiaoyanqtserve.common.dto.key.KeyActiveDto;
 import com.yan.xiaoyanqtserve.common.enums.RateLimiterType;
 import com.yan.xiaoyanqtserve.common.utils.VersionCheckUtil;
@@ -125,7 +126,7 @@ public class PublicController {
     @PostMapping("/auth/login")
     public ApiResponse<AdminUserResponse> login(@Valid @RequestBody AdminUserLoginRequest loginRequest) {
         try {
-            // 使用Spring Security进行身份验证
+            // 使用 Spring Security 进行身份验证
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
                             loginRequest.getUsername(),
@@ -139,7 +140,7 @@ public class PublicController {
             adminUser.setLastLoginTime(LocalDateTime.now());
             adminUserService.updateById(adminUser);
 
-            // 生成JWT令牌
+            // 生成 JWT 令牌
             String token = jwtUtil.generateToken(adminUser.getUsername());
 
             // 构造响应数据
@@ -153,8 +154,36 @@ public class PublicController {
 
             return ApiResponse.success(response);
         } catch (Exception e) {
-            log.error("登录失败: {}", e.getMessage());
+            log.error("登录失败：{}", e.getMessage());
             return ApiResponse.fail("用户名或密码错误");
+        }
+    }
+
+    /**
+     * 忘记密码 - 重置密码接口
+     * <p>
+     * 根据手机号或邮箱验证用户身份，验证通过后重置密码
+     *
+     * @param resetRequest 密码重置请求参数
+     * @return 重置结果
+     */
+    @PostMapping("/auth/reset")
+    public ApiResponse<Void> resetPassword(@Valid @RequestBody PasswordResetRequest resetRequest) {
+        try {
+            // 调用 AdminUserService 的 resetPasswordByContact 方法重置密码
+            boolean success = adminUserService.resetPasswordByContact(
+                    resetRequest.getContact(), 
+                    resetRequest.getNewPassword()
+            );
+
+            if (success) {
+                return ApiResponse.success("密码重置成功", null);
+            } else {
+                return ApiResponse.fail("未找到匹配的手机号或邮箱");
+            }
+        } catch (Exception e) {
+            log.error("密码重置失败：{}", e.getMessage());
+            return ApiResponse.fail("密码重置失败");
         }
     }
 

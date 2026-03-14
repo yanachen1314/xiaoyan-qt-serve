@@ -37,8 +37,16 @@ public interface AdminUserService extends IService<AdminUser> {
 
     /**
      * 删除管理员
-     * @param id 管理员ID
+     * @param id 管理员 ID
      * @return 操作结果
      */
     boolean deleteAdminUser(Long id);
+
+    /**
+     * 根据手机号或邮箱重置密码
+     * @param contact 手机号或邮箱
+     * @param newPassword 新密码
+     * @return 操作结果
+     */
+    boolean resetPasswordByContact(String contact, String newPassword);
 }
