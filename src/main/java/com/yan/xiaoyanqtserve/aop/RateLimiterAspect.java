@@ -41,8 +41,6 @@ public class RateLimiterAspect {
 
         // 获取密钥值
         String keyValue = getKeyValue(request, rateLimiter);
-        ;
-
         String methodName = point.getSignature().getName();
         String key = Constants.RATE_LIMIT_PREFIX + methodName + ":" + keyValue;
         if (!rateLimiter.key().isEmpty()) {
