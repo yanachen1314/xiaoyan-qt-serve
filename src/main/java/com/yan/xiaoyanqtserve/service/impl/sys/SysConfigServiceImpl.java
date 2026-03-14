@@ -275,5 +275,22 @@ public class SysConfigServiceImpl extends ServiceImpl<SysConfigMapper, SysConfig
 
     }
 
+    /**
+     * 获取所有配置分组列表
+     *
+     * @return 分组列表
+     */
+    @Override
+    public List<String> getGroupList() {
+        LambdaQueryWrapper<SysConfig> wrapper = new LambdaQueryWrapper<>();
+        wrapper.select(SysConfig::getConfigGroup)
+                .groupBy(SysConfig::getConfigGroup);
+        List<SysConfig> configList = sysConfigMapper.selectList(wrapper);
+        return configList.stream()
+                .map(SysConfig::getConfigGroup)
+                .filter(StringUtils::hasText)
+                .collect(Collectors.toList());
+    }
+
 
 }

@@ -1,7 +1,6 @@
 package com.yan.xiaoyanqtserve.controller.admin;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.google.protobuf.Api;
 import com.yan.xiaoyanqtserve.common.dto.adminUser.ConfigPageRequest;
 import com.yan.xiaoyanqtserve.common.dto.adminUser.SysConfigDto;
 import com.yan.xiaoyanqtserve.common.utils.ApiResponse;
@@ -81,5 +80,15 @@ public class SysConfigController {
     @GetMapping("/modelList")
     public ApiResponse<List<String>> getModelList() {
         return ApiResponse.success(sysConfigService.getModelList());
+    }
+
+    /**
+     * 获取所有配置分组列表
+     *
+     * @return 分组列表
+     */
+    @GetMapping("/groupList")
+    public ApiResponse<List<String>> getGroupList() {
+        return ApiResponse.success(sysConfigService.getGroupList());
     }
 }

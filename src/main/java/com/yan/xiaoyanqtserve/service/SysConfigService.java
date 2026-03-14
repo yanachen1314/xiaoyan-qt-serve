@@ -96,4 +96,11 @@ public interface SysConfigService extends IService<SysConfig> {
      * @return 模型列表
      */
     List<String> getModelList();
+
+    /**
+     * 获取所有配置分组列表
+     *
+     * @return 分组列表
+     */
+    List<String> getGroupList();
 }
