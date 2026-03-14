@@ -46,9 +46,15 @@ public class ProductTypeDto {
     private Integer equityActiveNum;
 
     /**
+     * 产品所用权益价值，单位：分钟
+     */
+    @NotNull(message = "权益时间不能为空")
+    @Min(value = 0, message = "权益时间不能小于 0")
+    private Integer equityTime;
+
+    /**
      * 产品描述
      */
-
     private String description;
 
     /**
