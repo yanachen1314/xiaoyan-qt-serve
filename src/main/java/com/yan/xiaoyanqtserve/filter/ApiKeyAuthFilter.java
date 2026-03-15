@@ -12,6 +12,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -28,6 +29,7 @@ import java.util.concurrent.TimeUnit;
 import static com.yan.xiaoyanqtserve.common.Constants.HEADER_PREFIX;
 import static com.yan.xiaoyanqtserve.common.Constants.HEADER_KEY_NAME;
 
+@Slf4j
 @Component
 public class ApiKeyAuthFilter extends OncePerRequestFilter {
 
@@ -66,6 +68,7 @@ public class ApiKeyAuthFilter extends OncePerRequestFilter {
         String cacheKey = USAGE_VALID_KEY + apiKey;
         if (redisUtil.hasKey(cacheKey)) {
             // 从缓存中获取验证结果
+            log.info("API KEY({})使用了缓存校验结果", apiKey);
             validationResult = (ValidationResult) redisUtil.get(cacheKey);
         } else {
             // 如果缓存中不存在，调用服务进行验证

@@ -103,8 +103,6 @@ public class AigcProcessingService {
         return integratedResult;
     }
 
-
-
     /**
      * 将内容分割成段落列表
      *
