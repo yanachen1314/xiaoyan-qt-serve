@@ -11,6 +11,7 @@ import com.yan.xiaoyanqtserve.common.utils.NetUtil;
 import com.yan.xiaoyanqtserve.common.utils.SecurityContextUtil;
 import com.yan.xiaoyanqtserve.entity.KeyInfo;
 import com.yan.xiaoyanqtserve.common.utils.ApiResponse;
+import com.yan.xiaoyanqtserve.entity.RequestLog;
 import com.yan.xiaoyanqtserve.service.RequestLogService;
 import com.yan.xiaoyanqtserve.service.impl.ApiKeyInfoService;
 import jakarta.annotation.Resource;
@@ -23,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 /**
@@ -59,16 +61,44 @@ public class ApiKeyController {
         if (!securityContextUtil.isApiKeyUser() || Objects.isNull(apiKeyUser)) {
             return ApiResponse.fail(BizStatus.KEY_NOT_FOUND);
         }
-        AigcResponseDto aigcDealText = apiKeyInfoService.aigcDealText(aigcRequestDto, apiKeyUser);
 
-        // // 记录请求日志
-        // String clientIpAddress = NetUtil.getClientIpAddress(request);
-        // logService.recordRequestLog(apiKeyUser.getKeyValue(), clientIpAddress, 500, aigcDealText.getOutputText());
-        // 返回处理结果
-        return ApiResponse.success("处理成功", AigcResponseVo.builder()
-                .dealResult(aigcDealText.getOutputText())
-                .inputChars(aigcDealText.getInputChars())
-                .build()
-        );
+        String clientIpAddress = NetUtil.getClientIpAddress(request);
+        LocalDateTime now = LocalDateTime.now();
+
+        try {
+            AigcResponseDto aigcDealText = apiKeyInfoService.aigcDealText(aigcRequestDto, apiKeyUser);
+
+            logService.recordLog(RequestLog.builder()
+                    .keyValueUsed(apiKeyUser.getKeyValue())
+                    .clientIp(clientIpAddress)
+                    .requestTime(now)
+                    .responseCode(200)
+                    .processingResult(aigcDealText.getOutputText())
+                    .inputText(aigcDealText.getInputText())
+                    .inputTextChars(aigcDealText.getInputChars())
+                    .inputTokens(aigcDealText.getInputTokens())
+                    .outputTokens(aigcDealText.getOutputTokens())
+                    .totalTokens(aigcDealText.getTotalTokens())
+                    .build());
+            // 返回处理结果
+            return ApiResponse.success("处理成功", AigcResponseVo.builder()
+                    .dealResult(aigcDealText.getOutputText())
+                    .inputChars(aigcDealText.getInputChars())
+                    .build()
+            );
+        } catch (Exception e) {
+            // 记录请求日志
+            logService.recordLog(RequestLog.builder()
+                    .keyValueUsed(apiKeyUser.getKeyValue())
+                    .clientIp(clientIpAddress)
+                    .requestTime(now)
+                    .responseCode(500)
+                    .processingResult(e.getMessage())
+                    .build());
+
+            throw new RuntimeException(e);
+        }
+
+
     }
 }

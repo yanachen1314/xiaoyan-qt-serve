@@ -7,8 +7,6 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
-
 /**
  * <p>
  * API请求日志表 服务实现类
@@ -24,22 +22,11 @@ public class RequestLogServiceImpl extends ServiceImpl<RequestLogMapper, Request
     /**
      * 记录API请求日志
      *
-     * @param keyValueUsed     本次请求使用的密钥
-     * @param clientIp         发起请求的客户端IP地址
-     * @param responseCode     HTTP响应状态码
-     * @param processingResult 处理结果摘要或错误信息
+     * @param requestLog 请求日志对象，包含请求的详细信息
      */
     @Override
-    public void recordRequestLog(String keyValueUsed, String clientIp, Integer responseCode, String processingResult) {
+    public void recordLog(RequestLog requestLog) {
         try {
-            // 创建 RequestLog 对象
-            RequestLog requestLog = new RequestLog();
-            requestLog.setKeyValueUsed(keyValueUsed);
-            requestLog.setClientIp(clientIp);
-            requestLog.setRequestTime(LocalDateTime.now());
-            requestLog.setResponseCode(responseCode);
-            requestLog.setProcessingResult(processingResult);
-
             // 保存请求日志
             save(requestLog);
         } catch (Exception e) {
