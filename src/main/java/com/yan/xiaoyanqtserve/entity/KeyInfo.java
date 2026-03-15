@@ -49,6 +49,12 @@ public class KeyInfo implements Serializable {
     private Byte status;
 
     /**
+     * 密钥使用场景,用途
+     */
+    @TableField("usage_type")
+    private String usageType;
+
+    /**
      * 对应产品ID
      */
     @TableField("product_type")

@@ -321,6 +321,7 @@ public class KeyInfoManagerService {
 
         keyInfo.setKeyValue(key);
         keyInfo.setStatus((byte) 1);
+        keyInfo.setUsageType(generateKeyDto.getUsageType());
 
         // 设置默认未激活
         keyInfo.setActivated((byte) 0);

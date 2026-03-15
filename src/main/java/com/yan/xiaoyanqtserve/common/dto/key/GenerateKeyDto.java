@@ -1,6 +1,7 @@
 package com.yan.xiaoyanqtserve.common.dto.key;
 
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
@@ -23,6 +24,13 @@ public class GenerateKeyDto {
      */
     @NotNull(message = "密钥产品类型不能为空")
     private Integer productTypeId;
+
+    /**
+     * 密钥使用场景
+     */
+    @NotNull(message = "密钥使用场景不能为空")
+    @NotBlank(message = "密钥使用场景不能为空")
+    private String usageType;
 
     /**
      * 备注信息

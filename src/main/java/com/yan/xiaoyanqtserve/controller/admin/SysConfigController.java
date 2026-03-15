@@ -25,6 +25,17 @@ public class SysConfigController {
 
     private final SysConfigService sysConfigService;
 
+
+    /**
+     * 从系统配置中获取卡密的使用场景
+     * @return 卡密使用场景列表
+     */
+    @GetMapping("/key/usageType")
+    public ApiResponse<List<SysConfig>> getUsageType() {
+        return ApiResponse.success(sysConfigService.listByKey("apikey.usageType", true));
+    }
+
+
     /**
      * 分页查询配置列表
      *
