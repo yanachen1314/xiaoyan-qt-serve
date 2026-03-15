@@ -258,17 +258,32 @@ public class KeyInfoManagerService {
         return ValidationResult.success(keyInfo);
     }
 
+    /**
+     * 获取新的密钥设备字符串，将设备ID添加到现有设备列表中，设备ID之间用逗号分隔
+     * @param activationDevice 现有设备列表，用逗号分隔
+     * @param deviceID 设备ID
+     * @return 新的密钥设备字符串
+     */
     private String getNewKeyDevice(String activationDevice, String deviceID) {
+        List<String> deviceList = parseKeyDevice(activationDevice);
+        if (deviceList.contains(deviceID)) {
+            return activationDevice;
+        }
         return activationDevice + "," + deviceID;
     }
 
+    /**
+     * 解析密钥设备字符串，返回设备ID列表
+     * @param activationDevice 密钥设备字符串，用逗号分隔
+     * @return 设备ID列表
+     */
     private List<String> parseKeyDevice(String activationDevice) {
         return Arrays.asList(activationDevice.split(","));
     }
 
 
     /**
-     * 密钥生成（一小时无限制使用的密钥）
+     * 密钥生成
      * @param operator 操作员
      * @param generateKeyDto 密钥生成参数
      */
@@ -290,7 +305,14 @@ public class KeyInfoManagerService {
                 .toList();
         keyInfoService.saveBatch(entityList, 500);
     }
-
+    /**
+     * 构建密钥信息
+     * @param key 密钥
+     * @param operator 操作员
+     * @param generateKeyDto 密钥生成参数
+     * @param productType 产品类型
+     * @return 密钥信息
+     */
     private KeyInfo buildKeyInfo(String key, Long operator, GenerateKeyDto generateKeyDto, ProductType productType) {
         KeyInfo keyInfo = new KeyInfo();
 
