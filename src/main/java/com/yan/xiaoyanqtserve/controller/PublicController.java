@@ -64,14 +64,36 @@ public class PublicController {
         KeyInfo keyInfo = managerService.activateKey(keyActiveDto);
 
         // 激活成功
+        Integer totalUses = keyInfo.getTotalUses();
+        Integer remainingUses = keyInfo.getRemainingUses();
+        Integer activationsNum = keyInfo.getActivationsNum();
+        Integer remainingActiveNum = keyInfo.getRemainingActiveNum();
+
+        String residualUsageView;
+        if (totalUses > 0 && remainingUses > 0) {
+            residualUsageView = remainingUses + "次";
+        } else if (totalUses > 0 && remainingUses == 0) {
+            residualUsageView = "已用完";
+        } else {
+            residualUsageView = "无限制";
+        }
+
+        String remainingActiveNumView;
+        if (activationsNum > 0 && remainingActiveNum > 0) {
+            remainingActiveNumView = remainingActiveNum + "次";
+        } else if (activationsNum > 0 && remainingActiveNum == 0) {
+            remainingActiveNumView = "已用完";
+        } else {
+            remainingActiveNumView = "无限制";
+        }
         return ApiResponse.success("密钥激活成功", KeyActiveVo.builder()
                 .apiKey(keyInfo.getKeyValue())
                 .devices(keyInfo.getActivationDevice())
                 .expireTime(keyInfo.getExpiryTime())
-                .totalUsage(keyInfo.getTotalUses() == 0 ? "无限制" : keyInfo.getTotalUses().toString())
-                .residualUsage(keyInfo.getRemainingUses() == 0 ? "无限制" : keyInfo.getRemainingUses().toString())
-                .activationNums(keyInfo.getActivationsNum() == 0 ? "无限制" : keyInfo.getActivationsNum().toString())
-                .remainingActiveNum(keyInfo.getRemainingActiveNum() == 0 ? "无限制" : keyInfo.getRemainingActiveNum().toString())
+                .totalUsage(totalUses == 0 ? "无限制" : totalUses.toString())
+                .residualUsage(residualUsageView)
+                .activationNums(activationsNum == 0 ? "无限制" : activationsNum.toString())
+                .remainingActiveNum(remainingActiveNumView)
                 .build()
         );
     }
