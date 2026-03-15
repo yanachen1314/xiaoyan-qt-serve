@@ -90,9 +90,9 @@ public class PublicController {
                 .apiKey(keyInfo.getKeyValue())
                 .devices(keyInfo.getActivationDevice())
                 .expireTime(keyInfo.getExpiryTime())
-                .totalUsage(totalUses == 0 ? "无限制" : totalUses.toString())
+                .totalUsage(totalUses == 0 ? "无限制" : totalUses + "次")
                 .residualUsage(residualUsageView)
-                .activationNums(activationsNum == 0 ? "无限制" : activationsNum.toString())
+                .activationNums(activationsNum == 0 ? "无限制" : activationsNum + "次")
                 .remainingActiveNum(remainingActiveNumView)
                 .build()
         );
