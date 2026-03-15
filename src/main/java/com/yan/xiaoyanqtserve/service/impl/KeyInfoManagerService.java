@@ -155,22 +155,19 @@ public class KeyInfoManagerService {
             if (validKeyInfo.getActivated() == 1) {
                 // 2.1 扣减激活次数（仅限有限次数场景）
                 // 若 actNum == 0（无限次），remaining_active_num 保持原值（应为 0），无需更新
-                if (remAct-1 < 0){
-                    throw new BizException("密钥激活设备已达上限");
-                }
                 if (actNum > 0) {
                     validKeyInfo.setRemainingActiveNum(remAct - 1);
                 }
                 // 2.2 更新激活时间
                 validKeyInfo.setActivationTime(LocalDateTime.now());
-                // 2.2 更新设备
+                // 2.3 更新设备
                 validKeyInfo.setActivationDevice(getNewKeyDevice(validKeyInfo.getActivationDevice(), keyActiveDto.getDeviceID()));
 
-                // 更新备注
+                // 2.4 更新备注
 
-                // 执行更新
+                // 2.5 执行更新
                 keyInfoService.updateKeyInfo(validKeyInfo);
-                // 返回最新结果
+                // 2.6 返回最新结果
                 return validKeyInfo;
             }
 
@@ -184,12 +181,12 @@ public class KeyInfoManagerService {
                 validKeyInfo.setRemainingActiveNum(remAct - 1);
             }
 
-            // 3.3 设置激活信息
-            validKeyInfo.setActivationDevice(keyActiveDto.getDeviceID());
+            // 3.4 设置激活时间
             LocalDateTime now = LocalDateTime.now();
             validKeyInfo.setActivationTime(now);
-
-            // 3.4 设置过期时间
+            // 3.3 设置激活设备
+            validKeyInfo.setActivationDevice(getNewKeyDevice(validKeyInfo.getActivationDevice(), keyActiveDto.getDeviceID()));
+            // 3.5 设置过期时间
             ProductType productType = productTypeService.getDetailById(validKeyInfo.getProductType().longValue());
             if (productType == null) {
                 log.error("产品类型不存在: {}", validKeyInfo.getProductType());
@@ -197,13 +194,11 @@ public class KeyInfoManagerService {
             }
             validKeyInfo.setExpiryTime(now.plusMinutes(productType.getEquityTime()));
 
-            // 3.5 更新备注（可选）
+            // 3.6 更新备注（可选）
 
-
-            // 4. 执行更新
+            // 3.7 执行更新
             keyInfoService.updateKeyInfo(validKeyInfo);
-
-            // 5. 返回最新结果
+            // 3.8 返回最新结果
             return validKeyInfo;
 
         } finally {
@@ -233,7 +228,9 @@ public class KeyInfoManagerService {
         }
 
         // 2.3 检查激活次数是否充足（仅当有限次数时）
+        // 总激活次数
         Integer actNum = keyInfo.getActivationsNum();
+        // 剩余激活次数
         Integer remAct = keyInfo.getRemainingActiveNum();
 
         if (actNum != null && actNum > 0) {
