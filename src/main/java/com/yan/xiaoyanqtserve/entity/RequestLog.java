@@ -5,10 +5,12 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
@@ -24,8 +26,10 @@ import java.time.LocalDateTime;
 @Setter
 @ToString
 @TableName("request_log")
+@Builder
 public class RequestLog implements Serializable {
 
+    @Serial
     private static final long serialVersionUID = 1L;
 
     /**
@@ -64,4 +68,31 @@ public class RequestLog implements Serializable {
      */
     @TableField("processing_result")
     private String processingResult;
+
+    /**
+     * 输入文本
+     */
+    @TableField("input_text")
+    private String inputText;
+
+    /**
+     * 输入文本的字符数
+     */
+    @TableField("input_text_chars")
+    private Integer inputTextChars;
+    /**
+     * 输入文本的token数
+     */
+    @TableField("input_tokens")
+    private Integer inputTokens;
+    /**
+     * 输出文本的token数
+     */
+    @TableField("output_tokens")
+    private Integer outputTokens;
+    /**
+     * 本次请求使用的总token数（输入文本的token数 + 输出文本的token数）
+     */
+    @TableField("total_tokens")
+    private Integer totalTokens;
 }

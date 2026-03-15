@@ -1,16 +1,19 @@
 package com.yan.xiaoyanqtserve.service.impl;
 
+import cn.hutool.extra.spring.SpringUtil;
 import com.yan.xiaoyanqtserve.common.dto.aigc.AigcModelResultDto;
 import com.yan.xiaoyanqtserve.common.dto.aigc.AigcResponseDto;
 import com.yan.xiaoyanqtserve.common.utils.MainUtil;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -20,7 +23,7 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @Service
-public class AigcService {
+public class AigcProcessingService {
     @Resource
     private ModelService modelService;
 
@@ -56,10 +59,12 @@ public class AigcService {
         }
 
         // 使用模型处理文本，返回处理结果
-        String outputText = dealTextByModel(content, paragraphs);
+        AigcModelResultDto result = processTextByModel(content, paragraphs);
 
+        AigcResponseDto build = AigcResponseDto.builder().inputChars(totalCharCount).build();
+        BeanUtils.copyProperties(result, build);
         // 处理成功，返回结果
-        return new AigcResponseDto(outputText, totalCharCount);
+        return build;
     }
 
     /**
@@ -69,7 +74,7 @@ public class AigcService {
      * @return 处理后的结果
      */
     @NotNull
-    private String dealTextByModel(String content, List<String> paragraphs) {
+    private AigcModelResultDto processTextByModel(String content, List<String> paragraphs) {
         // 并行处理每个段落
         List<AigcModelResultDto> modelResults = paragraphs.parallelStream()
                 .map(modelService::chatModel)
@@ -95,8 +100,10 @@ public class AigcService {
         integratedResult.setInputTokens(totalInputTokens);
         integratedResult.setOutputTokens(totalOutputTokens);
         integratedResult.setTotalTokens(totalInputTokens + totalOutputTokens);
-        return outputText;
+        return integratedResult;
     }
+
+
 
     /**
      * 将内容分割成段落列表

@@ -1,9 +1,6 @@
 package com.yan.xiaoyanqtserve.common.dto.aigc;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 
 /**
  * AIGC处理结果封装
@@ -14,15 +11,23 @@ import lombok.ToString;
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
+@Builder
 public class AigcResponseDto {
-
-    /**
-     * 降后的文本或文档下载路径
-     */
-    private  String reducedContent;
-
     /**
      * 输入字符数
      */
     private Integer inputChars;
+
+    // 输入文本
+    private String inputText;
+
+    // 输出文本
+    private String outputText;
+
+    // 模型输入的token数
+    private Integer inputTokens;
+    // 模型输出的token数
+    private Integer outputTokens;
+    // 模型输入输出的token数之和
+    private Integer totalTokens;
 }

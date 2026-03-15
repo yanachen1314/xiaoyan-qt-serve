@@ -3,7 +3,6 @@ package com.yan.xiaoyanqtserve.service.impl;
 import com.yan.xiaoyanqtserve.common.dto.aigc.AigcRequestDto;
 import com.yan.xiaoyanqtserve.common.dto.aigc.AigcResponseDto;
 import com.yan.xiaoyanqtserve.entity.KeyInfo;
-import jakarta.annotation.Resource;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -17,7 +16,7 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class ApiKeyInfoService {
-    private final AigcService aigcService;
+    private final AigcProcessingService aigcProcessingService;
     private final KeyInfoManagerService keyInfoManagerService;
 
     /**
@@ -26,7 +25,7 @@ public class ApiKeyInfoService {
      * @return AI处理结果
      */
     public AigcResponseDto aigcDealText(AigcRequestDto aigcRequestDto, KeyInfo apiKeyUser) {
-        AigcResponseDto aigcResponseDto = aigcService.dealText(aigcRequestDto.getOriginalText());
+        AigcResponseDto aigcResponseDto = aigcProcessingService.dealText(aigcRequestDto.getOriginalText());
 
         // 减少密钥使用次数
         keyInfoManagerService.decrementKeyUses(apiKeyUser);
