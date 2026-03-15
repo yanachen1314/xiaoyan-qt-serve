@@ -34,6 +34,11 @@ public class KeyInfoPageRequest extends PageRequest {
     private Byte activated;
 
     /**
+     * 使用场景
+     */
+    private String usageType;
+
+    /**
      * 产品类型
      */
     private String productType;

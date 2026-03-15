@@ -63,6 +63,10 @@ public class KeyInfoServiceImpl extends ServiceImpl<KeyInfoMapper, KeyInfo> impl
         if (StringUtils.hasText(pageRequest.getProductType())) {
             queryWrapper.eq(KeyInfo::getProductType, pageRequest.getProductType());
         }
+
+        if (StringUtils.hasText(pageRequest.getUsageType())) {
+            queryWrapper.eq(KeyInfo::getUsageType, pageRequest.getUsageType());
+        }
         
         // 按创建时间倒序
         queryWrapper.orderByDesc(KeyInfo::getCreatedTime);
