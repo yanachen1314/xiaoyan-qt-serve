@@ -155,6 +155,9 @@ public class KeyInfoManagerService {
             if (validKeyInfo.getActivated() == 1) {
                 // 2.1 扣减激活次数（仅限有限次数场景）
                 // 若 actNum == 0（无限次），remaining_active_num 保持原值（应为 0），无需更新
+                if (remAct-1 < 0){
+                    throw new BizException("密钥激活设备已达上限");
+                }
                 if (actNum > 0) {
                     validKeyInfo.setRemainingActiveNum(remAct - 1);
                 }
@@ -166,10 +169,7 @@ public class KeyInfoManagerService {
                 // 更新备注
 
                 // 执行更新
-                boolean updated = keyInfoService.updateById(validKeyInfo);
-                if (!updated) {
-                    throw new BizException("密钥激活失败，请重试");
-                }
+                keyInfoService.updateKeyInfo(validKeyInfo);
                 // 返回最新结果
                 return validKeyInfo;
             }
@@ -201,10 +201,7 @@ public class KeyInfoManagerService {
 
 
             // 4. 执行更新
-            boolean updated = keyInfoService.updateById(validKeyInfo);
-            if (!updated) {
-                throw new BizException("密钥激活失败，请重试");
-            }
+            keyInfoService.updateKeyInfo(validKeyInfo);
 
             // 5. 返回最新结果
             return validKeyInfo;

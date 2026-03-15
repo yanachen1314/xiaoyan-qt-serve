@@ -31,4 +31,10 @@ public interface KeyInfoService extends IService<KeyInfo> {
      * @return 分页结果
      */
     Page<KeyInfo> getList(KeyInfoPageRequest pageRequest);
+
+    /**
+     * 更新密钥信息
+     * @param keyInfo 密钥信息
+     */
+    void updateKeyInfo(KeyInfo keyInfo);
 }

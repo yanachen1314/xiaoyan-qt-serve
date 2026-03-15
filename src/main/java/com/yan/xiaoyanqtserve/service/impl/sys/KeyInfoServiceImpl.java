@@ -8,6 +8,8 @@ import com.yan.xiaoyanqtserve.mapper.KeyInfoMapper;
 import com.yan.xiaoyanqtserve.service.KeyInfoService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import jakarta.annotation.Nullable;
+import jakarta.annotation.Resource;
+import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -21,6 +23,9 @@ import org.springframework.util.StringUtils;
  */
 @Service
 public class KeyInfoServiceImpl extends ServiceImpl<KeyInfoMapper, KeyInfo> implements KeyInfoService {
+
+    @Resource
+    private KeyInfoMapper keyInfoMapper;
 
     /**
      * 根据密钥值查询密钥信息
@@ -64,5 +69,17 @@ public class KeyInfoServiceImpl extends ServiceImpl<KeyInfoMapper, KeyInfo> impl
         queryWrapper.orderByDesc(KeyInfo::getCreatedTime);
         
         return this.page(keyInfoPage, queryWrapper);
+    }
+
+    /**
+     * 更新密钥信息
+     * @param keyInfo 密钥信息
+     */
+    @Override
+    public void updateKeyInfo(KeyInfo keyInfo) {
+        int i = keyInfoMapper.updateById(keyInfo);
+        if (i <= 0) {
+            throw new RuntimeException("更新密钥信息失败");
+        }
     }
 }
