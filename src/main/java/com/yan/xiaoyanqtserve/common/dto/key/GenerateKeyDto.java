@@ -19,24 +19,10 @@ public class GenerateKeyDto {
     private Integer keyNumber;
 
     /**
-     * 总使用次数(降AI)，0表示无限制
-     */
-    @NotNull(message = "总使用次数不能为空")
-    @Min(value = 0, message = "总使用次数不能小于0")
-    private Integer totalUses;
-
-    /**
      * 产品类型或套餐标识
      */
     @NotNull(message = "密钥产品类型不能为空")
-    private String productType;
-
-    /**
-     * 激活次数，0-无次数限制
-     */
-    @NotNull(message = "激活次数不能为空")
-    @Min(value = 0, message = "激活次数不能小于0")
-    private Integer activationsNum;
+    private Integer productTypeId;
 
     /**
      * 备注信息

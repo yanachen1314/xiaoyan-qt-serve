@@ -64,12 +64,15 @@ public class PublicController {
         KeyInfo keyInfo = managerService.activateKey(keyActiveDto);
 
         // 激活成功
-        return ApiResponse.success("密钥激活成功",
-                KeyActiveVo.builder()
-                        .apiKey(keyInfo.getKeyValue())
-                        .device(keyInfo.getActivationDevice())
-                        .expireTime(keyInfo.getExpiryTime())
-                        .build()
+        return ApiResponse.success("密钥激活成功", KeyActiveVo.builder()
+                .apiKey(keyInfo.getKeyValue())
+                .devices(keyInfo.getActivationDevice())
+                .expireTime(keyInfo.getExpiryTime())
+                .totalUsage(keyInfo.getTotalUses() == 0 ? "无限制" : keyInfo.getTotalUses().toString())
+                .residualUsage(keyInfo.getRemainingUses() == 0 ? "无限制" : keyInfo.getRemainingUses().toString())
+                .activationNums(keyInfo.getActivationsNum() == 0 ? "无限制" : keyInfo.getActivationsNum().toString())
+                .remainingActiveNum(keyInfo.getRemainingActiveNum() == 0 ? "无限制" : keyInfo.getRemainingActiveNum().toString())
+                .build()
         );
     }
 
@@ -172,7 +175,7 @@ public class PublicController {
         try {
             // 调用 AdminUserService 的 resetPasswordByContact 方法重置密码
             boolean success = adminUserService.resetPasswordByContact(
-                    resetRequest.getContact(), 
+                    resetRequest.getContact(),
                     resetRequest.getNewPassword()
             );
 

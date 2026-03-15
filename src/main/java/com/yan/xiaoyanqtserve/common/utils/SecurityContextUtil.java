@@ -1,6 +1,8 @@
 package com.yan.xiaoyanqtserve.common.utils;
 
+import com.yan.xiaoyanqtserve.common.enums.Role;
 import com.yan.xiaoyanqtserve.entity.KeyInfo;
+import com.yan.xiaoyanqtserve.security.AdminUserDetails;
 import org.springframework.lang.Nullable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -37,7 +39,7 @@ public class SecurityContextUtil {
         Authentication auth = getAuthentication();
         return auth != null && auth.getAuthorities()
                         .stream()
-                        .anyMatch(a -> a.getAuthority().equals("ROLE_KEY_USER"));
+                        .anyMatch(a -> a.getAuthority().equals("ROLE_"+ Role.KEY_USER));
     }
 
     /**
@@ -45,10 +47,10 @@ public class SecurityContextUtil {
      * @return 认证对象
      */
     @Nullable
-    public UserDetails getAdminUser() {
+    public AdminUserDetails getAdminUser() {
         Authentication auth = getAuthentication();
         if (auth != null && auth.getPrincipal() instanceof UserDetails user) {
-            return user;
+            return (AdminUserDetails) user;
         }
         return null;
     }
@@ -60,6 +62,6 @@ public class SecurityContextUtil {
     public Boolean isAdmin() {
         Authentication auth = getAuthentication();
         return auth != null && auth.getAuthorities().stream().anyMatch(
-                a -> a.getAuthority().equals("ROLE_ADMIN"));
+                a -> a.getAuthority().equals("ROLE_"+ Role.ADMIN));
     }
 }

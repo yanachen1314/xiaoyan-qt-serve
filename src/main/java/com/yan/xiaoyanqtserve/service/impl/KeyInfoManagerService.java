@@ -8,8 +8,11 @@ import com.yan.xiaoyanqtserve.common.utils.LicenseKeyGenerator;
 import com.yan.xiaoyanqtserve.common.utils.RedisLockUtil;
 import com.yan.xiaoyanqtserve.entity.KeyInfo;
 import com.yan.xiaoyanqtserve.common.exception.BizException;
+import com.yan.xiaoyanqtserve.entity.ProductType;
 import com.yan.xiaoyanqtserve.service.KeyInfoService;
+import com.yan.xiaoyanqtserve.service.ProductTypeService;
 import jakarta.annotation.Resource;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,16 +29,13 @@ import java.util.Objects;
  */
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class KeyInfoManagerService {
 
-    @Resource
-    private LicenseKeyGenerator licenseKeyGenerator;
-
-    @Resource
-    private KeyInfoService keyInfoService;
-
-    @Resource
-    private RedisLockUtil redisLockUtil;
+    private final LicenseKeyGenerator licenseKeyGenerator;
+    private final KeyInfoService keyInfoService;
+    private final RedisLockUtil redisLockUtil;
+    private final ProductTypeService productTypeService;
 
     /**
      * 验证 API Key 是否具备有效激活/使用的资格。
@@ -98,32 +98,6 @@ public class KeyInfoManagerService {
 
         // 5. 此时已激活，但是过滤器中无需验证是否还有激活次数：已激活的密钥，无论剩余激活次数多少，均可继续调用服务
         // 但必须进行权益数量校验
-/*        Integer actNum = keyInfo.getActivationsNum();
-        Integer remAct = keyInfo.getRemainingActiveNum();
-
-        // 防御性校验：字段为空视为无效状态
-        if (actNum == null || remAct == null) {
-            return ValidationResult.failure(BizStatus.KEY_INVALID_STATE);
-        }
-
-        if (actNum > 0) {
-            // 有限激活次数：剩余次数必须 > 0 才可继续激活
-            if (remAct <= 0) {
-                return ValidationResult.failure(BizStatus.KEY_NON_ACTIVATIONS);
-            }
-        } else if (actNum == 0) {
-            // 无限制激活次数：根据业务约定，remaining_active_num 必须为 0
-            // 若非 0（如被误写为 5），视为数据异常，拒绝请求
-            if (remAct != 0) {
-                log.warn("Invalid remaining_active_num for unlimited activation key: actNum=0, remAct={}, key={}",
-                        remAct, keyInfo.getKeyValue());
-                return ValidationResult.failure(BizStatus.KEY_INVALID_STATE);
-            }
-            // remAct == 0：合法，表示已激活且无限制 → 允许使用
-        } else {
-            // actNum < 0：非法值，拒绝
-            return ValidationResult.failure(BizStatus.KEY_INVALID_STATE);
-        }*/
 
         // 6. 校验使用次数是否充足（同理，仅在已激活前提下）
         Integer totalUses = keyInfo.getTotalUses();
@@ -195,9 +169,9 @@ public class KeyInfoManagerService {
             }
 
             KeyInfo keyInfo = keyValid.getKeyInfo();
-            if(keyInfo.getStatus() == 1
+            if (keyInfo.getStatus() == 1
                     && keyInfo.getActivated() == 1
-                    && keyInfo.getActivationDevice().equals(keyActiveDto.getDeviceID())){
+                    && keyInfo.getActivationDevice().equals(keyActiveDto.getDeviceID())) {
                 // 已激活，直接返回使用
                 return keyInfo;
             }
@@ -226,7 +200,7 @@ public class KeyInfoManagerService {
             updateEntity.setActivationTime(now);
 
             // 3.4 根据 product_type 配置使用权益（关键！）
-            configureUsageRights(updateEntity, 1, now);
+            configureUsageRights(updateEntity, now);
 
             // 3.5 更新备注（可选）
             updateEntity.setRemark(String.format("激活时间: %s | 设备: %s",
@@ -239,27 +213,8 @@ public class KeyInfoManagerService {
                 throw new BizException("密钥激活失败，请重试");
             }
 
-            // 5. 合并更新结果到返回对象（确保调用方拿到最新值）
-            keyInfo.setActivated((byte) 1);
-            keyInfo.setActivationDevice(updateEntity.getActivationDevice());
-            keyInfo.setActivationTime(updateEntity.getActivationTime());
-            keyInfo.setRemark(updateEntity.getRemark());
-
-            // 仅当 updateEntity 显式设置了字段时才覆盖（避免 null 覆盖原值）
-            if (updateEntity.getRemainingActiveNum() != null) {
-                keyInfo.setRemainingActiveNum(updateEntity.getRemainingActiveNum());
-            }
-            if (updateEntity.getTotalUses() != null) {
-                keyInfo.setTotalUses(updateEntity.getTotalUses());
-            }
-            if (updateEntity.getRemainingUses() != null) {
-                keyInfo.setRemainingUses(updateEntity.getRemainingUses());
-            }
-            if (updateEntity.getExpiryTime() != null) {
-                keyInfo.setExpiryTime(updateEntity.getExpiryTime());
-            }
-
-            return keyInfo;
+            // 5. 查询并返回最新结果
+            return keyInfoService.getById(keyInfo.getId());
 
         } finally {
             redisLockUtil.unlock(lockKey);
@@ -273,39 +228,33 @@ public class KeyInfoManagerService {
      * 其他字段（如 activated）由调用方设置。
      *
      * @param target 待更新的 KeyInfo 对象（非 null）
-     * @param productType 产品类型标识（如 "ai_vip_hourly"）
      * @param activationTime 激活时间（用于计算过期时间）
      */
-    private void configureUsageRights(KeyInfo target, Integer productType, LocalDateTime activationTime) {
-        Objects.requireNonNull(target, "target cannot be null");
-        Objects.requireNonNull(productType, "productType cannot be null");
-
-        switch (productType) {
-            case 1:
-                target.setTotalUses(0);          // 0 = 无限制
-                target.setRemainingUses(0);      // 无限制时必须为 0
-                target.setExpiryTime(activationTime.plusHours(1));
-                break;
-
-            case 2:
-                target.setTotalUses(100);
-                target.setRemainingUses(100);    // 激活后可用 100 次
-                target.setExpiryTime(null);      // 永            break;
-
-            case 3:
-                target.setTotalUses(0);
-                target.setRemainingUses(0);
-                target.setExpiryTime(activationTime.plusDays(30));
-                break;
-
-            default:
-                // 安全兜底：1小时无限制
-                log.warn("未知 productType: {}, 使用默认配置: 1小时无限制", productType);
-                target.setTotalUses(0);
-                target.setRemainingUses(0);
-                target.setExpiryTime(activationTime.plusHours(1));
-                break;
+    private void configureUsageRights(KeyInfo target, LocalDateTime activationTime) {
+        ProductType productType = productTypeService.getById(target.getProductType());
+        if (productType == null) {
+            log.error("密钥{}，产品类型不存在: {}", target.getKeyValue(), target.getProductType());
+            throw new BizException("激活失败");
         }
+        if(productType.getEquityUsageNum() == 0) {
+            // 使用次数0，代表无限限制
+            target.setTotalUses(0);
+            target.setRemainingUses(0);
+        }else{
+            target.setTotalUses(productType.getEquityUsageNum());
+            target.setRemainingUses(productType.getEquityUsageNum());
+        }
+
+        if(productType.getEquityActiveNum() == 0){
+            // 激活次数0，代表无限限制
+            target.setActivationsNum(0);
+            target.setRemainingActiveNum(0);
+        }else{
+            target.setActivationsNum(productType.getEquityActiveNum());
+            target.setRemainingActiveNum(productType.getEquityActiveNum());
+        }
+
+        target.setExpiryTime(activationTime.plusMinutes(productType.getEquityTime()));
     }
 
     private ValidationResult activeKeyValid(String apiKey, String deviceID) {
@@ -348,7 +297,7 @@ public class KeyInfoManagerService {
                 return ValidationResult.failure("密钥数据异常，请联系管理员", BizStatus.KEY_INVALID_STATE);
             }
         } else {
-            log.warn("激活次数配置异常: key={}, actNum={}, remAct={}", keyInfo.getKeyValue(),actNum, remAct);
+            log.warn("激活次数配置异常: key={}, actNum={}, remAct={}", keyInfo.getKeyValue(), actNum, remAct);
             return ValidationResult.failure("激活次数配置异常", BizStatus.KEY_INVALID_STATE);
         }
 
@@ -363,30 +312,29 @@ public class KeyInfoManagerService {
 
     /**
      * 密钥生成（一小时无限制使用的密钥）
+     * @param operator 操作员
      * @param generateKeyDto 密钥生成参数
      */
     @Transactional(rollbackFor = Exception.class)
-    public void generateKey(GenerateKeyDto generateKeyDto) {
+    public void generateKey(GenerateKeyDto generateKeyDto, Long operator) {
+        // 生成若干密钥
+        List<String> keyList = licenseKeyGenerator.generateKey(generateKeyDto.getKeyNumber());
 
-        List<String> keyList =
-                licenseKeyGenerator.generateKey(generateKeyDto.getKeyNumber());
-
+        // 批量保存密钥信息
         List<KeyInfo> entityList = keyList.stream()
-                .map(this::buildKeyInfo)
+                .map(key -> buildKeyInfo(key, generateKeyDto, operator))
                 .toList();
-
         keyInfoService.saveBatch(entityList, 500);
     }
 
-    private KeyInfo buildKeyInfo(String key) {
-
+    private KeyInfo buildKeyInfo(String key, GenerateKeyDto generateKeyDto, Long operator) {
         KeyInfo keyInfo = new KeyInfo();
 
         keyInfo.setKeyValue(key);
         keyInfo.setStatus((byte) 1);
 
         // 设置套餐类型
-        keyInfo.setProductType(1);
+        keyInfo.setProductType(generateKeyDto.getProductTypeId());
 
         // 设置默认值，激活时再设置权益
         keyInfo.setTotalUses(0);
@@ -395,7 +343,7 @@ public class KeyInfoManagerService {
         keyInfo.setRemainingActiveNum(0);
         keyInfo.setActivated((byte) 0);
 
-        keyInfo.setCreatedBy(1L);
+        keyInfo.setCreatedBy(operator);
         return keyInfo;
     }
 
