@@ -2,6 +2,7 @@ package com.yan.xiaoyanqtserve.aop;
 
 import com.yan.xiaoyanqtserve.common.Constants;
 import com.yan.xiaoyanqtserve.common.annotaions.RateLimiter;
+import com.yan.xiaoyanqtserve.common.utils.NetUtil;
 import com.yan.xiaoyanqtserve.common.utils.SecurityContextUtil;
 import com.yan.xiaoyanqtserve.entity.KeyInfo;
 import com.yan.xiaoyanqtserve.common.exception.BizException;
@@ -65,7 +66,7 @@ public class RateLimiterAspect {
 
     private String getKeyValue(HttpServletRequest request, RateLimiter rateLimiter) {
         return switch (rateLimiter.limitBy()) {
-            case IP -> getClientIpAddress(request);
+            case IP -> NetUtil.getClientIpAddress(request);
             case API_KEY -> getCurrentApiKey(); // 从 SecurityContext 获取 API Key
         };
     }
@@ -79,17 +80,7 @@ public class RateLimiterAspect {
         }
     }
 
-    private String getClientIpAddress(HttpServletRequest request) {
-        String xForwardedFor = request.getHeader("X-Forwarded-For");
-        if (xForwardedFor != null && !xForwardedFor.isEmpty() && !"unknown".equalsIgnoreCase(xForwardedFor)) {
-            return xForwardedFor.split(",")[0].trim();
-        }
-        String xRealIp = request.getHeader("X-Real-IP");
-        if (xRealIp != null && !xRealIp.isEmpty() && !"unknown".equalsIgnoreCase(xRealIp)) {
-            return xRealIp;
-        }
-        return request.getRemoteAddr();
-    }
+
 
     /**
      * 固定时间窗口限流

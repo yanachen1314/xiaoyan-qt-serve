@@ -6,11 +6,14 @@ import com.yan.xiaoyanqtserve.common.dto.aigc.AigcRequestDto;
 import com.yan.xiaoyanqtserve.common.dto.aigc.AigcResponseDto;
 import com.yan.xiaoyanqtserve.common.enums.BizStatus;
 import com.yan.xiaoyanqtserve.common.enums.RateLimiterType;
+import com.yan.xiaoyanqtserve.common.utils.NetUtil;
 import com.yan.xiaoyanqtserve.common.utils.SecurityContextUtil;
 import com.yan.xiaoyanqtserve.entity.KeyInfo;
 import com.yan.xiaoyanqtserve.common.utils.ApiResponse;
+import com.yan.xiaoyanqtserve.service.RequestLogService;
 import com.yan.xiaoyanqtserve.service.impl.ApiKeyInfoService;
 import jakarta.annotation.Resource;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
@@ -37,6 +40,9 @@ public class ApiKeyController {
     @Resource
     private ApiKeyInfoService apiKeyInfoService;
 
+    @Resource
+    private RequestLogService logService;
+
     /**
      * AI处理接口
      * @param aigcRequestDto AI处理参数
@@ -44,14 +50,20 @@ public class ApiKeyController {
      */
     @RateLimiter(key = "active", time = 1, count = 1, limitBy = RateLimiterType.API_KEY)
     @PostMapping("/deal/text")
-    public ApiResponse<AigcResponseDto> aigcDealText(@Valid @RequestBody AigcRequestDto aigcRequestDto) {
+    public ApiResponse<AigcResponseDto> aigcDealText(
+            HttpServletRequest request,
+            @Valid @RequestBody AigcRequestDto aigcRequestDto) {
         ThreadUtil.sleep(1200);
         KeyInfo apiKeyUser = securityContextUtil.getApiKeyUser();
         if(!securityContextUtil.isApiKeyUser() || Objects.isNull(apiKeyUser)){
             return ApiResponse.fail(BizStatus.KEY_NOT_FOUND);
         }
+        AigcResponseDto aigcDealText = apiKeyInfoService.aigcDealText(aigcRequestDto, apiKeyUser);
 
+        // 记录请求日志
+        String clientIpAddress = NetUtil.getClientIpAddress(request);
+        logService.recordRequestLog(apiKeyUser.getKeyValue(), clientIpAddress, 500, aigcDealText.getReducedContent());
         // 返回处理结果
-        return ApiResponse.success("处理成功", apiKeyInfoService.aigcDealText(aigcRequestDto));
+        return ApiResponse.success("处理成功", aigcDealText);
     }
 }

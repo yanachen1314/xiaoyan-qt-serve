@@ -118,7 +118,7 @@ public class KeyInfoManagerService {
      */
     @Transactional(rollbackFor = Exception.class)
     public KeyInfo activateKey(KeyActiveDto keyActiveDto) {
-        String lockKey = "Lock_" + keyActiveDto.getApiKey();
+        String lockKey = "Lock:activateKey:" + keyActiveDto.getApiKey();
         if (!redisLockUtil.lock(lockKey, 10)) {
             throw new BizException("系统繁忙，请稍后再试！");
         }
@@ -209,7 +209,7 @@ public class KeyInfoManagerService {
         }
 
         // 2. 新设备需要检查激活次数是否充足
-        if(isNewDevice(keyInfo.getActivationDevice(), deviceID)){
+        if (isNewDevice(keyInfo.getActivationDevice(), deviceID)) {
             // 总激活次数
             Integer actNum = keyInfo.getActivationsNum();
             // 剩余激活次数
@@ -252,7 +252,7 @@ public class KeyInfoManagerService {
      * @return 新的密钥设备字符串
      */
     private String getNewKeyDevice(String activationDevice, String deviceID) {
-        if(activationDevice == null){
+        if (activationDevice == null) {
             return deviceID;
         }
 
@@ -262,15 +262,17 @@ public class KeyInfoManagerService {
         }
         return activationDevice + "," + deviceID;
     }
+
     /**
      * 判断是否为新设备
      * @param activationDevice 现有设备列表，用逗号分隔
      * @param deviceID 设备ID
-      * @return 是否为新设备，true 表示是新设备，false 表示不是新设备
+     * @return 是否为新设备，true 表示是新设备，false 表示不是新设备
      */
     private boolean isNewDevice(String activationDevice, String deviceID) {
         return !parseKeyDevice(activationDevice).contains(deviceID);
     }
+
     /**
      * 解析密钥设备字符串，返回设备ID列表
      * @param activationDevice 密钥设备字符串，用逗号分隔
@@ -305,6 +307,7 @@ public class KeyInfoManagerService {
                 .toList();
         keyInfoService.saveBatch(entityList, 500);
     }
+
     /**
      * 构建密钥信息
      * @param key 密钥
@@ -352,37 +355,24 @@ public class KeyInfoManagerService {
 
     /**
      * 扣减密钥使用次数
-     * @param apiKey API Key
-     * @return 扣减成功返回true，否则返回false
+     * @param apiKeyUser API Key用户信息
      */
-    public boolean decrementKeyUses(String apiKey) {
-        // 根据 API Key 查询密钥
-        KeyInfo keyInfo = keyInfoService.getByKeyValue(apiKey);
-
-        // 验证密钥是否存在
-        if (keyInfo == null) {
-            return false;
+    @Transactional(rollbackFor = Exception.class)
+    public void decrementKeyUses(KeyInfo apiKeyUser) {
+        String lockKey = "Lock:decrementKeyUses:" + apiKeyUser.getKeyValue();
+        if (!redisLockUtil.lock(lockKey, 10)) {
+            throw new BizException("系统繁忙，请稍后再试！");
         }
-
-        // 验证密钥状态是否为启用
-        if (keyInfo.getStatus() != 1) {
-            return false;
+        try {
+            Integer totalUses = apiKeyUser.getTotalUses();
+            Integer remainingUses = apiKeyUser.getRemainingUses();
+            if (totalUses != null && totalUses > 0 && remainingUses != null && remainingUses > 0) {
+                apiKeyUser.setRemainingUses(remainingUses - 1);
+                // 保存更新后的密钥信息
+                keyInfoService.updateKeyInfo(apiKeyUser);
+            }
+        } finally {
+            redisLockUtil.unlock(lockKey);
         }
-
-        // 处理无限制使用次数的情况（total_uses = 0）
-        if (keyInfo.getTotalUses() == 0) {
-            return true;
-        }
-
-        // 扣减剩余使用次数
-        Integer remainingUses = keyInfo.getRemainingUses();
-        if (remainingUses == null || remainingUses <= 0) {
-            return false;
-        }
-
-        keyInfo.setRemainingUses(remainingUses - 1);
-
-        // 保存更新后的密钥信息
-        return keyInfoService.updateById(keyInfo);
     }
 }
