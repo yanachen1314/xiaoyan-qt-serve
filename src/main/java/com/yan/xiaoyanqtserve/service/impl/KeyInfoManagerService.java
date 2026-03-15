@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -145,8 +146,7 @@ public class KeyInfoManagerService {
                 // 2.1 扣减剩余激活次数
                 // 若 actNum == 0（无限次），remaining_active_num 保持原值（应为 0），无需更新
                 // 如果 actNum > 0（有限次），则需要在新设备激活时扣减 remaining_active_num 一次
-                List<String> deviceList = parseKeyDevice(validKeyInfo.getActivationDevice());
-                if (actNum > 0 && !deviceList.contains(deviceID)) {
+                if (actNum > 0 && isNewDevice(validKeyInfo.getActivationDevice(), deviceID)) {
                     validKeyInfo.setRemainingActiveNum(remAct - 1);
                 }
 
@@ -208,27 +208,30 @@ public class KeyInfoManagerService {
             return ValidationResult.failure("密钥已被禁用", BizStatus.KEY_INACTIVE);
         }
 
-        // 2. 检查激活次数是否充足
-        // 总激活次数
-        Integer actNum = keyInfo.getActivationsNum();
-        // 剩余激活次数
-        Integer remAct = keyInfo.getRemainingActiveNum();
+        // 2. 新设备需要检查激活次数是否充足
+        if(isNewDevice(keyInfo.getActivationDevice(), deviceID)){
+            // 总激活次数
+            Integer actNum = keyInfo.getActivationsNum();
+            // 剩余激活次数
+            Integer remAct = keyInfo.getRemainingActiveNum();
 
-        if (actNum != null && actNum > 0) {
-            // 有限激活次数： remaining_active_num 必须不为 null 且 > 0
-            if (remAct == null || remAct <= 0) {
-                return ValidationResult.failure("激活设备数已达上限", BizStatus.KEY_NON_ACTIVATIONS);
+            if (actNum != null && actNum > 0) {
+                // 有限激活次数： remaining_active_num 必须不为 null 且 > 0
+                if (remAct == null || remAct <= 0) {
+                    return ValidationResult.failure("激活设备数已达上限", BizStatus.KEY_NON_ACTIVATIONS);
+                }
+            } else if (actNum != null && actNum == 0) {
+                // 无限激活次数：remaining_active_num 必须为 0（按约定）
+                if (remAct != null && remAct != 0) {
+                    log.warn("密钥数据异常: key={}, actNum=0, remAct={}", keyInfo.getKeyValue(), remAct);
+                    return ValidationResult.failure("密钥数据异常，请联系管理员", BizStatus.KEY_INVALID_STATE);
+                }
+            } else {
+                log.warn("激活次数配置异常: key={}, actNum={}, remAct={}", keyInfo.getKeyValue(), actNum, remAct);
+                return ValidationResult.failure("激活次数配置异常", BizStatus.KEY_INVALID_STATE);
             }
-        } else if (actNum != null && actNum == 0) {
-            // 无限激活次数：remaining_active_num 必须为 0（按约定）
-            if (remAct != null && remAct != 0) {
-                log.warn("密钥数据异常: key={}, actNum=0, remAct={}", keyInfo.getKeyValue(), remAct);
-                return ValidationResult.failure("密钥数据异常，请联系管理员", BizStatus.KEY_INVALID_STATE);
-            }
-        } else {
-            log.warn("激活次数配置异常: key={}, actNum={}, remAct={}", keyInfo.getKeyValue(), actNum, remAct);
-            return ValidationResult.failure("激活次数配置异常", BizStatus.KEY_INVALID_STATE);
         }
+
 
         // 3. 检查过期时间（已激活才进行检查）
         Byte activated = keyInfo.getActivated();
@@ -259,13 +262,22 @@ public class KeyInfoManagerService {
         }
         return activationDevice + "," + deviceID;
     }
-
+    /**
+     * 判断是否为新设备
+     * @param activationDevice 现有设备列表，用逗号分隔
+     * @param deviceID 设备ID
+      * @return 是否为新设备，true 表示是新设备，false 表示不是新设备
+     */
+    private boolean isNewDevice(String activationDevice, String deviceID) {
+        return !parseKeyDevice(activationDevice).contains(deviceID);
+    }
     /**
      * 解析密钥设备字符串，返回设备ID列表
      * @param activationDevice 密钥设备字符串，用逗号分隔
      * @return 设备ID列表
      */
     private List<String> parseKeyDevice(String activationDevice) {
+        if (activationDevice == null) return Collections.emptyList();
         return Arrays.asList(activationDevice.split(","));
     }
 
