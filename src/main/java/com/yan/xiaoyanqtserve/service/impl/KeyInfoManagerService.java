@@ -320,7 +320,11 @@ public class KeyInfoManagerService {
         KeyInfo keyInfo = new KeyInfo();
 
         keyInfo.setKeyValue(key);
+        // 设置默认启用状态
         keyInfo.setStatus((byte) 1);
+        // 设置默认未售出
+        keyInfo.setSelled((byte) 0);
+        // 设置使用类型
         keyInfo.setUsageType(generateKeyDto.getUsageType());
 
         // 设置默认未激活

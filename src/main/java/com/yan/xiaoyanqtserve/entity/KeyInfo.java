@@ -47,6 +47,11 @@ public class KeyInfo implements Serializable {
      */
     @TableField("status")
     private Byte status;
+    /**
+     * 密钥销售状态（主要针对非链动小铺场景）：0-未销售，1-已销售
+     */
+    @TableField("selled")
+    private Byte selled;
 
     /**
      * 密钥使用场景,用途
