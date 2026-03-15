@@ -1,6 +1,5 @@
 package com.yan.xiaoyanqtserve.service.impl;
 
-import cn.hutool.extra.spring.SpringUtil;
 import com.yan.xiaoyanqtserve.common.dto.aigc.AigcModelResultDto;
 import com.yan.xiaoyanqtserve.common.dto.aigc.AigcResponseDto;
 import com.yan.xiaoyanqtserve.common.utils.MainUtil;
@@ -13,7 +12,6 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
