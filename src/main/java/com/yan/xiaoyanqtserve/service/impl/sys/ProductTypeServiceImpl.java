@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.yan.xiaoyanqtserve.common.dto.product.ProductTypeDto;
 import com.yan.xiaoyanqtserve.common.dto.product.ProductTypePageRequest;
+import com.yan.xiaoyanqtserve.common.utils.RedisUtil;
 import com.yan.xiaoyanqtserve.entity.ProductType;
 import com.yan.xiaoyanqtserve.mapper.ProductTypeMapper;
 import com.yan.xiaoyanqtserve.service.ProductTypeService;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
+import java.util.concurrent.TimeUnit;
 
 /**
  * <p>
@@ -28,6 +30,10 @@ public class ProductTypeServiceImpl extends ServiceImpl<ProductTypeMapper, Produ
 
     @Resource
     private ProductTypeMapper productTypeMapper;
+    @Resource
+    private RedisUtil redisUtil;
+
+    private final static String CACHE_KEY = "productTypeCache:";
 
     /**
      * 分页查询产品类型列表
@@ -54,9 +60,19 @@ public class ProductTypeServiceImpl extends ServiceImpl<ProductTypeMapper, Produ
         return this.page(page, queryWrapper);
     }
 
+    /**
+     * 根据id获取产品类型详情
+     * @param id 产品类型id
+     * @return 产品类型详情
+     */
     @Override
     public ProductType getDetailById(Long id) {
-        return productTypeMapper.selectById(id);
+        if (redisUtil.hasKey(CACHE_KEY + id)) {
+            return (ProductType) redisUtil.get(CACHE_KEY + id);
+        }
+        ProductType productType = productTypeMapper.selectById(id);
+        redisUtil.set(CACHE_KEY + id, productType,5, TimeUnit.MINUTES);
+        return productType;
     }
 
     /**
@@ -82,7 +98,18 @@ public class ProductTypeServiceImpl extends ServiceImpl<ProductTypeMapper, Produ
         ProductType productType = new ProductType();
         BeanUtils.copyProperties(dto, productType);
         productType.setUpdateTime(LocalDateTime.now());
-        
+
         this.updateById(productType);
+        redisUtil.delete(CACHE_KEY + dto.getId());
+    }
+
+    /**
+     * 根据id删除产品类型
+     * @param id 产品类型id
+     */
+    @Override
+    public void deleteById(Long id) {
+        productTypeMapper.deleteById(id);
+        redisUtil.delete(CACHE_KEY + id);
     }
 }

@@ -42,4 +42,10 @@ public interface ProductTypeService extends IService<ProductType> {
      * @param dto 产品类型信息
      */
     void update(ProductTypeDto dto);
+
+    /**
+     * 根据id删除产品类型
+     * @param id 产品类型id
+     */
+    void deleteById(Long id);
 }

@@ -198,9 +198,7 @@ public class KeyInfoManagerService {
             validKeyInfo.setExpiryTime(now.plusMinutes(productType.getEquityTime()));
 
             // 3.5 更新备注（可选）
-            validKeyInfo.setRemark(String.format("激活时间: %s | 设备: %s",
-                    now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
-                    keyActiveDto.getDeviceID()));
+
 
             // 4. 执行更新
             boolean updated = keyInfoService.updateById(validKeyInfo);

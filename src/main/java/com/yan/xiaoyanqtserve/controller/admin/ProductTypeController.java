@@ -81,7 +81,7 @@ public class ProductTypeController {
      */
     @GetMapping("/delete/{id}")
     public ApiResponse<Void> delete(@PathVariable Long id) {
-        productTypeService.removeById(id);
+        productTypeService.deleteById(id);
         return ApiResponse.success();
     }
 }
