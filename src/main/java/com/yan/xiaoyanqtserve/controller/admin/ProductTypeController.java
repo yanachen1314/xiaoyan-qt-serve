@@ -48,7 +48,7 @@ public class ProductTypeController {
      */
     @GetMapping("/{id}")
     public ApiResponse<ProductType> getById(@PathVariable Long id) {
-        ProductType productType = productTypeService.getById(id);
+        ProductType productType = productTypeService.getDetailById(id);
         return ApiResponse.success(productType);
     }
 

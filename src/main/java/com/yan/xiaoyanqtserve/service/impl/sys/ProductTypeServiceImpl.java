@@ -8,6 +8,7 @@ import com.yan.xiaoyanqtserve.entity.ProductType;
 import com.yan.xiaoyanqtserve.mapper.ProductTypeMapper;
 import com.yan.xiaoyanqtserve.service.ProductTypeService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import jakarta.annotation.Resource;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -24,6 +25,9 @@ import java.time.LocalDateTime;
  */
 @Service
 public class ProductTypeServiceImpl extends ServiceImpl<ProductTypeMapper, ProductType> implements ProductTypeService {
+
+    @Resource
+    private ProductTypeMapper productTypeMapper;
 
     /**
      * 分页查询产品类型列表
@@ -48,6 +52,11 @@ public class ProductTypeServiceImpl extends ServiceImpl<ProductTypeMapper, Produ
         queryWrapper.orderByAsc(ProductType::getSortOrder);
         
         return this.page(page, queryWrapper);
+    }
+
+    @Override
+    public ProductType getDetailById(Long id) {
+        return productTypeMapper.selectById(id);
     }
 
     /**

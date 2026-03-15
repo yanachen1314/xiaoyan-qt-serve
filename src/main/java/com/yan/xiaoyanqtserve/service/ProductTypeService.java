@@ -24,6 +24,14 @@ public interface ProductTypeService extends IService<ProductType> {
     Page<ProductType> getList(ProductTypePageRequest pageRequest);
 
     /**
+     * 根据id获取产品类型详情
+     * @param id 产品类型id
+     * @return 产品类型详情
+     */
+    ProductType getDetailById(Long id);
+
+
+    /**
      * 新增产品类型
      * @param dto 产品类型信息
      */

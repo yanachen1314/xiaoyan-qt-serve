@@ -3,6 +3,7 @@ package com.yan.xiaoyanqtserve.filter;
 import com.yan.xiaoyanqtserve.common.dto.key.ValidationResult;
 import com.yan.xiaoyanqtserve.common.enums.BizStatus;
 import com.yan.xiaoyanqtserve.common.enums.Role;
+import com.yan.xiaoyanqtserve.common.utils.RedisUtil;
 import com.yan.xiaoyanqtserve.entity.KeyInfo;
 import com.yan.xiaoyanqtserve.service.impl.KeyInfoManagerService;
 import com.yan.xiaoyanqtserve.common.utils.SecurityResponseUtil;
@@ -22,6 +23,8 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.concurrent.TimeUnit;
+
 import static com.yan.xiaoyanqtserve.common.Constants.HEADER_PREFIX;
 import static com.yan.xiaoyanqtserve.common.Constants.HEADER_KEY_NAME;
 
@@ -32,6 +35,12 @@ public class ApiKeyAuthFilter extends OncePerRequestFilter {
     private SecurityResponseUtil securityResponseUtil;
     @Resource
     private KeyInfoManagerService keyInfoManagerService;
+
+    @Resource
+    private RedisUtil redisUtil;
+
+    // 密钥使用时的校验缓存前缀
+    private static final String USAGE_VALID_KEY = "valid:usage:";
 
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request,
@@ -53,7 +62,17 @@ public class ApiKeyAuthFilter extends OncePerRequestFilter {
         }
 
         // 3. 使用你的服务验证 API Key
-        ValidationResult validationResult = keyInfoManagerService.filterKeyValid(apiKey);
+        ValidationResult validationResult = null;
+        String cacheKey = USAGE_VALID_KEY + apiKey;
+        if (redisUtil.hasKey(cacheKey)) {
+            // 从缓存中获取验证结果
+            validationResult = (ValidationResult) redisUtil.get(cacheKey);
+        } else {
+            // 如果缓存中不存在，调用服务进行验证
+            validationResult = keyInfoManagerService.filterKeyValid(apiKey);
+            // 缓存校验结果，有效期 1 分钟
+            redisUtil.set(cacheKey, validationResult,1, TimeUnit.MINUTES);
+        }
 
         if (validationResult.isSuccess()) {
             // 4. 如果 API Key 有效，创建一个 Authentication 对象
@@ -67,7 +86,7 @@ public class ApiKeyAuthFilter extends OncePerRequestFilter {
         } else {
             // 6. 如果 API Key 无效，返回具体的错误信息
             securityResponseUtil.writeError(response, validationResult.getErrorCode(),
-                    validationResult.getErrorMessage() == null ? validationResult.getErrorCode().msg(): validationResult.getErrorMessage());
+                    validationResult.getErrorMessage() == null ? validationResult.getErrorCode().msg() : validationResult.getErrorMessage());
             return; // 阻止请求继续
         }
 

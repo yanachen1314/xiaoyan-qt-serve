@@ -11,7 +11,6 @@ import com.yan.xiaoyanqtserve.common.exception.BizException;
 import com.yan.xiaoyanqtserve.entity.ProductType;
 import com.yan.xiaoyanqtserve.service.KeyInfoService;
 import com.yan.xiaoyanqtserve.service.ProductTypeService;
-import jakarta.annotation.Resource;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -34,40 +33,13 @@ public class KeyInfoManagerService {
 
     private final LicenseKeyGenerator licenseKeyGenerator;
     private final KeyInfoService keyInfoService;
-    private final RedisLockUtil redisLockUtil;
     private final ProductTypeService productTypeService;
 
+    private final RedisLockUtil redisLockUtil;
+
+
     /**
-     * 验证 API Key 是否具备有效激活/使用的资格。
-     * <p>
-     * 本方法严格遵循密钥表 {@code key_info} 的字段语义定义：
-     * <ul>
-     *   <li>{@code status = 1}：密钥启用；否则禁用</li>
-     *   <li>{@code activated = 1}：密钥已完成首次激活（即已成功绑定设备或完成激活流程）；
-     *       {@code activated = 0} 表示未激活——即使剩余次数 > 0，也禁止任何激活或使用操作。</li>
-     *   <li>激活次数规则：
-     *     <ul>
-     *       <li>{@code activations_num > 0}：有限激活次数；此时 {@code remaining_active_num = 0} 表示已用尽，{@code > 0} 表示剩余可用次数</li>
-     *       <li>{@code activations_num = 0}：无限制激活次数；此时根据业务约定，{@code remaining_active_num 必须为 0}（仅作占位，无实际计数意义）li>
-     *     </ul>
-     *   </li>
-     *   <li>使用次数规则（同理）：
-     *     <ul>
-     *       <li>{@code total_uses > 0}：有限使用次数；{@code remaining_uses = 0} 表示已用尽</li>
-     *       <li>{@code total_uses = 0}：无限制使用次数；此时 {@code remaining_uses 必须为 0}</li>
-     *     </ul>
-     *   </li>
-     *   <li>过期时间 {@code expiry_time}：非空且早于当前时间时视为过期</li>
-     * </ul>
-     * <p>
-     * ⚠️ 重要业务规则：
-     * <ol>
-     *   <li><strong>“已激活”是使用前提</strong>：未激活（{@code activated = 0}）的密钥，无论剩余次数多少，均不可用于激活或调用服务。</li>
-     *   <li><strong>无限次场景下剩余字段必须为 0</strong>：若 {@code activations_num = 0} 或 {@code total_uses = 0}，则对应 {@code remaining_*} 字段必须为 0；
-     *       若出现非零值，视为数据异常，拒绝请求（防止脏数据导致逻辑错误）。</li>
-     *   <li>校验顺序不可颠倒：先状态 → 再激活状态 → 再权益数量 → 最后过期时间。</li>
-     * </ol>
-     *
+     * 验证 API Key 是否具备使用的资格。
      * @param apiKey 待验证的 API Key 字符串
      * @return 验证结果：成功时返回 {@link ValidationResult#success(KeyInfo)}，失败时返回带具体错误码的失败结果
      */
@@ -88,42 +60,44 @@ public class KeyInfoManagerService {
             return ValidationResult.failure(BizStatus.KEY_INACTIVE);
         }
 
-        // 4. 【核心业务规则】校验激活状态：activated = 1 才表示密钥已完成首次激活
-        //    - activated = 0：密钥虽存在且启用，但尚未激活，禁止任何激活/使用行为
-        //    - 此检查必须在权益校验前执行，避免误判未激活密钥为“有剩余次数”
+        // 4. 校验激活状态：activated = 1 才表示密钥已完成首次激活
+        // 若已激活的密钥，无论剩余激活次数多少，均可继续调用服务（即不再检查 remaining_active_num）
         Byte activated = keyInfo.getActivated();
         if (activated == null || activated == 0) {
             return ValidationResult.failure(BizStatus.KEY_NOT_ACTIVATED);
         }
 
-        // 5. 此时已激活，但是过滤器中无需验证是否还有激活次数：已激活的密钥，无论剩余激活次数多少，均可继续调用服务
-        // 但必须进行权益数量校验
-
-        // 6. 校验使用次数是否充足（同理，仅在已激活前提下）
+        // 5. 校验密钥权益：使用次数是否充足
         Integer totalUses = keyInfo.getTotalUses();
         Integer remainingUses = keyInfo.getRemainingUses();
 
         if (totalUses == null || remainingUses == null) {
+            log.warn("此密钥的数据非法: key={}, totalUses={}, remainingUses={}",
+                    keyInfo.getKeyValue(), totalUses, remainingUses);
             return ValidationResult.failure(BizStatus.KEY_INVALID_STATE);
         }
 
         if (totalUses > 0) {
+            // 5.1 有限使用次数，如果剩余使用次数 <= 0，则表示已用尽
             if (remainingUses <= 0) {
                 return ValidationResult.failure(BizStatus.KEY_NON_USES);
             }
         } else if (totalUses == 0) {
-            // 无限制使用次数：remaining_uses 必须为 0（业务强约束）
+            // 5.2 无限制使用次数，remaining_uses 必须为 0（业务强约束）
             if (remainingUses != 0) {
-                log.warn("Invalid remaining_uses for unlimited use key: totalUses=0, remainingUses={}, key={}",
-                        remainingUses, keyInfo.getKeyValue());
+                log.warn("此密钥的数据非法: key={}, totalUses=0, remainingUses={}",
+                        keyInfo.getKeyValue(), remainingUses);
                 return ValidationResult.failure(BizStatus.KEY_INVALID_STATE);
             }
-            // remainingUses == 0：合法
+            // remainingUses == 0：合法，密钥无使用次数限制
         } else {
+            // 5.3 其他情况：非法状态
+            log.warn("此密钥的数据非法: key={}, totalUses={}, remainingUses={}",
+                    keyInfo.getKeyValue(), totalUses, remainingUses);
             return ValidationResult.failure(BizStatus.KEY_INVALID_STATE);
         }
 
-        // 7. 校验有效期：过期密钥不可用（注意：过期不影响“是否已激活”，故放最后）
+        // 6. 校验有效期：过期密钥不可用
         LocalDateTime expiryTime = keyInfo.getExpiryTime();
         if (expiryTime != null && expiryTime.isBefore(LocalDateTime.now())) {
             return ValidationResult.failure(BizStatus.KEY_EXPIRED);
@@ -168,53 +142,49 @@ public class KeyInfoManagerService {
                         keyValid.getErrorMessage() == null ? keyValid.getErrorCode().msg() : keyValid.getErrorMessage());
             }
 
-            KeyInfo keyInfo = keyValid.getKeyInfo();
-            if (keyInfo.getStatus() == 1
-                    && keyInfo.getActivated() == 1
-                    && keyInfo.getActivationDevice().equals(keyActiveDto.getDeviceID())) {
+            KeyInfo validKeyInfo = keyValid.getKeyInfo();
+            if (validKeyInfo.getStatus() == 1
+                    && validKeyInfo.getActivated() == 1
+                    && validKeyInfo.getActivationDevice().equals(keyActiveDto.getDeviceID())) {
                 // 已激活，直接返回使用
-                return keyInfo;
+                return validKeyInfo;
             }
 
             // 总激活次数
-            Integer actNum = keyInfo.getActivationsNum();
+            Integer actNum = validKeyInfo.getActivationsNum();
             // 剩余激活次数
-            Integer remAct = keyInfo.getRemainingActiveNum();
-
-            // 3. 构建更新对象（推荐：只更新需变更字段，避免覆盖 null 值）
-            KeyInfo updateEntity = new KeyInfo();
-            updateEntity.setId(keyInfo.getId());
+            Integer remAct = validKeyInfo.getRemainingActiveNum();
 
             // 3.1 设置激活状态
-            updateEntity.setActivated((byte) 1);
+            validKeyInfo.setActivated((byte) 1);
 
             // 3.2 扣减激活次数（仅限有限次数场景）
             if (actNum > 0) {
-                updateEntity.setRemainingActiveNum(remAct - 1);
+                validKeyInfo.setRemainingActiveNum(remAct - 1);
             }
             // 若 actNum == 0（无限次），remaining_active_num 保持原值（应为 0），无需更新
 
             // 3.3 设置激活信息
-            updateEntity.setActivationDevice(keyActiveDto.getDeviceID());
+            validKeyInfo.setActivationDevice(keyActiveDto.getDeviceID());
             LocalDateTime now = LocalDateTime.now();
-            updateEntity.setActivationTime(now);
+            validKeyInfo.setActivationTime(now);
 
             // 3.4 根据 product_type 配置使用权益（关键！）
-            configureUsageRights(updateEntity, now);
+            configureUsageRights(validKeyInfo, now);
 
             // 3.5 更新备注（可选）
-            updateEntity.setRemark(String.format("激活时间: %s | 设备: %s",
+            validKeyInfo.setRemark(String.format("激活时间: %s | 设备: %s",
                     now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
                     keyActiveDto.getDeviceID()));
 
             // 4. 执行更新（MyBatis-Plus updateById 会自动忽略 null 字段）
-            boolean updated = keyInfoService.updateById(updateEntity);
+            boolean updated = keyInfoService.updateById(validKeyInfo);
             if (!updated) {
                 throw new BizException("密钥激活失败，请重试");
             }
 
-            // 5. 查询并返回最新结果
-            return keyInfoService.getById(keyInfo.getId());
+            // 5. 返回最新结果
+            return validKeyInfo;
 
         } finally {
             redisLockUtil.unlock(lockKey);
@@ -231,7 +201,7 @@ public class KeyInfoManagerService {
      * @param activationTime 激活时间（用于计算过期时间）
      */
     private void configureUsageRights(KeyInfo target, LocalDateTime activationTime) {
-        ProductType productType = productTypeService.getById(target.getProductType());
+        ProductType productType = productTypeService.getDetailById(target.getProductType().longValue());
         if (productType == null) {
             log.error("密钥{}，产品类型不存在: {}", target.getKeyValue(), target.getProductType());
             throw new BizException("激活失败");
