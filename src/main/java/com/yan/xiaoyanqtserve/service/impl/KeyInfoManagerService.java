@@ -290,7 +290,7 @@ public class KeyInfoManagerService {
      * @param generateKeyDto 密钥生成参数
      */
     @Transactional(rollbackFor = Exception.class)
-    public void generateKey(GenerateKeyDto generateKeyDto, Long operator) {
+    public List<String> generateKey(GenerateKeyDto generateKeyDto, Long operator) {
         // 生成若干密钥
         List<String> keyList = licenseKeyGenerator.generateKey(generateKeyDto.getKeyNumber());
 
@@ -306,6 +306,8 @@ public class KeyInfoManagerService {
                 .map(key -> buildKeyInfo(key, operator, generateKeyDto, productType))
                 .toList();
         keyInfoService.saveBatch(entityList, 500);
+
+        return keyList;
     }
 
     /**

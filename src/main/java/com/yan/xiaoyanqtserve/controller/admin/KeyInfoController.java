@@ -16,6 +16,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 /**
  * 密钥信息表 前端控制器
  *
@@ -45,8 +47,8 @@ public class KeyInfoController {
             if (adminUser == null) {
                 return ApiResponse.fail("无权限");
             }
-            keyInfoManagerService.generateKey(generateKeyDto, adminUser.getId());
-            return ApiResponse.success();
+            List<String> keyList = keyInfoManagerService.generateKey(generateKeyDto, adminUser.getId());
+            return ApiResponse.success(keyList);
         }
         return ApiResponse.fail("无权限");
     }
