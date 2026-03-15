@@ -111,19 +111,6 @@ public class KeyInfoManagerService {
 
     /**
      * 激活密钥。
-     * <p>
-     * 业务规则：
-     * <ul>
-     *   <li>激活资格：密钥必须启用（status=1）、未激活（activated=0）、未过期</li>
-     *   <li>激活次数处理：
-     *     <ul>
-     *       <li>{@code activations_num > 0}：从 {@code remaining_active_num} 扣 1，扣至 0 后不能再激活</li>
-     *       <li>{@code activations_num = 0}：无限制激活，{@code remaining_active_num} 保持 0</li>
-     *     </ul>
-     *   </li>
-     *   <li>激活后状态：{@code activated = 1}，记录设备、时间，并按 {@code product_type} 设置使用权益</li>
-     *   <li>幂等性：同一设备重复激活 → 返回已激活状态；不同设备 → 报错</li>
-     * </ul>
      *
      * @param keyActiveDto 激活参数（apiKey + deviceID）
      * @return 激活成功的密钥信息
@@ -137,9 +124,11 @@ public class KeyInfoManagerService {
 
         try {
             KeyInfo keyInfo = keyInfoService.getByKeyValue(keyActiveDto.getApiKey());
+            // 设备ID
+            String deviceID = keyActiveDto.getDeviceID();
 
             // 1. 校验密钥
-            ValidationResult keyValid = activeKeyValid(keyInfo, keyActiveDto.getDeviceID());
+            ValidationResult keyValid = activeKeyValid(keyInfo, deviceID);
             if (!keyValid.isSuccess()) {
                 throw new BizException(keyValid.getErrorCode(),
                         keyValid.getErrorMessage() == null ? keyValid.getErrorCode().msg() : keyValid.getErrorMessage());
@@ -153,15 +142,18 @@ public class KeyInfoManagerService {
 
             // 2. 非首次激活
             if (validKeyInfo.getActivated() == 1) {
-                // 2.1 扣减激活次数（仅限有限次数场景）
+                // 2.1 扣减剩余激活次数
                 // 若 actNum == 0（无限次），remaining_active_num 保持原值（应为 0），无需更新
-                if (actNum > 0) {
+                // 如果 actNum > 0（有限次），则需要在新设备激活时扣减 remaining_active_num 一次
+                List<String> deviceList = parseKeyDevice(validKeyInfo.getActivationDevice());
+                if (actNum > 0 && !deviceList.contains(deviceID)) {
                     validKeyInfo.setRemainingActiveNum(remAct - 1);
                 }
+
                 // 2.2 更新激活时间
                 validKeyInfo.setActivationTime(LocalDateTime.now());
                 // 2.3 更新设备
-                validKeyInfo.setActivationDevice(getNewKeyDevice(validKeyInfo.getActivationDevice(), keyActiveDto.getDeviceID()));
+                validKeyInfo.setActivationDevice(getNewKeyDevice(validKeyInfo.getActivationDevice(), deviceID));
 
                 // 2.4 更新备注
 
@@ -185,7 +177,7 @@ public class KeyInfoManagerService {
             LocalDateTime now = LocalDateTime.now();
             validKeyInfo.setActivationTime(now);
             // 3.3 设置激活设备
-            validKeyInfo.setActivationDevice(getNewKeyDevice(validKeyInfo.getActivationDevice(), keyActiveDto.getDeviceID()));
+            validKeyInfo.setActivationDevice(getNewKeyDevice(validKeyInfo.getActivationDevice(), deviceID));
             // 3.5 设置过期时间
             ProductType productType = productTypeService.getDetailById(validKeyInfo.getProductType().longValue());
             if (productType == null) {
@@ -211,23 +203,12 @@ public class KeyInfoManagerService {
             return ValidationResult.failure("密钥不存在", BizStatus.KEY_NOT_FOUND);
         }
 
-        // 1 状态必须启用
+        // 1. 状态必须启用
         if (keyInfo.getStatus() == 0) {
             return ValidationResult.failure("密钥已被禁用", BizStatus.KEY_INACTIVE);
         }
 
-        // 2.1 如果激活过（activated = 1）
-        Byte activated = keyInfo.getActivated();
-        if (activated != null && activated == 1) {
-            // 检查是否同一设备
-            if (Objects.equals(keyInfo.getActivationDevice(), deviceID)) {
-                return ValidationResult.success(keyInfo); // 已激活且设备一致，直接返回
-            } else {
-                throw new BizException(BizStatus.KEY_ALREADY_ACTIVATED, "密钥已在其他设备激活");
-            }
-        }
-
-        // 2.3 检查激活次数是否充足（仅当有限次数时）
+        // 2. 检查激活次数是否充足
         // 总激活次数
         Integer actNum = keyInfo.getActivationsNum();
         // 剩余激活次数
@@ -236,7 +217,7 @@ public class KeyInfoManagerService {
         if (actNum != null && actNum > 0) {
             // 有限激活次数： remaining_active_num 必须不为 null 且 > 0
             if (remAct == null || remAct <= 0) {
-                return ValidationResult.failure("激活次数已用完", BizStatus.KEY_NON_ACTIVATIONS);
+                return ValidationResult.failure("激活设备数已达上限", BizStatus.KEY_NON_ACTIVATIONS);
             }
         } else if (actNum != null && actNum == 0) {
             // 无限激活次数：remaining_active_num 必须为 0（按约定）
@@ -249,10 +230,13 @@ public class KeyInfoManagerService {
             return ValidationResult.failure("激活次数配置异常", BizStatus.KEY_INVALID_STATE);
         }
 
-        // 2.4 检查过期（未激活的密钥也可能过期）
-        LocalDateTime expiryTime = keyInfo.getExpiryTime();
-        if (expiryTime != null && expiryTime.isBefore(LocalDateTime.now())) {
-            return ValidationResult.failure("密钥已过期", BizStatus.KEY_EXPIRED);
+        // 3. 检查过期时间（已激活才进行检查）
+        Byte activated = keyInfo.getActivated();
+        if (activated != null && activated == 1) {
+            LocalDateTime expiryTime = keyInfo.getExpiryTime();
+            if (expiryTime != null && expiryTime.isBefore(LocalDateTime.now())) {
+                return ValidationResult.failure("密钥已过期", BizStatus.KEY_EXPIRED);
+            }
         }
 
         return ValidationResult.success(keyInfo);
@@ -265,6 +249,10 @@ public class KeyInfoManagerService {
      * @return 新的密钥设备字符串
      */
     private String getNewKeyDevice(String activationDevice, String deviceID) {
+        if(activationDevice == null){
+            return deviceID;
+        }
+
         List<String> deviceList = parseKeyDevice(activationDevice);
         if (deviceList.contains(deviceID)) {
             return activationDevice;
