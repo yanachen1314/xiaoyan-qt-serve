@@ -17,6 +17,7 @@ import com.yan.xiaoyanqtserve.service.impl.ApiKeyInfoService;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -36,16 +37,14 @@ import java.util.Objects;
 @Validated
 @RestController
 @RequestMapping("/api/key")
+@RequiredArgsConstructor
 public class ApiKeyController {
 
-    @Resource
-    private SecurityContextUtil securityContextUtil;
+    private final SecurityContextUtil securityContextUtil;
 
-    @Resource
-    private ApiKeyInfoService apiKeyInfoService;
+    private final ApiKeyInfoService apiKeyInfoService;
 
-    @Resource
-    private RequestLogService logService;
+    private final RequestLogService logService;
 
     /**
      * AI处理接口
