@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -135,49 +136,73 @@ public class KeyInfoManagerService {
         }
 
         try {
+            KeyInfo keyInfo = keyInfoService.getByKeyValue(keyActiveDto.getApiKey());
+
             // 1. 校验密钥
-            ValidationResult keyValid = activeKeyValid(keyActiveDto.getApiKey(), keyActiveDto.getDeviceID());
+            ValidationResult keyValid = activeKeyValid(keyInfo, keyActiveDto.getDeviceID());
             if (!keyValid.isSuccess()) {
                 throw new BizException(keyValid.getErrorCode(),
                         keyValid.getErrorMessage() == null ? keyValid.getErrorCode().msg() : keyValid.getErrorMessage());
             }
 
             KeyInfo validKeyInfo = keyValid.getKeyInfo();
-            if (validKeyInfo.getStatus() == 1
-                    && validKeyInfo.getActivated() == 1
-                    && validKeyInfo.getActivationDevice().equals(keyActiveDto.getDeviceID())) {
-                // 已激活，直接返回使用
-                return validKeyInfo;
-            }
-
             // 总激活次数
             Integer actNum = validKeyInfo.getActivationsNum();
             // 剩余激活次数
             Integer remAct = validKeyInfo.getRemainingActiveNum();
 
+            // 2. 非首次激活
+            if (validKeyInfo.getActivated() == 1) {
+                // 2.1 扣减激活次数（仅限有限次数场景）
+                // 若 actNum == 0（无限次），remaining_active_num 保持原值（应为 0），无需更新
+                if (actNum > 0) {
+                    validKeyInfo.setRemainingActiveNum(remAct - 1);
+                }
+                // 2.2 更新激活时间
+                validKeyInfo.setActivationTime(LocalDateTime.now());
+                // 2.2 更新设备
+                validKeyInfo.setActivationDevice(getNewKeyDevice(validKeyInfo.getActivationDevice(), keyActiveDto.getDeviceID()));
+
+                // 更新备注
+
+                // 执行更新
+                boolean updated = keyInfoService.updateById(validKeyInfo);
+                if (!updated) {
+                    throw new BizException("密钥激活失败，请重试");
+                }
+                // 返回最新结果
+                return validKeyInfo;
+            }
+
+            // 3. 首次激活
             // 3.1 设置激活状态
             validKeyInfo.setActivated((byte) 1);
 
             // 3.2 扣减激活次数（仅限有限次数场景）
+            // 若 actNum == 0（无限次），remaining_active_num 保持原值（应为 0），无需更新
             if (actNum > 0) {
                 validKeyInfo.setRemainingActiveNum(remAct - 1);
             }
-            // 若 actNum == 0（无限次），remaining_active_num 保持原值（应为 0），无需更新
 
             // 3.3 设置激活信息
             validKeyInfo.setActivationDevice(keyActiveDto.getDeviceID());
             LocalDateTime now = LocalDateTime.now();
             validKeyInfo.setActivationTime(now);
 
-            // 3.4 根据 product_type 配置使用权益（关键！）
-            configureUsageRights(validKeyInfo, now);
+            // 3.4 设置过期时间
+            ProductType productType = productTypeService.getDetailById(validKeyInfo.getProductType().longValue());
+            if (productType == null) {
+                log.error("产品类型不存在: {}", validKeyInfo.getProductType());
+                throw new BizException("激活失败");
+            }
+            validKeyInfo.setExpiryTime(now.plusMinutes(productType.getEquityTime()));
 
             // 3.5 更新备注（可选）
             validKeyInfo.setRemark(String.format("激活时间: %s | 设备: %s",
                     now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
                     keyActiveDto.getDeviceID()));
 
-            // 4. 执行更新（MyBatis-Plus updateById 会自动忽略 null 字段）
+            // 4. 执行更新
             boolean updated = keyInfoService.updateById(validKeyInfo);
             if (!updated) {
                 throw new BizException("密钥激活失败，请重试");
@@ -191,56 +216,17 @@ public class KeyInfoManagerService {
         }
     }
 
-    /**
-     * 根据产品类型配置激活后的使用权益。
-     * <p>
-     * 注意：此方法只设置 {@code total_uses}, {@code remaining_uses}, {@code expiry_time}，
-     * 其他字段（如 activated）由调用方设置。
-     *
-     * @param target 待更新的 KeyInfo 对象（非 null）
-     * @param activationTime 激活时间（用于计算过期时间）
-     */
-    private void configureUsageRights(KeyInfo target, LocalDateTime activationTime) {
-        ProductType productType = productTypeService.getDetailById(target.getProductType().longValue());
-        if (productType == null) {
-            log.error("密钥{}，产品类型不存在: {}", target.getKeyValue(), target.getProductType());
-            throw new BizException("激活失败");
-        }
-        if(productType.getEquityUsageNum() == 0) {
-            // 使用次数0，代表无限限制
-            target.setTotalUses(0);
-            target.setRemainingUses(0);
-        }else{
-            target.setTotalUses(productType.getEquityUsageNum());
-            target.setRemainingUses(productType.getEquityUsageNum());
-        }
-
-        if(productType.getEquityActiveNum() == 0){
-            // 激活次数0，代表无限限制
-            target.setActivationsNum(0);
-            target.setRemainingActiveNum(0);
-        }else{
-            target.setActivationsNum(productType.getEquityActiveNum());
-            target.setRemainingActiveNum(productType.getEquityActiveNum());
-        }
-
-        target.setExpiryTime(activationTime.plusMinutes(productType.getEquityTime()));
-    }
-
-    private ValidationResult activeKeyValid(String apiKey, String deviceID) {
-        // 1. 查询密钥
-        KeyInfo keyInfo = keyInfoService.getByKeyValue(apiKey);
+    private ValidationResult activeKeyValid(KeyInfo keyInfo, String deviceID) {
         if (keyInfo == null) {
             return ValidationResult.failure("密钥不存在", BizStatus.KEY_NOT_FOUND);
         }
 
-        // 2. 校验激活资格（独立于 validateKey）
-        // 2.1 状态必须启用
-        if (keyInfo.getStatus() != 1) {
+        // 1 状态必须启用
+        if (keyInfo.getStatus() == 0) {
             return ValidationResult.failure("密钥已被禁用", BizStatus.KEY_INACTIVE);
         }
 
-        // 2.2 如果激活过（activated = 1）
+        // 2.1 如果激活过（activated = 1）
         Byte activated = keyInfo.getActivated();
         if (activated != null && activated == 1) {
             // 检查是否同一设备
@@ -280,6 +266,15 @@ public class KeyInfoManagerService {
         return ValidationResult.success(keyInfo);
     }
 
+    private String getNewKeyDevice(String activationDevice, String deviceID) {
+        return activationDevice + "," + deviceID;
+    }
+
+    private List<String> parseKeyDevice(String activationDevice) {
+        return Arrays.asList(activationDevice.split(","));
+    }
+
+
     /**
      * 密钥生成（一小时无限制使用的密钥）
      * @param operator 操作员
@@ -290,29 +285,52 @@ public class KeyInfoManagerService {
         // 生成若干密钥
         List<String> keyList = licenseKeyGenerator.generateKey(generateKeyDto.getKeyNumber());
 
+        // 查询产品类型
+        ProductType productType = productTypeService.getDetailById(generateKeyDto.getProductTypeId().longValue());
+        if (productType == null) {
+            log.error("产品类型不存在: {}", generateKeyDto.getProductTypeId());
+            throw new BizException("激活失败");
+        }
+
         // 批量保存密钥信息
         List<KeyInfo> entityList = keyList.stream()
-                .map(key -> buildKeyInfo(key, generateKeyDto, operator))
+                .map(key -> buildKeyInfo(key, operator, generateKeyDto, productType))
                 .toList();
         keyInfoService.saveBatch(entityList, 500);
     }
 
-    private KeyInfo buildKeyInfo(String key, GenerateKeyDto generateKeyDto, Long operator) {
+    private KeyInfo buildKeyInfo(String key, Long operator, GenerateKeyDto generateKeyDto, ProductType productType) {
         KeyInfo keyInfo = new KeyInfo();
 
         keyInfo.setKeyValue(key);
         keyInfo.setStatus((byte) 1);
 
+        // 设置默认未激活
+        keyInfo.setActivated((byte) 0);
         // 设置套餐类型
         keyInfo.setProductType(generateKeyDto.getProductTypeId());
 
-        // 设置默认值，激活时再设置权益
-        keyInfo.setTotalUses(0);
-        keyInfo.setRemainingUses(0);
-        keyInfo.setActivationsNum(0);
-        keyInfo.setRemainingActiveNum(0);
-        keyInfo.setActivated((byte) 0);
+        // 设置激活次数和使用次数
+        if (productType.getEquityUsageNum() == 0) {
+            // 使用次数0，代表无限限制
+            keyInfo.setTotalUses(0);
+            keyInfo.setRemainingUses(0);
+        } else {
+            keyInfo.setTotalUses(productType.getEquityUsageNum());
+            keyInfo.setRemainingUses(productType.getEquityUsageNum());
+        }
 
+        if (productType.getEquityActiveNum() == 0) {
+            // 激活次数0，代表无限限制
+            keyInfo.setActivationsNum(0);
+            keyInfo.setRemainingActiveNum(0);
+        } else {
+            keyInfo.setActivationsNum(productType.getEquityActiveNum());
+            keyInfo.setRemainingActiveNum(productType.getEquityActiveNum());
+        }
+
+        // 设置备注和创建者
+        keyInfo.setRemark(generateKeyDto.getRemark() == null ? "" : generateKeyDto.getRemark());
         keyInfo.setCreatedBy(operator);
         return keyInfo;
     }

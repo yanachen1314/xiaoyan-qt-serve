@@ -87,7 +87,7 @@ public class KeyInfo implements Serializable {
     private Byte activated;
 
     /**
-     * 激活设备
+     * 激活设备，多个用逗号分隔
      */
     @TableField("activation_device")
     private String activationDevice;
