@@ -108,7 +108,7 @@ public class RequestLoggingInterceptor implements HandlerInterceptor {
         }
         // 匿名用户（公开接口）
         String apiKey = MainUtil.extractApiKeyFromHeader(request);
-        if (apiKey != null) return  "匿名用户:"+apiKey;
+        if (apiKey != null) return  "匿名用户："+apiKey;
         return "匿名用户";
     }
 }
