@@ -50,6 +50,13 @@ public class RequestLog implements Serializable {
     private String requester;
 
     /**
+     * 请求接口
+     */
+    @TableField("request_url")
+    private String requestUrl;
+
+
+    /**
      * 发起请求的客户端IP地址 (支持IPv4/v6)
      */
     @TableField("client_ip")

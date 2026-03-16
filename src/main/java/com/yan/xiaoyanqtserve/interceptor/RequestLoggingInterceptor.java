@@ -31,8 +31,6 @@ public class RequestLoggingInterceptor implements HandlerInterceptor {
     @Resource
     private SecurityContextUtil securityContextUtil;
 
-
-
     @Override
     public boolean preHandle(HttpServletRequest request, @NotNull HttpServletResponse response, @NotNull Object handler) {
         // 生成一个唯一的请求ID，用于链路追踪
@@ -46,6 +44,7 @@ public class RequestLoggingInterceptor implements HandlerInterceptor {
         RequestLog logEntry = new RequestLog();
         logEntry.setRequestId(requestId);
         logEntry.setRequester(getCurrentUserInfo(request));
+        logEntry.setRequestUrl(request.getRequestURI());
         logEntry.setClientIp(getClientIpAddress(request));
         logEntry.setRequestType(determineRequestType(request));
         logEntry.setRequestTime(LocalDateTime.now());
