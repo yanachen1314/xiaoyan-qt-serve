@@ -67,11 +67,11 @@ public class ApiKeyController {
             AigcResponseDto aigcDealText = apiKeyInfoService.aigcDealText(aigcRequestDto, apiKeyUser);
 
             logService.saveModelLog(RequestLog.builder()
-                    .keyValueUsed(apiKeyUser.getKeyValue())
+                    .requester(apiKeyUser.getKeyValue())
                     .clientIp(clientIpAddress)
                     .requestTime(now)
-                    .responseCode(200)
-                    .processingResult(aigcDealText.getOutputText())
+                    .httpCode(200)
+                    .responseMessage(aigcDealText.getOutputText())
                     .inputText(aigcDealText.getInputText())
                     .inputTextChars(aigcDealText.getInputChars())
                     .inputTokens(aigcDealText.getInputTokens())
@@ -87,11 +87,11 @@ public class ApiKeyController {
         } catch (Exception e) {
             // 记录请求日志
             logService.saveModelLog(RequestLog.builder()
-                    .keyValueUsed(apiKeyUser.getKeyValue())
+                    .requester(apiKeyUser.getKeyValue())
                     .clientIp(clientIpAddress)
                     .requestTime(now)
-                    .responseCode(500)
-                    .processingResult(e.getMessage())
+                    .httpCode(500)
+                    .responseMessage(e.getMessage())
                     .build());
 
             throw new RuntimeException(e);

@@ -1,5 +1,10 @@
 package com.yan.xiaoyanqtserve.interceptor;
 
+import com.yan.xiaoyanqtserve.common.enums.RequestType;
+import com.yan.xiaoyanqtserve.common.utils.SecurityContextUtil;
+import com.yan.xiaoyanqtserve.entity.KeyInfo;
+import com.yan.xiaoyanqtserve.entity.RequestLog;
+import com.yan.xiaoyanqtserve.security.AdminUserDetails;
 import com.yan.xiaoyanqtserve.service.RequestLogService;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
@@ -10,16 +15,23 @@ import org.springframework.web.servlet.ModelAndView;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+
+import java.time.LocalDateTime;
 import java.util.UUID;
+
+import static com.yan.xiaoyanqtserve.common.utils.NetUtil.getClientIpAddress;
 
 @Component
 @Slf4j
 public class RequestLoggingInterceptor implements HandlerInterceptor {
     @Resource
     private RequestLogService requestLogService;
+    @Resource
+    private SecurityContextUtil securityContextUtil;
 
     public static final String REQUEST_ID_ATTRIBUTE = "REQUEST_ID";
     public static final String START_TIME_ATTRIBUTE = "START_TIME";
+    public static final String LOG_ENTITY_ATTRIBUTE = "LOG_ENTITY";
 
     @Override
     public boolean preHandle(HttpServletRequest request, @NotNull HttpServletResponse response, @NotNull Object handler) {
@@ -31,69 +43,58 @@ public class RequestLoggingInterceptor implements HandlerInterceptor {
         long startTime = System.currentTimeMillis();
         request.setAttribute(START_TIME_ATTRIBUTE, startTime);
 
-        // 获取当前用户信息（来自SecurityContext或API Key）
-        String userInfo = getCurrentUserInfo(request);
-
-        log.info("[{}] - {} - {} - {} - {}",
-                requestId,
-                request.getMethod(),
-                request.getRequestURI(),
-                userInfo != null ? userInfo : "Anonymous",
-                request.getRemoteAddr()
-        );
+        RequestLog logEntry = new RequestLog();
+        logEntry.setRequestId(requestId);
+        logEntry.setRequester(getCurrentUserInfo(request));
+        logEntry.setClientIp(getClientIpAddress(request));
+        logEntry.setRequestType(determineRequestType(request));
+        logEntry.setRequestTime(LocalDateTime.now());
+        request.setAttribute(LOG_ENTITY_ATTRIBUTE, logEntry);
 
         return true; // 继续执行后续的处理器
     }
 
-    @Override
-    public void postHandle(@NotNull HttpServletRequest request, @NotNull HttpServletResponse response, @NotNull Object handler, ModelAndView modelAndView) throws Exception {
-        // 可在此处添加请求处理完成后的逻辑（如响应头等），但统计耗时放在afterCompletion更准确
-    }
 
     @Override
-    public void afterCompletion(HttpServletRequest request, @NotNull HttpServletResponse response, @NotNull Object handler, Exception ex) throws Exception {
-        // 获取请求ID和开始时间
-        String requestId = (String) request.getAttribute(REQUEST_ID_ATTRIBUTE);
+    public void afterCompletion(HttpServletRequest request, @NotNull HttpServletResponse response, @NotNull Object handler, Exception ex) {
         Long startTime = (Long) request.getAttribute(START_TIME_ATTRIBUTE);
+        RequestLog logEntry = (RequestLog) request.getAttribute(LOG_ENTITY_ATTRIBUTE);
 
-        if (startTime != null) {
+        if (startTime != null && logEntry != null) {
             long duration = System.currentTimeMillis() - startTime;
+            logEntry.setRequestDuration(duration);
+            logEntry.setHttpCode(response.getStatus());
 
-            log.info("[{}] - {} - Status: {} - Duration: {}ms",
-                    requestId,
-                    request.getRequestURI(),
-                    response.getStatus(),
-                    duration
-            );
+            // 调用异步保存方法
+            requestLogService.saveLogAsync(logEntry);
         }
     }
 
+    private String determineRequestType(HttpServletRequest request) {
+        String requestURI = request.getRequestURI();
+        return RequestType.getByUrl(requestURI).getCode();
+    }
     /**
-     * 获取当前用户信息，例如从SecurityContext或解析API Key
-     * 这里需要根据你的具体认证方式来实现。
-     * 您之前提到想封装Spring Security上下文，可以在这里调用。
-     * 如果是API Key，则可能需要从请求头或参数中解析。
+     * 获取当前用户信息，此时SecurityContext已认证，可以安全获取用户信息
+     * 但是公开接口无法获取用户信息
      */
     private String getCurrentUserInfo(HttpServletRequest request) {
-        // --- 示例：从Spring Security上下文获取 ---
-        // Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        // if (authentication != null && authentication.isAuthenticated() && !"anonymousUser".equals(authentication.getPrincipal())) {
-        //     return authentication.getName(); // 返回用户名
-        // }
-
-        // --- 示例：从自定义Header获取API Key用户信息 ---
-        // String apiKey = request.getHeader("X-API-Key"); // 假设API Key放在这个Header里
-        // if (apiKey != null) {
-        //     // 根据apiKey查询数据库或缓存，获取用户标识
-        //     // KeyInfo keyInfo = keyInfoManagerService.findByKey(apiKey);
-        //     // return keyInfo != null ? "ApiKey:" + keyInfo.getId() : "InvalidApiKey";
-        // }
-
-        // --- 结合您的系统 ---
-        // 您可能需要结合Spring Security和API Key两种情况。
-        // 例如，先看SecurityContext是否有管理员，再看是否有API Key。
-        // 这部分逻辑可以根据您的认证流程进行定制。
-        // 为了示例，这里返回null，实际应用中应填充此逻辑。
-        return null;
+        if(securityContextUtil.isAdmin()){
+            AdminUserDetails adminUser = securityContextUtil.getAdminUser();
+            if(adminUser != null) {
+                return adminUser.getUsername();
+            }else{
+                return "用户获取失败";
+            }
+        }
+        if(securityContextUtil.isApiKeyUser()){
+            KeyInfo apiKeyUser = securityContextUtil.getApiKeyUser();
+            if(apiKeyUser != null) {
+                return apiKeyUser.getKeyValue();
+            }else{
+                return "卡密获取失败";
+            }
+        }
+        return "匿名用户";
     }
 }
