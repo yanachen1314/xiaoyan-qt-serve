@@ -10,7 +10,7 @@ import lombok.Getter;
 @Getter
 public enum RequestType {
     PUBLIC_REQUEST("PUBLIC", "/api/public", "公开请求"),
-    ADMIN_REQUEST("ADMIN", "/api/admin", "管理员请求"),
+    ADMIN_REQUEST("ADMIN", "/api/admin", "管理请求"),
     APIKEY_REQUEST("APIKEY", "/api/key", "卡密请求"),
     UNKNOWN("UNKNOWN", "", "未知请求");
 
