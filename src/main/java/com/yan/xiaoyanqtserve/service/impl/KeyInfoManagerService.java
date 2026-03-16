@@ -1,5 +1,6 @@
 package com.yan.xiaoyanqtserve.service.impl;
 
+import com.yan.xiaoyanqtserve.common.Constants;
 import com.yan.xiaoyanqtserve.common.dto.key.GenerateKeyDto;
 import com.yan.xiaoyanqtserve.common.dto.key.KeyActiveDto;
 import com.yan.xiaoyanqtserve.common.dto.key.ValidationResult;
@@ -116,7 +117,7 @@ public class KeyInfoManagerService {
      */
     @Transactional(rollbackFor = Exception.class)
     public KeyInfo activateKey(KeyActiveDto keyActiveDto) {
-        String lockKey = "Lock:activateKey:" + keyActiveDto.getApiKey();
+        String lockKey = Constants.REDIS_LOCK_PREFIX + "activateKey:" + keyActiveDto.getApiKey();
         if (!redisLockUtil.lock(lockKey, 10)) {
             throw new BizException("系统繁忙，请稍后再试！");
         }
@@ -364,7 +365,7 @@ public class KeyInfoManagerService {
      */
     @Transactional(rollbackFor = Exception.class)
     public void decrementKeyUses(KeyInfo apiKeyUser) {
-        String lockKey = "Lock:decrementKeyUses:" + apiKeyUser.getKeyValue();
+        String lockKey = Constants.REDIS_LOCK_PREFIX + "decrementKeyUses:" + apiKeyUser.getKeyValue();
         if (!redisLockUtil.lock(lockKey, 10)) {
             throw new BizException("系统繁忙，请稍后再试！");
         }
