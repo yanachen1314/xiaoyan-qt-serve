@@ -60,10 +60,7 @@ public enum BizStatus {
     KEY_NON_ACTIVATIONS(1507, "密钥激活次数已用完"),
     KEY_NON_USES(1508, "密钥功能使用次数已用完"),
 
-    KEY_ALREADY_ACTIVATED(1509,"密钥已在其他设备激活"),
-
-    // 日志未获取到状态码
-    LOG_UNKNOWN(9999, "日志未获取到状态码");
+    KEY_ALREADY_ACTIVATED(1509,"密钥已在其他设备激活");
 
 
     BizStatus(int code, String msg) {

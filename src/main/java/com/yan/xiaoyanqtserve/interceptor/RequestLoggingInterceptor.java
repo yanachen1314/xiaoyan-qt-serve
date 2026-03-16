@@ -3,6 +3,7 @@ package com.yan.xiaoyanqtserve.interceptor;
 import com.yan.xiaoyanqtserve.common.Constants;
 import com.yan.xiaoyanqtserve.common.enums.BizStatus;
 import com.yan.xiaoyanqtserve.common.enums.RequestType;
+import com.yan.xiaoyanqtserve.common.utils.MainUtil;
 import com.yan.xiaoyanqtserve.common.utils.SecurityContextUtil;
 import com.yan.xiaoyanqtserve.entity.KeyInfo;
 import com.yan.xiaoyanqtserve.entity.RequestLog;
@@ -69,7 +70,7 @@ public class RequestLoggingInterceptor implements HandlerInterceptor {
             String responseMessage = (String) request.getAttribute(Constants.ATTRIBUTE_RESPONSE_MESSAGE);
 
             // 设置到日志实体中
-            logEntry.setBizCode(bizCode != null ? bizCode : BizStatus.LOG_UNKNOWN.code());
+            logEntry.setBizCode(bizCode);
             logEntry.setResponseMessage(responseMessage);
 
             // 调用异步保存方法
@@ -81,27 +82,33 @@ public class RequestLoggingInterceptor implements HandlerInterceptor {
         String requestURI = request.getRequestURI();
         return RequestType.getByUrl(requestURI).getCode();
     }
+
     /**
      * 获取当前用户信息，此时SecurityContext已认证，可以安全获取用户信息
      * 但是公开接口无法获取用户信息
      */
     private String getCurrentUserInfo(HttpServletRequest request) {
-        if(securityContextUtil.isAdmin()){
+        // 已认证的管理员用户
+        if (securityContextUtil.isAdmin()) {
             AdminUserDetails adminUser = securityContextUtil.getAdminUser();
-            if(adminUser != null) {
+            if (adminUser != null) {
                 return adminUser.getUsername();
-            }else{
+            } else {
                 return "用户获取失败";
             }
         }
-        if(securityContextUtil.isApiKeyUser()){
+        // 已认证的API密钥用户
+        if (securityContextUtil.isApiKeyUser()) {
             KeyInfo apiKeyUser = securityContextUtil.getApiKeyUser();
-            if(apiKeyUser != null) {
+            if (apiKeyUser != null) {
                 return apiKeyUser.getKeyValue();
-            }else{
+            } else {
                 return "卡密获取失败";
             }
         }
+        // 匿名用户（公开接口）
+        String apiKey = MainUtil.extractApiKeyFromHeader(request);
+        if (apiKey != null) return  "匿名用户:"+apiKey;
         return "匿名用户";
     }
 }

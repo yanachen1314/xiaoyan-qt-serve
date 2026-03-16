@@ -28,6 +28,7 @@ import java.util.concurrent.TimeUnit;
 
 import static com.yan.xiaoyanqtserve.common.Constants.HEADER_PREFIX;
 import static com.yan.xiaoyanqtserve.common.Constants.HEADER_KEY_NAME;
+import static com.yan.xiaoyanqtserve.common.utils.MainUtil.extractApiKeyFromHeader;
 
 @Slf4j
 @Component
@@ -97,14 +98,5 @@ public class ApiKeyAuthFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-    @Nullable
-    private String extractApiKeyFromHeader(HttpServletRequest request) {
-        String header = request.getHeader(HEADER_KEY_NAME);
-        if (StringUtils.hasText(header) && header.startsWith(HEADER_PREFIX)) {
-            // 返回 header 值
-            return header.substring(HEADER_PREFIX.length()).trim();
-        }
-        return null;
-    }
 
 }

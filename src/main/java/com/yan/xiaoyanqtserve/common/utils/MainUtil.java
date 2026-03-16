@@ -1,14 +1,20 @@
 package com.yan.xiaoyanqtserve.common.utils;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintValidatorContext;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
+import org.springframework.lang.Nullable;
+import org.springframework.util.StringUtils;
 
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+
+import static com.yan.xiaoyanqtserve.common.Constants.HEADER_KEY_NAME;
+import static com.yan.xiaoyanqtserve.common.Constants.HEADER_PREFIX;
 
 /**
  * 项目通用工具类
@@ -18,6 +24,17 @@ import java.util.Set;
  */
 @Slf4j
 public class MainUtil {
+
+    @Nullable
+    public static String extractApiKeyFromHeader(HttpServletRequest request) {
+        String header = request.getHeader(HEADER_KEY_NAME);
+        if (StringUtils.hasText(header) && header.startsWith(HEADER_PREFIX)) {
+            // 返回 header 值
+            return header.substring(HEADER_PREFIX.length()).trim();
+        }
+        return null;
+    }
+
 
     /**
      * 向 ConstraintValidatorContext 添加字段级校验错误（替换默认错误）

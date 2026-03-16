@@ -11,9 +11,6 @@ import lombok.Data;
 @Data
 public class KeyActiveDto {
 
-    @NotBlank(message = "API Key不能为空")
-    private String apiKey;
-
     @NotBlank(message = "设备ID不能为空")
     private String deviceID;
 }

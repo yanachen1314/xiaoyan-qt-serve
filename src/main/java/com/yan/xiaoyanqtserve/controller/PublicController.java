@@ -6,6 +6,7 @@ import com.yan.xiaoyanqtserve.common.dto.adminUser.AdminUserResponse;
 import com.yan.xiaoyanqtserve.common.dto.adminUser.PasswordResetRequest;
 import com.yan.xiaoyanqtserve.common.dto.key.KeyActiveDto;
 import com.yan.xiaoyanqtserve.common.enums.RateLimiterType;
+import com.yan.xiaoyanqtserve.common.utils.MainUtil;
 import com.yan.xiaoyanqtserve.common.utils.VersionCheckUtil;
 import com.yan.xiaoyanqtserve.common.vo.KeyActiveVo;
 import com.yan.xiaoyanqtserve.common.vo.VersionCheckVo;
@@ -18,6 +19,7 @@ import com.yan.xiaoyanqtserve.common.utils.ApiResponse;
 import com.yan.xiaoyanqtserve.common.utils.JwtUtil;
 import com.yan.xiaoyanqtserve.service.SysConfigService;
 import com.yan.xiaoyanqtserve.service.impl.KeyInfoManagerService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -59,9 +61,14 @@ public class PublicController {
      */
     @RateLimiter(key = "active", time = 1, count = 10, limitBy = RateLimiterType.IP)
     @PostMapping("/active")
-    public ApiResponse<KeyActiveVo> activateKey(@Valid @RequestBody KeyActiveDto keyActiveDto) {
+    public ApiResponse<KeyActiveVo> activateKey(@Valid @RequestBody KeyActiveDto keyActiveDto,
+                                                HttpServletRequest request) {
+        String apiKeyFromHeader = MainUtil.extractApiKeyFromHeader(request);
+        if(apiKeyFromHeader == null){
+            return ApiResponse.fail("API密钥不能为空");
+        }
         // 调用 KeyInfoService 的 activateKey 方法激活密钥
-        KeyInfo keyInfo = managerService.activateKey(keyActiveDto);
+        KeyInfo keyInfo = managerService.activateKey(keyActiveDto,apiKeyFromHeader);
 
         // 激活成功
         Integer totalUses = keyInfo.getTotalUses();

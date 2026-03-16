@@ -112,18 +112,19 @@ public class KeyInfoManagerService {
     /**
      * 激活密钥。
      *
-     * @param keyActiveDto 激活参数（apiKey + deviceID）
+     * @param keyActiveDto 激活参数（deviceID）
+     * @param apiKey 激活的密钥
      * @return 激活成功的密钥信息
      */
     @Transactional(rollbackFor = Exception.class)
-    public KeyInfo activateKey(KeyActiveDto keyActiveDto) {
-        String lockKey = Constants.REDIS_LOCK_PREFIX + "activateKey:" + keyActiveDto.getApiKey();
+    public KeyInfo activateKey(KeyActiveDto keyActiveDto, String apiKey) {
+        String lockKey = Constants.REDIS_LOCK_PREFIX + "activateKey:" + apiKey;
         if (!redisLockUtil.lock(lockKey, 10)) {
             throw new BizException("系统繁忙，请稍后再试！");
         }
 
         try {
-            KeyInfo keyInfo = keyInfoService.getByKeyValue(keyActiveDto.getApiKey());
+            KeyInfo keyInfo = keyInfoService.getByKeyValue(apiKey);
             // 设备ID
             String deviceID = keyActiveDto.getDeviceID();
 
