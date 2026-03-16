@@ -1,7 +1,6 @@
 package com.yan.xiaoyanqtserve.interceptor;
 
 import com.yan.xiaoyanqtserve.common.Constants;
-import com.yan.xiaoyanqtserve.common.enums.BizStatus;
 import com.yan.xiaoyanqtserve.common.enums.RequestType;
 import com.yan.xiaoyanqtserve.common.utils.MainUtil;
 import com.yan.xiaoyanqtserve.common.utils.SecurityContextUtil;
@@ -14,7 +13,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
-import org.springframework.web.servlet.ModelAndView;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

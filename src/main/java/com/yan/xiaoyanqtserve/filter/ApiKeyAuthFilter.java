@@ -14,7 +14,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
-import org.springframework.lang.Nullable;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -26,8 +25,6 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
-import static com.yan.xiaoyanqtserve.common.Constants.HEADER_PREFIX;
-import static com.yan.xiaoyanqtserve.common.Constants.HEADER_KEY_NAME;
 import static com.yan.xiaoyanqtserve.common.utils.MainUtil.extractApiKeyFromHeader;
 
 @Slf4j
