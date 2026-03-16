@@ -17,9 +17,19 @@ import java.time.LocalDateTime;
 @EqualsAndHashCode(callSuper = true)
 public class RequestLogPageRequest extends PageRequest {
     /**
-     * 密钥关键词（模糊查询）
+     * 请求 ID
      */
-    private String keyword;
+    private String requestId;
+
+    /**
+     * 请求者
+     */
+    private String requester;
+
+    /**
+     * 请求类型
+     */
+    private String requestType;
 
     /**
      * 客户端 IP 地址
@@ -27,9 +37,9 @@ public class RequestLogPageRequest extends PageRequest {
     private String clientIp;
 
     /**
-     * 响应状态码
+     * HTTP 状态码
      */
-    private Integer responseCode;
+    private Integer httpCode;
 
     /**
      * 开始时间

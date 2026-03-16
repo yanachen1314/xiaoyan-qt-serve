@@ -1,7 +1,7 @@
 package com.yan.xiaoyanqtserve.controller.admin;
 
 import cn.hutool.core.util.StrUtil;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.yan.xiaoyanqtserve.common.dto.requestLog.RequestLogPageRequest;
 import com.yan.xiaoyanqtserve.common.utils.ApiResponse;
@@ -39,35 +39,46 @@ public class RequestLogController {
     public ApiResponse<Page<RequestLog>> list(@Valid @RequestBody RequestLogPageRequest pageRequest) {
         Page<RequestLog> requestLogPage = new Page<>(pageRequest.getCurrentPage(), pageRequest.getPageSize());
         
-        QueryWrapper<RequestLog> queryWrapper = new QueryWrapper<>();
+        // 使用 lambdaQuery 构建查询条件
+        LambdaQueryWrapper<RequestLog> lambdaQuery = new LambdaQueryWrapper<>();
         
-        // 密钥关键词模糊查询
-        if (StrUtil.isNotBlank(pageRequest.getKeyword())) {
-            queryWrapper.like("key_value_used", pageRequest.getKeyword());
+        // 请求 ID 模糊查询
+        if (StrUtil.isNotBlank(pageRequest.getRequestId())) {
+            lambdaQuery.like(RequestLog::getRequestId, pageRequest.getRequestId());
+        }
+        
+        // 请求者模糊查询
+        if (StrUtil.isNotBlank(pageRequest.getRequester())) {
+            lambdaQuery.like(RequestLog::getRequester, pageRequest.getRequester());
+        }
+        
+        // 请求类型精确查询
+        if (StrUtil.isNotBlank(pageRequest.getRequestType())) {
+            lambdaQuery.eq(RequestLog::getRequestType, pageRequest.getRequestType());
         }
         
         // 客户端 IP 精确查询
         if (StrUtil.isNotBlank(pageRequest.getClientIp())) {
-            queryWrapper.eq("client_ip", pageRequest.getClientIp());
+            lambdaQuery.eq(RequestLog::getClientIp, pageRequest.getClientIp());
         }
         
-        // 响应状态码精确查询
-        if (pageRequest.getResponseCode() != null) {
-            queryWrapper.eq("response_code", pageRequest.getResponseCode());
+        // HTTP 状态码精确查询
+        if (pageRequest.getHttpCode() != null) {
+            lambdaQuery.eq(RequestLog::getHttpCode, pageRequest.getHttpCode());
         }
         
         // 时间范围查询
         if (pageRequest.getStartTime() != null) {
-            queryWrapper.ge("request_time", pageRequest.getStartTime());
+            lambdaQuery.ge(RequestLog::getRequestTime, pageRequest.getStartTime());
         }
         if (pageRequest.getEndTime() != null) {
-            queryWrapper.le("request_time", pageRequest.getEndTime());
+            lambdaQuery.le(RequestLog::getRequestTime, pageRequest.getEndTime());
         }
         
         // 按请求时间倒序排列
-        queryWrapper.orderByDesc("request_time");
+        lambdaQuery.orderByDesc(RequestLog::getRequestTime);
         
-        Page<RequestLog> result = requestLogService.page(requestLogPage, queryWrapper);
+        Page<RequestLog> result = requestLogService.page(requestLogPage, lambdaQuery);
         return ApiResponse.success(result);
     }
 }
