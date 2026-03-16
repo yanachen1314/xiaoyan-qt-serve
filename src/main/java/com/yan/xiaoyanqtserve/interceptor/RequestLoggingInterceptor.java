@@ -1,5 +1,7 @@
 package com.yan.xiaoyanqtserve.interceptor;
 
+import com.yan.xiaoyanqtserve.common.Constants;
+import com.yan.xiaoyanqtserve.common.enums.BizStatus;
 import com.yan.xiaoyanqtserve.common.enums.RequestType;
 import com.yan.xiaoyanqtserve.common.utils.SecurityContextUtil;
 import com.yan.xiaoyanqtserve.entity.KeyInfo;
@@ -29,19 +31,17 @@ public class RequestLoggingInterceptor implements HandlerInterceptor {
     @Resource
     private SecurityContextUtil securityContextUtil;
 
-    public static final String REQUEST_ID_ATTRIBUTE = "REQUEST_ID";
-    public static final String START_TIME_ATTRIBUTE = "START_TIME";
-    public static final String LOG_ENTITY_ATTRIBUTE = "LOG_ENTITY";
+
 
     @Override
     public boolean preHandle(HttpServletRequest request, @NotNull HttpServletResponse response, @NotNull Object handler) {
         // 生成一个唯一的请求ID，用于链路追踪
         String requestId = UUID.randomUUID().toString();
-        request.setAttribute(REQUEST_ID_ATTRIBUTE, requestId);
+        request.setAttribute(Constants.ATTRIBUTE_REQUEST_ID, requestId);
 
         // 记录请求开始时间
         long startTime = System.currentTimeMillis();
-        request.setAttribute(START_TIME_ATTRIBUTE, startTime);
+        request.setAttribute(Constants.ATTRIBUTE_START_TIME, startTime);
 
         RequestLog logEntry = new RequestLog();
         logEntry.setRequestId(requestId);
@@ -49,7 +49,7 @@ public class RequestLoggingInterceptor implements HandlerInterceptor {
         logEntry.setClientIp(getClientIpAddress(request));
         logEntry.setRequestType(determineRequestType(request));
         logEntry.setRequestTime(LocalDateTime.now());
-        request.setAttribute(LOG_ENTITY_ATTRIBUTE, logEntry);
+        request.setAttribute(Constants.ATTRIBUTE_LOG_ENTITY, logEntry);
 
         return true; // 继续执行后续的处理器
     }
@@ -57,13 +57,21 @@ public class RequestLoggingInterceptor implements HandlerInterceptor {
 
     @Override
     public void afterCompletion(HttpServletRequest request, @NotNull HttpServletResponse response, @NotNull Object handler, Exception ex) {
-        Long startTime = (Long) request.getAttribute(START_TIME_ATTRIBUTE);
-        RequestLog logEntry = (RequestLog) request.getAttribute(LOG_ENTITY_ATTRIBUTE);
+        Long startTime = (Long) request.getAttribute(Constants.ATTRIBUTE_START_TIME);
+        RequestLog logEntry = (RequestLog) request.getAttribute(Constants.ATTRIBUTE_LOG_ENTITY);
 
         if (startTime != null && logEntry != null) {
             long duration = System.currentTimeMillis() - startTime;
             logEntry.setRequestDuration(duration);
             logEntry.setHttpCode(response.getStatus());
+
+            // --- 从请求属性中获取业务信息 ---
+            Integer bizCode = (Integer) request.getAttribute(Constants.ATTRIBUTE_BIZ_CODE);
+            String responseMessage = (String) request.getAttribute(Constants.ATTRIBUTE_RESPONSE_MESSAGE);
+
+            // 设置到日志实体中
+            logEntry.setBizCode(bizCode != null ? bizCode : BizStatus.LOG_UNKNOWN.code());
+            logEntry.setResponseMessage(responseMessage);
 
             // 调用异步保存方法
             requestLogService.saveLogAsync(logEntry);

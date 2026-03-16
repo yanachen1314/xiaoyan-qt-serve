@@ -40,4 +40,17 @@ public class Constants {
     public static final String CONFIG_MODEL_LIST_PREFIX = "dashscope.model";
     // 百炼API KEY，config_name
     public static final String DASHSCOPE_API_KEY = "dashscope.apiKey";
+
+
+    // HTTPRequest的请求属性  请求日志相关
+    // 日志请求ID
+    public static final String ATTRIBUTE_REQUEST_ID = "REQUEST_ID";
+    // 请求开始时间
+    public static final String ATTRIBUTE_START_TIME = "START_TIME";
+    // 日志实体对象
+    public static final String ATTRIBUTE_LOG_ENTITY = "LOG_ENTITY";
+    // 业务码
+    public static final String ATTRIBUTE_BIZ_CODE = "BIZ_CODE";
+    // 响应消息
+    public static final String ATTRIBUTE_RESPONSE_MESSAGE = "RESPONSE_MESSAGE";
 }

@@ -1,5 +1,6 @@
 package com.yan.xiaoyanqtserve.common.exception;
 
+import com.yan.xiaoyanqtserve.common.Constants;
 import com.yan.xiaoyanqtserve.common.enums.BizStatus;
 import com.yan.xiaoyanqtserve.common.utils.ApiResponse;
 import com.yan.xiaoyanqtserve.common.utils.ResponseUtil;
@@ -46,8 +47,9 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
     public ResponseEntity<?> securityAccessDeniedExceptionHandler(org.springframework.security.access.AccessDeniedException e, HttpServletRequest request) {
         log.warn("请求地址：{}，权限不足：{}", request.getRequestURI(), e.getMessage());
-        return ResponseUtil.status(HttpStatus.FORBIDDEN,
-                ApiResponse.build(BizStatus.FORBIDDEN, BizStatus.FORBIDDEN.msg(), null));
+        ApiResponse<?> apiResponse = ApiResponse.build(BizStatus.FORBIDDEN, BizStatus.FORBIDDEN.msg(), null);
+        setBizInfoToRequest(request, apiResponse.getCode(), apiResponse.getMessage());
+        return ResponseUtil.status(HttpStatus.FORBIDDEN, apiResponse);
     }
 
     /**
@@ -56,8 +58,9 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<?> securityAuthenticationExceptionHandler(AuthenticationException e, HttpServletRequest request) {
         log.warn("请求地址：{}，未认证：{}", request.getRequestURI(), e.getMessage());
-        return ResponseUtil.status(HttpStatus.UNAUTHORIZED,
-                ApiResponse.build(BizStatus.UNAUTHORIZED, "未登录或 Token 无效", null));
+        ApiResponse<?> apiResponse = ApiResponse.build(BizStatus.UNAUTHORIZED, "未登录或 Token 无效", null);
+        setBizInfoToRequest(request, apiResponse.getCode(), apiResponse.getMessage());
+        return ResponseUtil.status(HttpStatus.UNAUTHORIZED, apiResponse);
     }
 
     /**
@@ -66,8 +69,9 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<?> securityBadCredentialsHandler(BadCredentialsException e, HttpServletRequest request) {
         log.warn("请求地址：{}，登录失败：{}", request.getRequestURI(), e.getMessage());
-        return ResponseUtil.status(HttpStatus.UNAUTHORIZED,
-                ApiResponse.build(BizStatus.UNAUTHORIZED, "用户名或密码错误", null));
+        ApiResponse<?> apiResponse = ApiResponse.build(BizStatus.UNAUTHORIZED, "用户名或密码错误", null);
+        setBizInfoToRequest(request, apiResponse.getCode(), apiResponse.getMessage());
+        return ResponseUtil.status(HttpStatus.UNAUTHORIZED, apiResponse);
     }
 
     // ----------------------------------- 请求参数异常处理 -----------------------------------
@@ -83,6 +87,8 @@ public class GlobalExceptionHandler {
                                                                      HttpServletRequest request) {
         String message = e.getMessage();
         log.error("请求地址：{}，发生非法参数异常：{}", request.getRequestURI(), message, e);
+        ApiResponse<?> apiResponse = ApiResponse.build(BizStatus.BAD_REQUEST, message != null ? message : "非法参数", null);
+        setBizInfoToRequest(request, apiResponse.getCode(), apiResponse.getMessage());
         return ResponseUtil.okWithFailBody(BizStatus.BAD_REQUEST, message != null ? message : "非法参数");
     }
 
@@ -95,8 +101,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     public ResponseEntity<?> argumentHttpRequestMethodNotSupportedHandler(HttpRequestMethodNotSupportedException e,
                                                                           HttpServletRequest request) {
-        log.error("请求地址：{}，不支持{}请求", request.getRequestURI(), e.getMethod());
-        return ResponseUtil.okWithFailBody(BizStatus.BAD_REQUEST, e.getMessage());
+        log.error("请求地址: {}, 不支持{}请求", request.getRequestURI(), e.getMethod());
+        String message = e.getMessage(); // 可以构建更友好的消息
+        ApiResponse<?> apiResponse = ApiResponse.build(BizStatus.BAD_REQUEST, message, null);
+        setBizInfoToRequest(request, apiResponse.getCode(), apiResponse.getMessage());
+        return ResponseUtil.okWithFailBody(BizStatus.BAD_REQUEST, message);
     }
 
     /**
@@ -131,6 +140,8 @@ public class GlobalExceptionHandler {
             message = cause.getMessage() != null ? cause.getMessage() : "参数格式错误";
         }
 
+        ApiResponse<?> apiResponse = ApiResponse.build(BizStatus.BAD_REQUEST, message, null);
+        setBizInfoToRequest(request, apiResponse.getCode(), apiResponse.getMessage());
         return ResponseUtil.okWithFailBody(BizStatus.BAD_REQUEST, message);
     }
 
@@ -144,9 +155,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<?> argumentMethodArgumentTypeMismatchExceptionHandler(MethodArgumentTypeMismatchException e,
                                                                                 HttpServletRequest request) {
         log.error("1、请求地址：{}，参数验证失败：{}", request.getRequestURI(), e.getMessage(), e);
-        return ResponseUtil.okWithFailBody(BizStatus.BAD_REQUEST, "参数类型传递错误，" +
+        String message = "参数类型传递错误，" +
                 "参数类型：" + Objects.requireNonNull(e.getRequiredType()).getName() + " " +
-                "传入类型：" + Objects.requireNonNull(e.getRootCause()).getMessage());
+                "传入类型：" + Objects.requireNonNull(e.getRootCause()).getMessage();
+        ApiResponse<?> apiResponse = ApiResponse.build(BizStatus.BAD_REQUEST, message, null);
+        setBizInfoToRequest(request, apiResponse.getCode(), apiResponse.getMessage());
+        return ResponseUtil.okWithFailBody(BizStatus.BAD_REQUEST, message);
     }
 
     /**
@@ -162,6 +176,8 @@ public class GlobalExceptionHandler {
                 .collect(Collectors.joining(", "));
         log.error("message:{}", message);
         log.error("2、请求地址：{}，参数验证失败：{}", request.getRequestURI(), e.getMessage(), e);
+        ApiResponse<?> apiResponse = ApiResponse.build(BizStatus.BAD_REQUEST, message, null);
+        setBizInfoToRequest(request, apiResponse.getCode(), apiResponse.getMessage());
         return ResponseUtil.okWithFailBody(BizStatus.BAD_REQUEST, message);
     }
 
@@ -175,7 +191,10 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BindException.class)
     public ResponseEntity<?> argumentBindExceptionHandler(BindException e, HttpServletRequest request) {
         log.error("3、请求地址：{}，参数验证失败：{}", request.getRequestURI(), e.getMessage(), e);
-        return ResponseUtil.okWithFailBody(BizStatus.BAD_REQUEST, e.getAllErrors().get(0).getDefaultMessage());
+        String message = e.getAllErrors().get(0).getDefaultMessage();
+        ApiResponse<?> apiResponse = ApiResponse.build(BizStatus.BAD_REQUEST, message, null);
+        setBizInfoToRequest(request, apiResponse.getCode(), apiResponse.getMessage());
+        return ResponseUtil.okWithFailBody(BizStatus.BAD_REQUEST, message);
     }
 
     /**
@@ -194,6 +213,8 @@ public class GlobalExceptionHandler {
                 .orElse("参数校验失败");
 
         log.error("4、请求地址：{}，参数验证失败：{},{}", request.getRequestURI(), e.getObjectName(), message, e);
+        ApiResponse<?> apiResponse = ApiResponse.build(BizStatus.BAD_REQUEST, message, null);
+        setBizInfoToRequest(request, apiResponse.getCode(), apiResponse.getMessage());
         return ResponseUtil.okWithFailBody(BizStatus.BAD_REQUEST, message);
     }
 
@@ -207,6 +228,8 @@ public class GlobalExceptionHandler {
     public ResponseEntity<?> argumentMissingServletRequestParameterExceptionHandler(MissingServletRequestParameterException e,
                                                                                     HttpServletRequest request) {
         log.error("5、请求地址：{},参数校验失败：{}", request.getRequestURI(), e.getMessage(), e);
+        ApiResponse<?> apiResponse = ApiResponse.build(BizStatus.BAD_REQUEST, e.getMessage(), null);
+        setBizInfoToRequest(request, apiResponse.getCode(), apiResponse.getMessage());
         return ResponseUtil.okWithFailBody(BizStatus.BAD_REQUEST, e.getMessage());
     }
 
@@ -222,6 +245,8 @@ public class GlobalExceptionHandler {
     public ResponseEntity<?> sqlBadSqlGrammarExceptionHandler(BadSqlGrammarException e,
                                                               HttpServletRequest request) {
         log.error("数据库异常1、请求地址：{}，发生数据库异常：SQL错误,{}", request.getRequestURI(), e.getSql(), e);
+        ApiResponse<?> apiResponse = ApiResponse.build(BizStatus.ERROR, "数据异常：SQL错误", null);
+        setBizInfoToRequest(request, apiResponse.getCode(), apiResponse.getMessage());
         return ResponseUtil.okWithFailBody(BizStatus.ERROR, "数据异常：SQL错误");
     }
 
@@ -236,6 +261,8 @@ public class GlobalExceptionHandler {
                                                                        HttpServletRequest request) {
         String message = e.getCause().getMessage();
         log.error("数据库异常2、请求地址：{}，发生数据库异常:{}", request.getRequestURI(), message, e);
+        ApiResponse<?> apiResponse = ApiResponse.build(BizStatus.ERROR, "数据异常：" + message, null);
+        setBizInfoToRequest(request, apiResponse.getCode(), apiResponse.getMessage());
         return ResponseUtil.okWithFailBody(BizStatus.ERROR, "数据异常：" + message);
     }
 
@@ -249,6 +276,8 @@ public class GlobalExceptionHandler {
     public ResponseEntity<?> sqlUncategorizedSqlExceptionHandler(UncategorizedSQLException e,
                                                                  HttpServletRequest request) {
         log.error("数据库异常3、请求地址：{}，发生数据库异常:{}", request.getRequestURI(), e.getSql(), e);
+        ApiResponse<?> apiResponse = ApiResponse.build(BizStatus.ERROR, "数据异常！", null);
+        setBizInfoToRequest(request, apiResponse.getCode(), apiResponse.getMessage());
         return ResponseUtil.okWithFailBody(BizStatus.ERROR, "数据异常！");
     }
 
@@ -265,6 +294,8 @@ public class GlobalExceptionHandler {
     public ResponseEntity<?> FileAccessDeniedExceptionHandler(AccessDeniedException e,
                                                               HttpServletRequest request) {
         log.error("请求地址：{},权限校验失败：{}", request.getRequestURI(), e.getMessage());
+        ApiResponse<?> apiResponse = ApiResponse.build(BizStatus.FORBIDDEN, "文件操作，权限不足！", null);
+        setBizInfoToRequest(request, apiResponse.getCode(), apiResponse.getMessage());
         return ResponseUtil.okWithFailBody(BizStatus.FORBIDDEN, "文件操作，权限不足！");
     }
 
@@ -282,6 +313,8 @@ public class GlobalExceptionHandler {
     public ResponseEntity<?> globalServiceExceptionHandler(BizException e,
                                                            HttpServletRequest request) {
         log.error("请求地址：{}，发生业务自定义异常：{}", request.getRequestURI(), e.getMessage(), e);
+        ApiResponse<?> apiResponse = ApiResponse.build(BizStatus.ERROR, e.getMessage(), null);
+        setBizInfoToRequest(request, apiResponse.getCode(), apiResponse.getMessage());
         return ResponseUtil.okWithFailBody(BizStatus.ERROR, e.getMessage());
     }
 
@@ -297,6 +330,8 @@ public class GlobalExceptionHandler {
                                                            HttpServletRequest request) {
         log.error("请求地址：{}，发生未知的运行时异常：{}", request.getRequestURI(), e.getMessage(), e);
         String message = e.getMessage();
+        ApiResponse<?> apiResponse = ApiResponse.build(BizStatus.ERROR, message != null ? message : "系统运行时异常", null);
+        setBizInfoToRequest(request, apiResponse.getCode(), apiResponse.getMessage());
         return ResponseUtil.okWithFailBody(BizStatus.ERROR, message != null ? message : "系统运行时异常");
     }
 
@@ -311,7 +346,14 @@ public class GlobalExceptionHandler {
     public ResponseEntity<?> globalExceptionHandler(Exception e,
                                                     HttpServletRequest request) {
         log.error("请求地址：{}，发生系统异常", request.getRequestURI(), e);
+        ApiResponse<?> apiResponse = ApiResponse.build(BizStatus.ERROR, e.getMessage(), null);
+        setBizInfoToRequest(request, apiResponse.getCode(), apiResponse.getMessage());
         return ResponseUtil.okWithFailBody(BizStatus.ERROR, e.getMessage());
     }
 
+    // --- 辅助方法：将业务信息设置到请求属性 ---
+    private void setBizInfoToRequest(HttpServletRequest request, Integer code, String message) {
+        request.setAttribute(Constants.ATTRIBUTE_BIZ_CODE, code);
+        request.setAttribute(Constants.ATTRIBUTE_RESPONSE_MESSAGE, message);
+    }
 }
