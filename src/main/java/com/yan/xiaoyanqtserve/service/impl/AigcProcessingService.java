@@ -73,10 +73,12 @@ public class AigcProcessingService {
      */
     @NotNull
     private AigcModelResultDto processTextByModel(String content, List<String> paragraphs) {
+        long start = System.currentTimeMillis();
         // 并行处理每个段落
         List<AigcModelResultDto> modelResults = paragraphs.parallelStream()
                 .map(modelService::chatModel)
                 .toList();
+        log.info("并行处理每个段落3：{}", System.currentTimeMillis() - start);
 
         // 整合结果
         String outputText = modelResults.stream()

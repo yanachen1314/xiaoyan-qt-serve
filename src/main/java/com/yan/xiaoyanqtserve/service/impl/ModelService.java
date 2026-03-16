@@ -107,7 +107,7 @@ public class ModelService {
             synchronized (this) {
                 // 双重检查锁定，确保只有一个线程刷新缓存
                 if (modelListCache == null || currentTime - lastRefreshTime > MODEL_LIST_REFRESH_INTERVAL) {
-                    log.info("刷新模型列表缓存");
+                    log.debug("刷新模型列表缓存");
                     modelListCache = sysConfigService.getModelList();
                     lastRefreshTime = currentTime;
                 }
@@ -146,7 +146,7 @@ public class ModelService {
         int size = modelList.size();
         if (size == 1) {
             String modelName = modelList.get(0);
-            log.info("仅配置了一个模型，使用: {}", modelName);
+            log.debug("仅配置了一个模型，使用: {}", modelName);
             return callWithSingleModel(text, dashscopeApiKey, modelName);
         }
 
@@ -157,7 +157,7 @@ public class ModelService {
         }
         int actualIndex = index % size;
         String selectedModelName = modelList.get(actualIndex);
-        log.info("【轮询】选择模型: {} (索引: {})", selectedModelName, actualIndex);
+        log.debug("【轮询】选择模型: {} (索引: {})", selectedModelName, actualIndex);
 
         return callWithSingleModel(text, dashscopeApiKey, selectedModelName);
     }
