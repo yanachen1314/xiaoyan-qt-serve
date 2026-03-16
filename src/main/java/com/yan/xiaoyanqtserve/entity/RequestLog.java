@@ -38,16 +38,29 @@ public class RequestLog implements Serializable {
     private Long id;
 
     /**
-     * 本次请求使用的密钥
+     * 请求唯一UUID
      */
-    @TableField("key_value_used")
-    private String keyValueUsed;
+    @TableField("request_id")
+    private String requestId;
+
+    /**
+     * 请求者
+     */
+    @TableField("requester")
+    private String requester;
 
     /**
      * 发起请求的客户端IP地址 (支持IPv4/v6)
      */
     @TableField("client_ip")
     private String clientIp;
+
+    /**
+     * 请求类别，如：公开请求、管理员请求、卡密请求
+     * @see com.yan.xiaoyanqtserve.common.enums.RequestType
+     */
+    @TableField("request_type")
+    private String requestType;
 
     /**
      * 请求时间
@@ -57,22 +70,40 @@ public class RequestLog implements Serializable {
     private LocalDateTime requestTime;
 
     /**
+     * 请求耗时，单位毫秒
+     */
+    @TableField("request_duration")
+    private Long requestDuration;
+
+    /**
      * HTTP响应状态码，例如 200, 402, 401
      */
-    @TableField("response_code")
-    private Integer responseCode;
+    @TableField("http_code")
+    private Integer httpCode;
+
+    /**
+     * 业务状态码，例如 200, 402, 401
+     */
+    @TableField("biz_code")
+    private Integer bizCode;
 
     /**
      * 处理结果摘要或错误信息
      */
-    @TableField("processing_result")
-    private String processingResult;
+    @TableField("response_message")
+    private String responseMessage;
 
     /**
      * 输入文本
      */
     @TableField("input_text")
     private String inputText;
+
+    /**
+     * 输出文本
+     */
+    @TableField("output_text")
+    private String outputText;
 
     /**
      * 输入文本的字符数

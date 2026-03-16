@@ -14,10 +14,16 @@ import com.baomidou.mybatisplus.extension.service.IService;
 public interface RequestLogService extends IService<RequestLog> {
 
     /**
-     * 记录API请求日志
-     *
+     * 记录降AI服务请求的具体日志信息
+     * <p></p>
+     * 比如：输入文本、输出文本、token等
      * @param requestLog 请求日志对象，包含请求的详细信息
      */
-    void recordLog(RequestLog requestLog);
+    void saveModelLog(RequestLog requestLog);
 
+    /**
+     * 异步保存日志
+     * @param logEntry 日志对象
+     */
+    void saveLogAsync(RequestLog logEntry);
 }

@@ -66,7 +66,7 @@ public class ApiKeyController {
         try {
             AigcResponseDto aigcDealText = apiKeyInfoService.aigcDealText(aigcRequestDto, apiKeyUser);
 
-            logService.recordLog(RequestLog.builder()
+            logService.saveModelLog(RequestLog.builder()
                     .keyValueUsed(apiKeyUser.getKeyValue())
                     .clientIp(clientIpAddress)
                     .requestTime(now)
@@ -86,7 +86,7 @@ public class ApiKeyController {
             );
         } catch (Exception e) {
             // 记录请求日志
-            logService.recordLog(RequestLog.builder()
+            logService.saveModelLog(RequestLog.builder()
                     .keyValueUsed(apiKeyUser.getKeyValue())
                     .clientIp(clientIpAddress)
                     .requestTime(now)
