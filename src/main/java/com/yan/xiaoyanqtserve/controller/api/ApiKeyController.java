@@ -1,6 +1,5 @@
 package com.yan.xiaoyanqtserve.controller.api;
 
-import cn.hutool.core.thread.ThreadUtil;
 import com.yan.xiaoyanqtserve.common.Constants;
 import com.yan.xiaoyanqtserve.common.annotaions.RateLimiter;
 import com.yan.xiaoyanqtserve.common.dto.aigc.AigcRequestDto;
@@ -50,7 +49,6 @@ public class ApiKeyController {
     @PostMapping("/deal/text")
     public ApiResponse<AigcResponseVo> aigcDealText(
             HttpServletRequest request, @Valid @RequestBody AigcRequestDto aigcRequestDto) {
-        ThreadUtil.sleep(1200);
         KeyInfo apiKeyUser = securityContextUtil.getApiKeyUser();
         if (!securityContextUtil.isApiKeyUser() || Objects.isNull(apiKeyUser)) {
             return ApiResponse.fail(BizStatus.KEY_NOT_FOUND);
