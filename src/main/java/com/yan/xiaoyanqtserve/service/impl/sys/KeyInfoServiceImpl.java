@@ -1,6 +1,7 @@
 package com.yan.xiaoyanqtserve.service.impl.sys;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.enums.SqlKeyword;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.yan.xiaoyanqtserve.common.Constants;
 import com.yan.xiaoyanqtserve.common.dto.key.KeyInfoPageRequest;
@@ -116,8 +117,7 @@ public class KeyInfoServiceImpl extends ServiceImpl<KeyInfoMapper, KeyInfo> impl
                     .eq(KeyInfo::getSelled, 0)          // 未售卖
                     .eq(KeyInfo::getProductType, 2)     // 免费卡密（ID为2，10分钟体验卡）
                     .eq(KeyInfo::getUsageType, "apikey.usageType.free")
-                    .apply("ORDER BY RAND()")           // 对 MySQL 使用 RAND() 进行随机排序
-                    .last("LIMIT 1");                   // 只取排序后的一个结果
+                    .last("ORDER BY RAND() LIMIT 1");  // 使用 RAND() 进行随机排序，只取排序后的一个结果
 
             List<KeyInfo> list = list(queryWrapper);
 
@@ -157,8 +157,7 @@ public class KeyInfoServiceImpl extends ServiceImpl<KeyInfoMapper, KeyInfo> impl
                     .eq(KeyInfo::getSelled, 0)          // 未售卖
                     .eq(KeyInfo::getProductType, productType.getId())
                     .eq(KeyInfo::getUsageType, "apikey.usageType.xianyu")
-                    .apply("ORDER BY RAND()")           // 对 MySQL 使用 RAND() 进行随机排序
-                    .last("LIMIT 1");                   // 只取排序后的一个结果
+                    .last("ORDER BY RAND() LIMIT 1");  // 使用 RAND() 进行随机排序，只取排序后的一个结果
 
             List<KeyInfo> list = list(queryWrapper);
 
