@@ -66,7 +66,7 @@ CREATE TABLE `key_info`  (
   INDEX `idx_remaining_uses`(`remaining_uses` ASC) USING BTREE,
   INDEX `idx_expiry_time`(`expiry_time` ASC) USING BTREE,
   INDEX `idx_created_by`(`created_by` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 5223 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '密钥信息表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '密钥信息表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for product_type
@@ -117,7 +117,7 @@ CREATE TABLE `request_log`  (
   INDEX `idx_request_type`(`request_type` ASC) USING BTREE,
   INDEX `idx_request_time`(`request_time` ASC) USING BTREE,
   INDEX `idx_client_ip`(`client_ip` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 230 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = 'API请求日志表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB  CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = 'API请求日志表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for sys_config

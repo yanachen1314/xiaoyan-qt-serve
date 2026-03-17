@@ -20,7 +20,7 @@ spring:
 
 server:
   # HTTP请求、响应头信息的最大大小
-  port: 8080
+  port: ${SERVER_PORT:8080}
   max-http-request-header-size: 102400
 
 # ===================== mybatis-plus 配置 =======================
