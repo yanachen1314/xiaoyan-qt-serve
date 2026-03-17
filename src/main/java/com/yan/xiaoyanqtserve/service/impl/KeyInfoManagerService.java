@@ -73,7 +73,7 @@ public class KeyInfoManagerService {
         Integer remainingUses = keyInfo.getRemainingUses();
 
         if (totalUses == null || remainingUses == null) {
-            log.warn("此密钥的数据非法: key={}, totalUses={}, remainingUses={}",
+            log.info("此密钥的数据非法: key={}, totalUses={}, remainingUses={}",
                     keyInfo.getKeyValue(), totalUses, remainingUses);
             return ValidationResult.failure(BizStatus.KEY_INVALID_STATE);
         }
@@ -86,14 +86,14 @@ public class KeyInfoManagerService {
         } else if (totalUses == 0) {
             // 5.2 无限制使用次数，remaining_uses 必须为 0（业务强约束）
             if (remainingUses != 0) {
-                log.warn("此密钥的数据非法: key={}, totalUses=0, remainingUses={}",
+                log.info("此密钥的数据非法: key={}, totalUses=0, remainingUses={}",
                         keyInfo.getKeyValue(), remainingUses);
                 return ValidationResult.failure(BizStatus.KEY_INVALID_STATE);
             }
             // remainingUses == 0：合法，密钥无使用次数限制
         } else {
             // 5.3 其他情况：非法状态
-            log.warn("此密钥的数据非法: key={}, totalUses={}, remainingUses={}",
+            log.info("此密钥的数据非法: key={}, totalUses={}, remainingUses={}",
                     keyInfo.getKeyValue(), totalUses, remainingUses);
             return ValidationResult.failure(BizStatus.KEY_INVALID_STATE);
         }
@@ -181,7 +181,7 @@ public class KeyInfoManagerService {
             // 3.5 设置过期时间
             ProductType productType = productTypeService.getDetailById(validKeyInfo.getProductType().longValue());
             if (productType == null) {
-                log.error("产品类型不存在: {}", validKeyInfo.getProductType());
+                log.info("产品类型不存在: {}", validKeyInfo.getProductType());
                 throw new BizException("激活失败");
             }
             validKeyInfo.setExpiryTime(now.plusMinutes(productType.getEquityTime()));
@@ -223,11 +223,11 @@ public class KeyInfoManagerService {
             } else if (actNum != null && actNum == 0) {
                 // 无限激活次数：remaining_active_num 必须为 0（按约定）
                 if (remAct != null && remAct != 0) {
-                    log.warn("密钥数据异常: key={}, actNum=0, remAct={}", keyInfo.getKeyValue(), remAct);
+                    log.info("密钥数据异常: key={}, actNum=0, remAct={}", keyInfo.getKeyValue(), remAct);
                     return ValidationResult.failure("密钥数据异常，请联系管理员", BizStatus.KEY_INVALID_STATE);
                 }
             } else {
-                log.warn("激活次数配置异常: key={}, actNum={}, remAct={}", keyInfo.getKeyValue(), actNum, remAct);
+                log.info("激活次数配置异常: key={}, actNum={}, remAct={}", keyInfo.getKeyValue(), actNum, remAct);
                 return ValidationResult.failure("激活次数配置异常", BizStatus.KEY_INVALID_STATE);
             }
         }
@@ -297,7 +297,7 @@ public class KeyInfoManagerService {
         // 查询产品类型
         ProductType productType = productTypeService.getDetailById(generateKeyDto.getProductTypeId().longValue());
         if (productType == null) {
-            log.error("产品类型不存在: {}", generateKeyDto.getProductTypeId());
+            log.info("产品类型不存在: {}", generateKeyDto.getProductTypeId());
             throw new BizException("激活失败");
         }
 

@@ -48,7 +48,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 try {
                     username = jwtUtil.extractUsername(jwtToken);
                 } catch (Exception e) {
-                    log.error("请求地址：{}，Token 无效：{}", request.getRequestURI(), e.getMessage());
+                    log.info("请求地址：{}，Token 无效：{}", request.getRequestURI(), e.getMessage());
                 }
             }
 

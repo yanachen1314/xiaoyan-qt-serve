@@ -121,7 +121,7 @@ public class PublicController {
         String linkUrl = sysConfigService.getValue(linkKey);
 
         if (latestVersion == null || latestVersion.trim().isEmpty()) {
-            log.error("System config key '{}' is missing or empty.", versionKey);
+            log.info("System config key '{}' is missing or empty.", versionKey);
             return ApiResponse.success(VersionCheckVo.builder()
                     .version("v0.0.0")
                     .currentVersion(version)
@@ -186,7 +186,7 @@ public class PublicController {
 
             return ApiResponse.success(response);
         } catch (Exception e) {
-            log.error("登录失败：{}", e.getMessage());
+            log.info("登录失败：{}", e.getMessage());
             return ApiResponse.fail("用户名或密码错误");
         }
     }
@@ -214,7 +214,7 @@ public class PublicController {
                 return ApiResponse.fail("未找到匹配的手机号或邮箱");
             }
         } catch (Exception e) {
-            log.error("密码重置失败：{}", e.getMessage());
+            log.info("密码重置失败：{}", e.getMessage());
             return ApiResponse.fail("密码重置失败");
         }
     }

@@ -35,7 +35,7 @@ public class RequestLogServiceImpl extends ServiceImpl<RequestLogMapper, Request
             // 保存请求日志
             save(requestLog);
         } catch (Exception e) {
-            log.error("记录请求日志失败：{}", e.getMessage());
+            log.info("记录请求日志失败：{}", e.getMessage());
         }
     }
 
@@ -52,8 +52,8 @@ public class RequestLogServiceImpl extends ServiceImpl<RequestLogMapper, Request
             requestLogMapper.insert(logEntry);
         } catch (Exception e) {
             // 异步方法中的异常不会传播回调用方，所以务必在这里处理
-            log.error("【记录请求日志失败】记录实体：{}", logEntry);
-            log.error("【记录请求日志失败】错误信息：{}", e.getMessage());
+            log.info("【记录请求日志失败】记录实体：{}", logEntry);
+            log.info("【记录请求日志失败】错误信息：{}", e.getMessage());
         }
     }
 

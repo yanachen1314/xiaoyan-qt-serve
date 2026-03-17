@@ -43,7 +43,7 @@ public class RedisLockUtil {
             }
             return false;
         } catch (Exception e) {
-            log.error("Redis 锁获取失败，key: {}", lockKey, e);
+            log.info("Redis 锁获取失败，key: {}", lockKey, e);
             return false;
         }
     }
@@ -87,7 +87,7 @@ public class RedisLockUtil {
             // 清理 ThreadLocal
             lockValueThreadLocal.remove();
         } catch (Exception e) {
-            log.error("Redis 锁释放失败，key: {}", lockKey, e);
+            log.info("Redis 锁释放失败，key: {}", lockKey, e);
             // 清理 ThreadLocal 避免内存泄漏
             lockValueThreadLocal.remove();
         }

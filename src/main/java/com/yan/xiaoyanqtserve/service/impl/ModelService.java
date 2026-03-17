@@ -56,9 +56,7 @@ public class ModelService {
     )
     public AigcModelResultDto chatModel(String inputText) {
         try {
-            long start = System.currentTimeMillis();
             GenerationResult result = callWithModelByPolling(inputText);
-            log.info("调用阿里模型服务成功，耗时: {} ms", System.currentTimeMillis() - start);
             List<GenerationOutput.Choice> choiceList = result.getOutput().getChoices();
 
             if (choiceList != null && !choiceList.isEmpty()) {
@@ -70,7 +68,7 @@ public class ModelService {
                 dto.setTotalTokens(result.getUsage().getTotalTokens());
                 return dto;
             } else {
-                log.error("调用阿里模型服务出现错误，返回结果详情：{}", result);
+                log.info("调用阿里模型服务出现错误，返回结果详情：{}", result);
                 throw new BizException("没有结果，处理失败，请稍后再试！");
             }
         } catch (NoModelConfiguredException e) {
@@ -84,7 +82,7 @@ public class ModelService {
      */
     @Recover
     public AigcModelResultDto recover(Exception e, String inputText) {
-        log.error("调用阿里模型服务多次失败，进入兜底逻辑。输入文本: {}，异常: {}", inputText, e.getMessage(), e);
+        log.info("调用阿里模型服务多次失败，进入兜底逻辑。输入文本: {}，异常: {}", inputText, e.getMessage(), e);
         throw new BizException(e.getMessage());
     }
 
@@ -113,11 +111,11 @@ public class ModelService {
                         modelListCache = newModelList;
                         lastRefreshTime = currentTime;
                     } else {
-                        log.warn("获取到空的模型列表，保持原有缓存");
+                        log.info("获取到空的模型列表，保持原有缓存");
                         lastRefreshTime = currentTime; // 更新时间避免频繁重试
                     }
                 } catch (Exception e) {
-                    log.error("刷新模型列表缓存失败", e);
+                    log.info("刷新模型列表缓存失败", e);
                     // 发生异常时不更新缓存，避免丢失有效数据
                     lastRefreshTime = currentTime; // 避免频繁重试
                 }
