@@ -36,21 +36,13 @@ public class ModelService {
     @Resource
     private SysConfigService sysConfigService;
 
+    // 当前模型索引
     private final AtomicInteger currentIndex = new AtomicInteger(0);
-
-    /**
-     * 模型列表缓存
-     */
+    // 模型列表缓存
     private volatile List<String> modelListCache;
-
-    /**
-     * 上次刷新模型列表的时间
-     */
+    // 上次刷新模型列表的时间
     private volatile long lastRefreshTime = 0;
-
-    /**
-     * 模型列表缓存刷新间隔（毫秒）
-     */
+    // 模型列表缓存刷新间隔（毫秒）
     private static final long MODEL_LIST_REFRESH_INTERVAL = 5 * 60 * 1000; // 5分钟
 
     /**
@@ -59,7 +51,7 @@ public class ModelService {
      * @param inputText 输入文本
      * @return 结果DTO
      */
-    @Retryable(retryFor = { BizException.class }, maxAttempts = 3, // 最大尝试3次
+    @Retryable(retryFor = {BizException.class}, maxAttempts = 3, // 最大尝试3次
             backoff = @Backoff(delay = 200, multiplier = 2) // 延迟200毫秒，每次延迟时间递增为2倍
     )
     public AigcModelResultDto chatModel(String inputText) {
@@ -96,20 +88,36 @@ public class ModelService {
 
     /**
      * 获取模型列表，优先使用缓存，定期刷新
-     * 
+     *
      * @return 模型列表
      */
     private List<String> getCachedModelList() {
         long currentTime = System.currentTimeMillis();
 
-        // 检查是否需要刷新缓存
-        if (modelListCache == null || currentTime - lastRefreshTime > MODEL_LIST_REFRESH_INTERVAL) {
-            synchronized (this) {
-                // 双重检查锁定，确保只有一个线程刷新缓存
-                if (modelListCache == null || currentTime - lastRefreshTime > MODEL_LIST_REFRESH_INTERVAL) {
+        // 检查缓存是否有效
+        if (modelListCache != null && (currentTime - lastRefreshTime) <= MODEL_LIST_REFRESH_INTERVAL) {
+            return modelListCache;
+        }
+
+        synchronized (this) {
+            // 双重检查
+            if (modelListCache == null || (currentTime - lastRefreshTime) > MODEL_LIST_REFRESH_INTERVAL) {
+                try {
                     log.debug("刷新模型列表缓存");
-                    modelListCache = sysConfigService.getModelList();
-                    lastRefreshTime = currentTime;
+                    List<String> newModelList = sysConfigService.getModelList();
+
+                    // 只有当新列表不为空时才更新缓存
+                    if (newModelList != null && !newModelList.isEmpty()) {
+                        modelListCache = newModelList;
+                        lastRefreshTime = currentTime;
+                    } else {
+                        log.warn("获取到空的模型列表，保持原有缓存");
+                        lastRefreshTime = currentTime; // 更新时间避免频繁重试
+                    }
+                } catch (Exception e) {
+                    log.error("刷新模型列表缓存失败", e);
+                    // 发生异常时不更新缓存，避免丢失有效数据
+                    lastRefreshTime = currentTime; // 避免频繁重试
                 }
             }
         }
@@ -143,22 +151,19 @@ public class ModelService {
         }
 
         // 3. 轮询选择模型
+        String selectedModelName;
         int size = modelList.size();
         if (size == 1) {
-            String modelName = modelList.get(0);
-            log.debug("仅配置了一个模型，使用: {}", modelName);
-            return callWithSingleModel(text, dashscopeApiKey, modelName);
+            selectedModelName = modelList.get(0);
+            log.debug("仅配置了一个模型，使用: {}", selectedModelName);
+        } else {
+            // 使用AtomicInteger的getAndIncrement方法，线程安全地获取下一个索引
+            int index = currentIndex.getAndIncrement();
+            // 处理负数情况（Integer.MAX_VALUE 后溢出），确保在 [0, size) 范围内
+            int actualIndex = Math.floorMod(index, size);
+            selectedModelName = modelList.get(actualIndex);
+            log.debug("【轮询】选择模型: {} (索引: {})", selectedModelName, actualIndex);
         }
-
-        // 使用AtomicInteger的getAndIncrement方法，线程安全地获取下一个索引
-        int index = currentIndex.getAndIncrement();
-        if (index < 0) { // 防止整数溢出导致负数
-            index = Math.abs(index);
-        }
-        int actualIndex = index % size;
-        String selectedModelName = modelList.get(actualIndex);
-        log.debug("【轮询】选择模型: {} (索引: {})", selectedModelName, actualIndex);
-
         return callWithSingleModel(text, dashscopeApiKey, selectedModelName);
     }
 

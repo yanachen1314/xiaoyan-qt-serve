@@ -72,9 +72,9 @@ public class AigcProcessingService {
      * @return 处理后的结果
      */
     @NotNull
-    private AigcModelResultDto processTextByModel(String content, List<String> paragraphs) {
+    private AigcModelResultDto processTextByModel1(String content, List<String> paragraphs) {
         long start = System.currentTimeMillis();
-        // 并行处理每个段落
+        // 并行处理每个段落todo
         List<AigcModelResultDto> modelResults = paragraphs.parallelStream()
                 .map(modelService::chatModel)
                 .toList();
@@ -102,7 +102,48 @@ public class AigcProcessingService {
         integratedResult.setTotalTokens(totalInputTokens + totalOutputTokens);
         return integratedResult;
     }
+    /**
+     * 使用模型处理文本 - 高并发安全的最佳实践
+     */
+    @NotNull
+    private AigcModelResultDto processTextByModel(String content, List<String> paragraphs) {
+        long start = System.currentTimeMillis();
 
+        // 由于文本量小（≤1000字），通常段落数也不会太多
+        // 使用顺序处理即可满足需求，避免复杂的并发控制
+        List<AigcModelResultDto> results = new ArrayList<>(paragraphs.size());
+
+        for (String paragraph : paragraphs) {
+            // 模型服务应该是无状态的，确保每次调用都是线程安全的
+            AigcModelResultDto result = modelService.chatModel(paragraph);
+            results.add(result);
+        }
+
+        log.info("顺序处理完成，耗时：{}ms", System.currentTimeMillis() - start);
+
+        // 构建最终结果
+        StringBuilder outputBuilder = new StringBuilder();
+        int totalInputTokens = 0;
+        int totalOutputTokens = 0;
+
+        for (int i = 0; i < results.size(); i++) {
+            AigcModelResultDto result = results.get(i);
+            if (i > 0) outputBuilder.append("\n\n");
+            outputBuilder.append(result.getOutputText());
+
+            totalInputTokens += result.getInputTokens();
+            totalOutputTokens += result.getOutputTokens();
+        }
+
+        AigcModelResultDto integratedResult = new AigcModelResultDto();
+        integratedResult.setInputText(content);
+        integratedResult.setOutputText(outputBuilder.toString());
+        integratedResult.setInputTokens(totalInputTokens);
+        integratedResult.setOutputTokens(totalOutputTokens);
+        integratedResult.setTotalTokens(totalInputTokens + totalOutputTokens);
+
+        return integratedResult;
+    }
     /**
      * 将内容分割成段落列表
      *
