@@ -3,6 +3,7 @@ package com.yan.xiaoyanqtserve.service.impl;
 import com.yan.xiaoyanqtserve.common.dto.aigc.AigcModelResultDto;
 import com.yan.xiaoyanqtserve.common.dto.aigc.AigcResponseDto;
 import com.yan.xiaoyanqtserve.common.utils.MainUtil;
+import com.yan.xiaoyanqtserve.config.ThreadPoolConfig;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
@@ -12,6 +13,8 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Semaphore;
 import java.util.stream.Collectors;
 
 /**
@@ -24,11 +27,13 @@ import java.util.stream.Collectors;
 public class AigcProcessingService {
     @Resource
     private ModelService modelService;
+    @Resource
+    private ThreadPoolConfig threadPoolConfig;
 
     // 文本段落最大字符数
     private static final Integer AIGC_MAX_CHAR_INPUT = 1000;
     // 段落最小字符数
-    private static final Integer AIGC_MIN_CHAR_INPUT = 10;
+    private static final Integer AIGC_MIN_CHAR_INPUT = 50;
 
     /**
      * 文本处理（支持多个段落）
@@ -72,9 +77,66 @@ public class AigcProcessingService {
      * @return 处理后的结果
      */
     @NotNull
+    private AigcModelResultDto processTextByModel(String content, List<String> paragraphs) {
+        long start = System.currentTimeMillis();
+        // 限制最大并发数
+        Semaphore semaphore = new Semaphore(5); // 最多5个并发
+        List<CompletableFuture<AigcModelResultDto>> futures = paragraphs.stream()
+                .map(paragraph -> {
+                    if (paragraph.length() < AIGC_MIN_CHAR_INPUT) {
+                        return CompletableFuture.completedFuture(AigcModelResultDto.builder()
+                                .outputText(paragraph)
+                                .build()
+                        );
+                    }
+
+                    return CompletableFuture.supplyAsync(() -> {
+                        try {
+                            semaphore.acquire(); // 获取许可
+                            return modelService.chatModel(paragraph);
+                        } catch (InterruptedException e) {
+                            Thread.currentThread().interrupt();
+                            throw new RuntimeException(e);
+                        } finally {
+                            semaphore.release(); // 释放许可
+                        }
+                    }, threadPoolConfig.aigcModelThreadPool());
+                })
+                .toList();
+
+        List<AigcModelResultDto> modelResults = futures.stream()
+                .map(CompletableFuture::join)
+                .toList();
+
+        log.info("并行处理每个段落：{}", System.currentTimeMillis() - start);
+
+        // 整合结果
+        String outputText = modelResults.stream()
+                .map(AigcModelResultDto::getOutputText)
+                .collect(Collectors.joining("\n\n"));
+
+        int totalInputTokens = modelResults.stream()
+                .mapToInt(AigcModelResultDto::getInputTokens)
+                .sum();
+
+        int totalOutputTokens = modelResults.stream()
+                .mapToInt(AigcModelResultDto::getOutputTokens)
+                .sum();
+
+        // 创建整合后的模型结果
+        AigcModelResultDto integratedResult = new AigcModelResultDto();
+        integratedResult.setInputText(content);
+        integratedResult.setOutputText(outputText);
+        integratedResult.setInputTokens(totalInputTokens);
+        integratedResult.setOutputTokens(totalOutputTokens);
+        integratedResult.setTotalTokens(totalInputTokens + totalOutputTokens);
+        return integratedResult;
+    }
+
+    @Deprecated
     private AigcModelResultDto processTextByModel1(String content, List<String> paragraphs) {
         long start = System.currentTimeMillis();
-        // 并行处理每个段落todo
+        // 并行处理每个段落
         List<AigcModelResultDto> modelResults = paragraphs.parallelStream()
                 .map(modelService::chatModel)
                 .toList();
@@ -102,48 +164,7 @@ public class AigcProcessingService {
         integratedResult.setTotalTokens(totalInputTokens + totalOutputTokens);
         return integratedResult;
     }
-    /**
-     * 使用模型处理文本 - 高并发安全的最佳实践
-     */
-    @NotNull
-    private AigcModelResultDto processTextByModel(String content, List<String> paragraphs) {
-        long start = System.currentTimeMillis();
 
-        // 由于文本量小（≤1000字），通常段落数也不会太多
-        // 使用顺序处理即可满足需求，避免复杂的并发控制
-        List<AigcModelResultDto> results = new ArrayList<>(paragraphs.size());
-
-        for (String paragraph : paragraphs) {
-            // 模型服务应该是无状态的，确保每次调用都是线程安全的
-            AigcModelResultDto result = modelService.chatModel(paragraph);
-            results.add(result);
-        }
-
-        log.info("顺序处理完成，耗时：{}ms", System.currentTimeMillis() - start);
-
-        // 构建最终结果
-        StringBuilder outputBuilder = new StringBuilder();
-        int totalInputTokens = 0;
-        int totalOutputTokens = 0;
-
-        for (int i = 0; i < results.size(); i++) {
-            AigcModelResultDto result = results.get(i);
-            if (i > 0) outputBuilder.append("\n\n");
-            outputBuilder.append(result.getOutputText());
-
-            totalInputTokens += result.getInputTokens();
-            totalOutputTokens += result.getOutputTokens();
-        }
-
-        AigcModelResultDto integratedResult = new AigcModelResultDto();
-        integratedResult.setInputText(content);
-        integratedResult.setOutputText(outputBuilder.toString());
-        integratedResult.setInputTokens(totalInputTokens);
-        integratedResult.setOutputTokens(totalOutputTokens);
-        integratedResult.setTotalTokens(totalInputTokens + totalOutputTokens);
-
-        return integratedResult;
-    }
     /**
      * 将内容分割成段落列表
      *
@@ -156,12 +177,12 @@ public class AigcProcessingService {
         }
         // 使用正则表达式分割段落，支持多种分隔方式
         // \n\n: 连续换行符，\r\n\r\n: Windows换行，多个空白字符等
-        String[] paragraphs = content.split("\\r?\\n|\\r");
-        // 过滤空段落并去除小于50字符的段落
-        return Arrays.stream(paragraphs)
-                .map(String::trim)
-                .filter(p -> MainUtil.accurateCharCount(p) > AIGC_MIN_CHAR_INPUT)
-                .collect(Collectors.toList());
+        return List.of(content.split("\\r?\\n|\\r"));
+        // // 过滤空段落并去除小于50字符的段落
+        // return Arrays.stream(paragraphs)
+        //         .map(String::trim)
+        //         .filter(p -> MainUtil.accurateCharCount(p) > AIGC_MIN_CHAR_INPUT)
+        //         .collect(Collectors.toList());
     }
 
 

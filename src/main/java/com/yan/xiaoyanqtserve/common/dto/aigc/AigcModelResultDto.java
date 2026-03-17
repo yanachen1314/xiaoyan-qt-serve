@@ -1,6 +1,9 @@
 package com.yan.xiaoyanqtserve.common.dto.aigc;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * 模型处理结果封装
@@ -8,6 +11,9 @@ import lombok.Data;
  * @since 2025/8/12 12:47
  */
 @Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class AigcModelResultDto {
     // 输入文本
     private String inputText;
