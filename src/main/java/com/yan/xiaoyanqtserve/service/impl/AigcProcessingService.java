@@ -86,6 +86,9 @@ public class AigcProcessingService {
                     if (paragraph.length() < AIGC_MIN_CHAR_INPUT) {
                         return CompletableFuture.completedFuture(AigcModelResultDto.builder()
                                 .outputText(paragraph)
+                                .inputTokens(0)
+                                .outputTokens(0)
+                                .totalTokens(0)
                                 .build()
                         );
                     }
@@ -178,11 +181,6 @@ public class AigcProcessingService {
         // 使用正则表达式分割段落，支持多种分隔方式
         // \n\n: 连续换行符，\r\n\r\n: Windows换行，多个空白字符等
         return List.of(content.split("\\r?\\n|\\r"));
-        // // 过滤空段落并去除小于50字符的段落
-        // return Arrays.stream(paragraphs)
-        //         .map(String::trim)
-        //         .filter(p -> MainUtil.accurateCharCount(p) > AIGC_MIN_CHAR_INPUT)
-        //         .collect(Collectors.toList());
     }
 
 
