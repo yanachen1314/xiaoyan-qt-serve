@@ -66,7 +66,7 @@ public class ApiKeyAuthFilter extends OncePerRequestFilter {
         String cacheKey = USAGE_VALID_KEY + apiKey;
         if (redisUtil.hasKey(cacheKey)) {
             // 从缓存中获取验证结果
-            log.info("API KEY({})使用了缓存校验结果", apiKey);
+            log.debug("API KEY({})使用了缓存校验结果", apiKey);
             validationResult = (ValidationResult) redisUtil.get(cacheKey);
         } else {
             // 如果缓存中不存在，调用服务进行验证

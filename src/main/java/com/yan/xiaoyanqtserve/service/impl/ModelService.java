@@ -56,7 +56,9 @@ public class ModelService {
     )
     public AigcModelResultDto chatModel(String inputText) {
         try {
+            long start = System.currentTimeMillis();
             GenerationResult result = callWithModelByPolling(inputText);
+            log.info("调用阿里模型服务成功，耗时: {} ms", System.currentTimeMillis() - start);
             List<GenerationOutput.Choice> choiceList = result.getOutput().getChoices();
 
             if (choiceList != null && !choiceList.isEmpty()) {
