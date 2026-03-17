@@ -14,6 +14,8 @@ import java.util.List;
 public class Constants {
     // 前端域名（测试环境、灰度、正式环境等） 白名单
     public static final List<String> ORIGINS_WHITE_LIST = ListUtil.of(
+            "http://119.29.228.36:9999",
+            "https://119.29.228.36:9999",
             "http://119.29.228.36",
             "https://119.29.228.36",
             "http://xygo.cn",
