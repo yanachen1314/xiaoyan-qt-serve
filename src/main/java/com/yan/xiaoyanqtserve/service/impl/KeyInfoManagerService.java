@@ -164,8 +164,10 @@ public class KeyInfoManagerService {
             }
 
             // 3. 首次激活
-            // 3.1 设置激活状态
+            // 3.1 设置激活状态和销售状态
             validKeyInfo.setActivated((byte) 1);
+            validKeyInfo.setSelled((byte) 1);
+
 
             // 3.2 扣减激活次数（仅限有限次数场景）
             // 若 actNum == 0（无限次），remaining_active_num 保持原值（应为 0），无需更新
