@@ -69,8 +69,8 @@ public class KeyInfoServiceImpl extends ServiceImpl<KeyInfoMapper, KeyInfo> impl
         if (pageRequest.getActivated() != null) {
             queryWrapper.eq(KeyInfo::getActivated, pageRequest.getActivated());
         }
-        if (StringUtils.hasText(pageRequest.getProductType())) {
-            queryWrapper.eq(KeyInfo::getProductType, pageRequest.getProductType());
+        if (pageRequest.getProductTypeId() != null) {
+            queryWrapper.eq(KeyInfo::getProductType, pageRequest.getProductTypeId());
         }
 
         if (StringUtils.hasText(pageRequest.getUsageType())) {

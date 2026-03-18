@@ -39,7 +39,7 @@ public class KeyInfoPageRequest extends PageRequest {
     private String usageType;
 
     /**
-     * 产品类型
+     * 产品类型ID
      */
-    private String productType;
+    private Integer productTypeId;
 }
