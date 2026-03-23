@@ -71,8 +71,8 @@ public class ModelService {
                 log.info("调用阿里模型服务出现错误，返回结果详情：{}", result);
                 throw new BizException("没有结果，处理失败，请稍后再试！");
             }
-        } catch (NoModelConfiguredException e) {
-            // 在这里转成业务异常，避免 throws 给调用方
+        } catch (ALIYunModelException e) {
+            // 在这里转成业务异常，触发重试
             throw new BizException(e.getMessage());
         }
     }
@@ -83,7 +83,20 @@ public class ModelService {
     @Recover
     public AigcModelResultDto recover(Exception e, String inputText) {
         log.info("调用阿里模型服务多次失败，进入兜底逻辑。输入文本: {}，异常: {}", inputText, e.getMessage(), e);
-        throw new BizException(e.getMessage());
+        throw new BizException(formatExceptionMessage(e.getMessage()));
+    }
+
+    private String formatExceptionMessage(String message){
+        if(message.contains("400") && message.contains("data may contain inappropriate content")){
+            return "输入或输出文本可能包含敏感内容，请进行内容合规检查，修改输入后重试。";
+        }
+        if(message.contains("400") && message.contains("APIConnectionError")){
+            return "本地网络问题，请检查网络设置。";
+        }
+        if(message.contains("429")){
+            return "请求次数过多，请稍后再试。";
+        }
+        return message;
     }
 
     /**
@@ -130,24 +143,24 @@ public class ModelService {
      *
      * @param text 处理前的文本
      * @return 模型结果
-     * @throws NoModelConfiguredException 模型调用异常
+     * @throws ALIYunModelException 模型调用异常
      */
-    private GenerationResult callWithModelByPolling(String text) throws NoModelConfiguredException {
+    private GenerationResult callWithModelByPolling(String text) throws ALIYunModelException {
         if (text == null || text.trim().isEmpty()) {
-            throw new NoModelConfiguredException("输入文本不能为空");
+            throw new ALIYunModelException("输入文本不能为空");
         }
         // 1. 获取百炼API Key
         String dashscopeApiKey = sysConfigService.getValue(Constants.DASHSCOPE_API_KEY, ConfigType.STRING,
                 String.class);
         if (dashscopeApiKey == null || dashscopeApiKey.trim().isEmpty()) {
-            throw new NoModelConfiguredException("缺少 DashScope API Key");
+            throw new ALIYunModelException("缺少 DashScope API Key");
         }
 
         // 2. 从缓存获取模型列表
         List<String> modelList = getCachedModelList();
         if (modelList == null || modelList.isEmpty()) {
             // 如果没有配置模型列表，抛出异常
-            throw new NoModelConfiguredException("未配置轮询模型列表");
+            throw new ALIYunModelException("未配置轮询模型列表");
         }
 
         // 3. 轮询选择模型
@@ -171,7 +184,7 @@ public class ModelService {
      * 使用指定的 API Key 和模型名称调用模型
      */
     private GenerationResult callWithSingleModel(String text, String apiKey, String modelName)
-            throws NoModelConfiguredException {
+            throws ALIYunModelException {
         Generation gen = new Generation();
         Message systemMsg = Message.builder()
                 .role(Role.SYSTEM.getValue())
@@ -190,16 +203,16 @@ public class ModelService {
         try {
             return gen.call(param);
         } catch (ApiException e) {
-            throw new NoModelConfiguredException(e.getMessage());
+            throw new ALIYunModelException(e.getMessage());
         } catch (NoApiKeyException e) {
-            throw new NoModelConfiguredException("缺少 DashScope API Key");
+            throw new ALIYunModelException("缺少 DashScope API Key");
         } catch (InputRequiredException e) {
-            throw new NoModelConfiguredException("输入文本不能为空");
+            throw new ALIYunModelException("输入文本不能为空");
         }
     }
 
-    private static class NoModelConfiguredException extends Exception {
-        public NoModelConfiguredException(String message) {
+    private static class ALIYunModelException extends Exception {
+        public ALIYunModelException(String message) {
             super(message);
         }
     }
