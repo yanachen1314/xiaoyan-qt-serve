@@ -7,10 +7,8 @@ import com.yan.xiaoyanqtserve.common.utils.ApiResponse;
 import com.yan.xiaoyanqtserve.common.utils.SecurityContextUtil;
 import com.yan.xiaoyanqtserve.common.vo.KeyInfoVo;
 import com.yan.xiaoyanqtserve.entity.KeyInfo;
-import com.yan.xiaoyanqtserve.entity.ProductType;
 import com.yan.xiaoyanqtserve.security.AdminUserDetails;
 import com.yan.xiaoyanqtserve.service.KeyInfoService;
-import com.yan.xiaoyanqtserve.service.ProductTypeService;
 import com.yan.xiaoyanqtserve.service.impl.KeyInfoManagerService;
 
 import jakarta.validation.Valid;
@@ -36,7 +34,6 @@ public class KeyInfoController {
     private final SecurityContextUtil securityContextUtil;
     private final KeyInfoService keyInfoService;
     private final KeyInfoManagerService keyInfoManagerService;
-    private final ProductTypeService productTypeService;
 
     /**
      * 密钥生成

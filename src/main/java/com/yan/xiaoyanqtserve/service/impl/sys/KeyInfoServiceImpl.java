@@ -76,7 +76,7 @@ public class KeyInfoServiceImpl extends ServiceImpl<KeyInfoMapper, KeyInfo> impl
         }
 
         if (StringUtils.hasText(pageRequest.getUsageType())) {
-            queryWrapper.eq(KeyInfo::getUsageType, pageRequest.getUsageType());
+            queryWrapper.like(KeyInfo::getUsageType, pageRequest.getUsageType());
         }
 
         // 按创建时间倒序
