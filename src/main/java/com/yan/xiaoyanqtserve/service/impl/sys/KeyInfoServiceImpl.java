@@ -2,9 +2,7 @@ package com.yan.xiaoyanqtserve.service.impl.sys;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.yan.xiaoyanqtserve.common.Constants;
 import com.yan.xiaoyanqtserve.common.dto.key.KeyInfoPageRequest;
-import com.yan.xiaoyanqtserve.common.utils.RedisLockUtil;
 import com.yan.xiaoyanqtserve.common.vo.KeyInfoVo;
 import com.yan.xiaoyanqtserve.entity.AdminUser;
 import com.yan.xiaoyanqtserve.entity.KeyInfo;
@@ -18,10 +16,7 @@ import jakarta.annotation.Nullable;
 import jakarta.annotation.Resource;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
-
-import java.util.List;
 
 /**
  * <p>
@@ -36,8 +31,6 @@ public class KeyInfoServiceImpl extends ServiceImpl<KeyInfoMapper, KeyInfo> impl
 
     @Resource
     private KeyInfoMapper keyInfoMapper;
-    @Resource
-    private RedisLockUtil redisLockUtil;
 
     @Resource
     private ProductTypeService productTypeService;
