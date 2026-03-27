@@ -5,6 +5,7 @@ import com.yan.xiaoyanqtserve.common.dto.key.GenerateKeyDto;
 import com.yan.xiaoyanqtserve.common.dto.key.KeyInfoPageRequest;
 import com.yan.xiaoyanqtserve.common.utils.ApiResponse;
 import com.yan.xiaoyanqtserve.common.utils.SecurityContextUtil;
+import com.yan.xiaoyanqtserve.common.vo.KeyInfoVo;
 import com.yan.xiaoyanqtserve.entity.KeyInfo;
 import com.yan.xiaoyanqtserve.entity.ProductType;
 import com.yan.xiaoyanqtserve.security.AdminUserDetails;
@@ -88,13 +89,30 @@ public class KeyInfoController {
      */
     @GetMapping("/random/free")
     public ApiResponse<KeyInfo> getRandomFreeKey() {
-        log.info("获取随机免费卡密");
         if (securityContextUtil.isAdmin()) {
             KeyInfo keyInfo = keyInfoService.getRandomFreeKey();
             if (keyInfo != null) {
                 return ApiResponse.success(keyInfo);
             }
             return ApiResponse.fail("暂无可用免费卡密");
+        }
+        return ApiResponse.fail("无权限");
+    }
+
+    /**
+     * 根据id获取密钥信息
+     * @param keyId 密钥信息id
+     * @return 密钥信息
+     */
+    @GetMapping("/detail/{keyId}")
+    public ApiResponse<KeyInfoVo> getDetailKeyInfo(@PathVariable Long keyId) {
+        if (securityContextUtil.isAdmin()) {
+            KeyInfoVo keyInfoVo = keyInfoService.getDetailKeyInfo(keyId);
+            if(keyInfoVo != null) {
+                return ApiResponse.success(keyInfoVo);
+            }else{
+                return ApiResponse.fail("密钥不存在");
+            }
         }
         return ApiResponse.fail("无权限");
     }
