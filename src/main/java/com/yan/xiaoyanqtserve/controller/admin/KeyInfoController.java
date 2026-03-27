@@ -68,6 +68,21 @@ public class KeyInfoController {
     }
 
     /**
+     * 更新密钥信息
+     * @param keyInfo 密钥信息
+     * @return 更新结果
+     */
+    @PostMapping("/update")
+    public ApiResponse<?> update(@Valid @RequestBody KeyInfo keyInfo) {
+        log.info("更新密钥信息：{}", keyInfo);
+        if (securityContextUtil.isAdmin()) {
+            keyInfoService.updateKeyInfo(keyInfo);
+            return ApiResponse.success();
+        }
+        return ApiResponse.fail("无权限");
+    }
+
+    /**
      * 获取随机免费卡密
      * @return 卡密信息
      */
