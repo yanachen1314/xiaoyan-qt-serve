@@ -40,19 +40,6 @@ public interface KeyInfoService extends IService<KeyInfo> {
      */
     void updateKeyInfo(KeyInfo keyInfo);
 
-    /**
-     * 获取随机免费卡密
-     * @return 卡密信息，如果没有则返回 null
-     */
-    @Nullable
-    KeyInfo getRandomFreeKey();
-
-    /**
-     * 获取随机售卖卡密（用于闲鱼售卖）
-     * @return 卡密信息，如果没有则返回 null
-     */
-    @Nullable
-    KeyInfo getRandomSaleKey(ProductType productType);
 
     /**
      * 获取密钥详情
