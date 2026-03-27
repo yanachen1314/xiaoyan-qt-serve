@@ -2,6 +2,7 @@ package com.yan.xiaoyanqtserve.service;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.yan.xiaoyanqtserve.common.dto.key.KeyInfoPageRequest;
+import com.yan.xiaoyanqtserve.common.vo.KeyInfoVo;
 import com.yan.xiaoyanqtserve.entity.KeyInfo;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.yan.xiaoyanqtserve.entity.ProductType;
@@ -39,17 +40,11 @@ public interface KeyInfoService extends IService<KeyInfo> {
      */
     void updateKeyInfo(KeyInfo keyInfo);
 
-    /**
-     * 获取随机免费卡密
-     * @return 卡密信息，如果没有则返回 null
-     */
-    @Nullable
-    KeyInfo getRandomFreeKey();
 
     /**
-     * 获取随机售卖卡密（用于闲鱼售卖）
-     * @return 卡密信息，如果没有则返回 null
+     * 获取密钥详情
+     * @param keyId 密钥ID
+     * @return 密钥详情
      */
-    @Nullable
-    KeyInfo getRandomSaleKey(ProductType productType);
+    KeyInfoVo getDetailKeyInfo(Long keyId);
 }

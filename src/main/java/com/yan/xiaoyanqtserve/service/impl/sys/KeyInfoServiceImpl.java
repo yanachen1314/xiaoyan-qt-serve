@@ -2,22 +2,21 @@ package com.yan.xiaoyanqtserve.service.impl.sys;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.yan.xiaoyanqtserve.common.Constants;
 import com.yan.xiaoyanqtserve.common.dto.key.KeyInfoPageRequest;
-import com.yan.xiaoyanqtserve.common.utils.RedisLockUtil;
+import com.yan.xiaoyanqtserve.common.vo.KeyInfoVo;
+import com.yan.xiaoyanqtserve.entity.AdminUser;
 import com.yan.xiaoyanqtserve.entity.KeyInfo;
 import com.yan.xiaoyanqtserve.entity.ProductType;
+import com.yan.xiaoyanqtserve.mapper.AdminUserMapper;
 import com.yan.xiaoyanqtserve.mapper.KeyInfoMapper;
 import com.yan.xiaoyanqtserve.service.KeyInfoService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.yan.xiaoyanqtserve.service.ProductTypeService;
 import jakarta.annotation.Nullable;
 import jakarta.annotation.Resource;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
-
-import java.util.List;
 
 /**
  * <p>
@@ -32,8 +31,11 @@ public class KeyInfoServiceImpl extends ServiceImpl<KeyInfoMapper, KeyInfo> impl
 
     @Resource
     private KeyInfoMapper keyInfoMapper;
+
     @Resource
-    private RedisLockUtil redisLockUtil;
+    private ProductTypeService productTypeService;
+    @Resource
+    private AdminUserMapper adminUserMapper;
 
     /**
      * 根据密钥值查询密钥信息
@@ -69,12 +71,15 @@ public class KeyInfoServiceImpl extends ServiceImpl<KeyInfoMapper, KeyInfo> impl
         if (pageRequest.getActivated() != null) {
             queryWrapper.eq(KeyInfo::getActivated, pageRequest.getActivated());
         }
+        if (pageRequest.getSelled() != null) {
+            queryWrapper.eq(KeyInfo::getSelled, pageRequest.getSelled());
+        }
         if (pageRequest.getProductTypeId() != null) {
             queryWrapper.eq(KeyInfo::getProductType, pageRequest.getProductTypeId());
         }
 
         if (StringUtils.hasText(pageRequest.getUsageType())) {
-            queryWrapper.eq(KeyInfo::getUsageType, pageRequest.getUsageType());
+            queryWrapper.like(KeyInfo::getUsageType, pageRequest.getUsageType());
         }
 
         // 按创建时间倒序
@@ -96,83 +101,70 @@ public class KeyInfoServiceImpl extends ServiceImpl<KeyInfoMapper, KeyInfo> impl
     }
 
     /**
-     * 获取随机免费卡密
-     * @return 卡密信息，如果没有则返回 null
+     * 根据密钥ID获取密钥详情
+     * @param keyId 密钥ID
+     * @return 密钥详情
      */
-    @Nullable
     @Override
-    @Transactional(rollbackFor = Exception.class)
-    public KeyInfo getRandomFreeKey() {
-        String lockKey = Constants.REDIS_LOCK_PREFIX + "random_free_key";
-        if (!redisLockUtil.lock(lockKey)) {
-            throw new RuntimeException("系统繁忙，请稍后再试！");
-        }
-        try {
-            // 构建查询条件，使用 apply 添加数据库特定的随机排序函数，
-            // 并使用 last("LIMIT 1") 限制只返回一条记录，提高查询效率
-            LambdaQueryWrapper<KeyInfo> queryWrapper = new LambdaQueryWrapper<>();
-            queryWrapper.eq(KeyInfo::getActivated, 0)  // 未激活
-                    .eq(KeyInfo::getStatus, 1)          // 已启用
-                    .eq(KeyInfo::getSelled, 0)          // 未售卖
-                    .eq(KeyInfo::getProductType, 2)     // 免费卡密（ID为2，10分钟体验卡）
-                    .eq(KeyInfo::getUsageType, "apikey.usageType.free")
-                    .last("ORDER BY RAND() LIMIT 1");  // 使用 RAND() 进行随机排序，只取排序后的一个结果
+    public KeyInfoVo getDetailKeyInfo(Long keyId) {
+        KeyInfo keyInfo = keyInfoMapper.selectById(keyId);
+        if (keyInfo != null) {
+            KeyInfoVo keyInfoVo = new KeyInfoVo();
+            BeanUtils.copyProperties(keyInfo, keyInfoVo);
 
-            List<KeyInfo> list = list(queryWrapper);
+            // 获取创建密钥的管理员用户名
+            AdminUser adminUser = adminUserMapper.selectById(keyInfo.getCreatedBy());
+            if (adminUser != null) {
+                keyInfoVo.setCreatedByName(adminUser.getUsername());
+            }
 
-            // 如果查询结果为空，则返回 null；否则返回第一个（也是唯一一个）元素
-            if (list.isEmpty()) return null;
-            KeyInfo keyInfo = list.get(0);
-            // 创建一个副本，避免修改原始对象
-            KeyInfo copyed_info = new KeyInfo();
-            BeanUtils.copyProperties(keyInfo, copyed_info);
-            copyed_info.setSelled((byte) 1);
-            // 更新数据库中的记录
-            updateKeyInfo(copyed_info);
-            // 返回原始对象，避免修改副本
-            return keyInfo;
-        } finally {
-            redisLockUtil.unlock(lockKey);
+            // 获取密钥所属产品类型名称
+            ProductType productType = productTypeService.getDetailById(keyInfo.getProductType().longValue());
+            if (productType != null) {
+                keyInfoVo.setProductName(productType.getProductName());
+                keyInfoVo.setProductEquityTime(convertEquityTime(productType.getEquityTime()));
+            }
+
+            return keyInfoVo;
         }
+        return null;
     }
 
     /**
-     * 获取随机售卖卡密（用于闲鱼售卖）
-     * @return 卡密信息，如果没有则返回 null
+     * 将权益时间转换为字符串
+     * @param equityTime 权益时间（单位：分钟），null值会被视为0
+     * @return 权益时间字符串，如"30分钟"、"2小时"、"3天"
      */
-    @Nullable
-    @Override
-    public KeyInfo getRandomSaleKey(ProductType productType) {
-        String lockKey = Constants.REDIS_LOCK_PREFIX + "random_sale_key";
-        if (!redisLockUtil.lock(lockKey)) {
-            throw new RuntimeException("系统繁忙，请稍后再试！");
+    private String convertEquityTime(Integer equityTime) {
+        // 处理null值情况
+        if (equityTime == null || equityTime <= 0) {
+            return "0分钟";
         }
-        try {
-            // 构建查询条件，使用 apply 添加数据库特定的随机排序函数，
-            // 并使用 last("LIMIT 1") 限制只返回一条记录，提高查询效率
-            LambdaQueryWrapper<KeyInfo> queryWrapper = new LambdaQueryWrapper<>();
-            queryWrapper.eq(KeyInfo::getActivated, 0)  // 未激活
-                    .eq(KeyInfo::getStatus, 1)          // 已启用
-                    .eq(KeyInfo::getSelled, 0)          // 未售卖
-                    .eq(KeyInfo::getProductType, productType.getId())
-                    .eq(KeyInfo::getUsageType, "apikey.usageType.xianyu")
-                    .last("ORDER BY RAND() LIMIT 1");  // 使用 RAND() 进行随机排序，只取排序后的一个结果
 
-            List<KeyInfo> list = list(queryWrapper);
-
-            // 如果查询结果为空，则返回 null；否则返回第一个（也是唯一一个）元素
-            if (list.isEmpty()) return null;
-            KeyInfo keyInfo = list.get(0);
-            // 创建一个副本，避免修改原始对象
-            KeyInfo copyed_info = new KeyInfo();
-            BeanUtils.copyProperties(keyInfo, copyed_info);
-            copyed_info.setSelled((byte) 1);
-            // 更新数据库中的记录
-            updateKeyInfo(copyed_info);
-            // 返回原始对象，避免修改副本
-            return keyInfo;
-        } finally {
-            redisLockUtil.unlock(lockKey);
+        if (equityTime < 60) {
+            return equityTime + "分钟";
+        } else if (equityTime < 1440) { // 1440分钟 = 24小时
+            int hours = equityTime / 60;
+            int remainingMinutes = equityTime % 60;
+            if (remainingMinutes > 0) {
+                return hours + "小时" + remainingMinutes + "分钟";
+            } else {
+                return hours + "小时";
+            }
+        } else { // 1440分钟 = 1天
+            int days = equityTime / 1440;
+            int remainingMinutes = equityTime % 1440;
+            if (remainingMinutes > 0) {
+                int hours = remainingMinutes / 60;
+                int finalMinutes = remainingMinutes % 60;
+                if (finalMinutes > 0) {
+                    return days + "天" + hours + "小时" + finalMinutes + "分钟";
+                } else {
+                    return days + "天" + hours + "小时";
+                }
+            } else {
+                return days + "天";
+            }
         }
     }
 }

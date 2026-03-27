@@ -22,6 +22,13 @@ public interface AdminUserService extends IService<AdminUser> {
     AdminUser findByUsername(String username);
 
     /**
+     * 根据 ID 查找用户
+     * @param id 用户 ID
+     * @return 用户实体
+     */
+    AdminUser findById(Long id);
+
+    /**
      * 更新管理员信息
      * @param adminUser 管理员实体
      * @return 操作结果

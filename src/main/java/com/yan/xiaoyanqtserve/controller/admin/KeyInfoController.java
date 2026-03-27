@@ -5,11 +5,10 @@ import com.yan.xiaoyanqtserve.common.dto.key.GenerateKeyDto;
 import com.yan.xiaoyanqtserve.common.dto.key.KeyInfoPageRequest;
 import com.yan.xiaoyanqtserve.common.utils.ApiResponse;
 import com.yan.xiaoyanqtserve.common.utils.SecurityContextUtil;
+import com.yan.xiaoyanqtserve.common.vo.KeyInfoVo;
 import com.yan.xiaoyanqtserve.entity.KeyInfo;
-import com.yan.xiaoyanqtserve.entity.ProductType;
 import com.yan.xiaoyanqtserve.security.AdminUserDetails;
 import com.yan.xiaoyanqtserve.service.KeyInfoService;
-import com.yan.xiaoyanqtserve.service.ProductTypeService;
 import com.yan.xiaoyanqtserve.service.impl.KeyInfoManagerService;
 
 import jakarta.validation.Valid;
@@ -35,7 +34,6 @@ public class KeyInfoController {
     private final SecurityContextUtil securityContextUtil;
     private final KeyInfoService keyInfoService;
     private final KeyInfoManagerService keyInfoManagerService;
-    private final ProductTypeService productTypeService;
 
     /**
      * 密钥生成
@@ -83,44 +81,21 @@ public class KeyInfoController {
     }
 
     /**
-     * 获取随机免费卡密
-     * @return 卡密信息
+     * 根据id获取密钥信息
+     * @param keyId 密钥信息id
+     * @return 密钥信息
      */
-    @GetMapping("/random/free")
-    public ApiResponse<KeyInfo> getRandomFreeKey() {
-        log.info("获取随机免费卡密");
+    @GetMapping("/detail/{keyId}")
+    public ApiResponse<KeyInfoVo> getDetailKeyInfo(@PathVariable Long keyId) {
         if (securityContextUtil.isAdmin()) {
-            KeyInfo keyInfo = keyInfoService.getRandomFreeKey();
-            if (keyInfo != null) {
-                return ApiResponse.success(keyInfo);
+            KeyInfoVo keyInfoVo = keyInfoService.getDetailKeyInfo(keyId);
+            if(keyInfoVo != null) {
+                return ApiResponse.success(keyInfoVo);
+            }else{
+                return ApiResponse.fail("密钥不存在");
             }
-            return ApiResponse.fail("暂无可用免费卡密");
         }
         return ApiResponse.fail("无权限");
     }
 
-    /**
-     * 获取随机售卖卡密（用于闲鱼售卖）
-     * @return 卡密信息
-     */
-    @GetMapping("/random/sale")
-    public ApiResponse<KeyInfo> getRandomSaleKey(@RequestParam Long productTypeId) {
-        log.info("获取随机售卖卡密");
-        if (securityContextUtil.isAdmin()) {
-            ProductType detailById = productTypeService.getDetailById(productTypeId);
-            if (detailById == null) {
-                return ApiResponse.fail("产品类型不存在");
-            }
-            if (detailById.getStatus() != 1) {
-                return ApiResponse.fail("产品类型已下架");
-            }
-
-            KeyInfo keyInfo = keyInfoService.getRandomSaleKey(detailById);
-            if (keyInfo != null) {
-                return ApiResponse.success(keyInfo);
-            }
-            return ApiResponse.fail("暂无可用售卖卡密");
-        }
-        return ApiResponse.fail("无权限");
-    }
 }

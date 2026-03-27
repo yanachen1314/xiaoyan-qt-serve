@@ -6,7 +6,6 @@ import com.yan.xiaoyanqtserve.common.enums.BizStatus;
 import com.yan.xiaoyanqtserve.common.enums.Role;
 import com.yan.xiaoyanqtserve.filter.ApiKeyAuthFilter;
 import com.yan.xiaoyanqtserve.filter.JwtAuthFilter;
-import com.yan.xiaoyanqtserve.security.AdminUserDetailsService;
 import com.yan.xiaoyanqtserve.common.utils.SecurityResponseUtil;
 import jakarta.annotation.Resource;
 import lombok.RequiredArgsConstructor;
@@ -46,8 +45,7 @@ public class SecurityConfig {
     private ApiKeyAuthFilter apiKeyAuthFilter;
     @Resource
     private JwtAuthFilter jwtAuthFilter;
-    @Resource
-    private AdminUserDetailsService adminUserDetailsService;
+
 
     @Bean
     public PasswordEncoder passwordEncoder() {

@@ -31,6 +31,11 @@ public class AdminUserServiceImpl extends ServiceImpl<AdminUserMapper, AdminUser
     }
 
     @Override
+    public AdminUser findById(Long id) {
+        return getById(id);
+    }
+
+    @Override
     public boolean updateAdminUser(AdminUser adminUser) {
         return baseMapper.updateById(adminUser) > 0;
     }
