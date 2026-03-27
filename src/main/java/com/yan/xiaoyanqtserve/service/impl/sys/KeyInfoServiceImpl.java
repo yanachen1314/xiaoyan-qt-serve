@@ -7,8 +7,8 @@ import com.yan.xiaoyanqtserve.common.vo.KeyInfoVo;
 import com.yan.xiaoyanqtserve.entity.AdminUser;
 import com.yan.xiaoyanqtserve.entity.KeyInfo;
 import com.yan.xiaoyanqtserve.entity.ProductType;
+import com.yan.xiaoyanqtserve.mapper.AdminUserMapper;
 import com.yan.xiaoyanqtserve.mapper.KeyInfoMapper;
-import com.yan.xiaoyanqtserve.service.AdminUserService;
 import com.yan.xiaoyanqtserve.service.KeyInfoService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.yan.xiaoyanqtserve.service.ProductTypeService;
@@ -35,7 +35,7 @@ public class KeyInfoServiceImpl extends ServiceImpl<KeyInfoMapper, KeyInfo> impl
     @Resource
     private ProductTypeService productTypeService;
     @Resource
-    private AdminUserService adminUserService;
+    private AdminUserMapper adminUserMapper;
 
     /**
      * 根据密钥值查询密钥信息
@@ -110,7 +110,7 @@ public class KeyInfoServiceImpl extends ServiceImpl<KeyInfoMapper, KeyInfo> impl
             BeanUtils.copyProperties(keyInfo, keyInfoVo);
 
             // 获取创建密钥的管理员用户名
-            AdminUser adminUser = adminUserService.findById(keyInfo.getCreatedBy());
+            AdminUser adminUser = adminUserMapper.selectById(keyInfo.getCreatedBy());
             if (adminUser != null) {
                 keyInfoVo.setCreatedByName(adminUser.getUsername());
             }
