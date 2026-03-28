@@ -151,23 +151,32 @@ public class SysConfigServiceImpl extends ServiceImpl<SysConfigMapper, SysConfig
 
     // 当配置更新或新增时，判断如何处理 Redis 缓存，确保数据一致性
     private void onChangeDealRedisCache(SysConfig config) {
+        String configKey = config.getConfigKey();
         if (config.getStatus() != null && config.getStatus() == 1) {
             // 如果状态为1，则同步更新 Redis
-            if (isModelList(config.getConfigKey())) {
+            if (isModelList(configKey)) {
                 // 模型列表的配置项
-                redisUtil.hSet(Constants.CONFIG_MODEL_LIST_KEY, config.getConfigKey(), config.getConfigValue());
+                redisUtil.hSet(Constants.CONFIG_MODEL_LIST_KEY, configKey, config.getConfigValue());
             } else {
                 // 其他配置项
-                redisUtil.hSet(Constants.CONFIG_KEY, config.getConfigKey(), config.getConfigValue());
+                redisUtil.hSet(Constants.CONFIG_KEY, configKey, config.getConfigValue());
+                // 如果是系统维护配置项，则同步更新系统维护状态
+                if(configKey.equals(Constants.SYSTEM_MAINTENANCE_KEY)){
+                    redisUtil.hSet(Constants.CONFIG_KEY, Constants.SYSTEM_MAINTENANCE_STATUS, config.getStatus());
+                }
             }
         } else {
             // 如果状态为0，则删除缓存
-            if (isModelList(config.getConfigKey())) {
+            if (isModelList(configKey)) {
                 // 模型列表的配置项
-                redisUtil.hDel(Constants.CONFIG_MODEL_LIST_KEY, config.getConfigKey());
+                redisUtil.hDel(Constants.CONFIG_MODEL_LIST_KEY, configKey);
             } else {
                 // 其他配置项
-                redisUtil.hDel(Constants.CONFIG_KEY, config.getConfigKey());
+                redisUtil.hDel(Constants.CONFIG_KEY, configKey);
+                // 如果是系统维护配置项，则同步删除系统维护状态
+                if(configKey.equals(Constants.SYSTEM_MAINTENANCE_KEY)){
+                    redisUtil.hDel(Constants.CONFIG_KEY, Constants.SYSTEM_MAINTENANCE_STATUS);
+                }
             }
         }
     }

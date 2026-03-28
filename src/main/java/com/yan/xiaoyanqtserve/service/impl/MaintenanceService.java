@@ -45,14 +45,14 @@ public class MaintenanceService {
      * @return 维护时间
      */
     public MaintenancePeriod getMaintenancePeriod() {
-        String valueKey = "system.maintenance";
+        String valueKey = Constants.SYSTEM_MAINTENANCE_KEY;
         String value = (String) redisUtil.hGet(Constants.CONFIG_KEY, valueKey);
-        String statusKey = "system.maintenance.status";
+        String statusKey = Constants.SYSTEM_MAINTENANCE_STATUS;
         Boolean status = (Boolean) redisUtil.hGet(Constants.CONFIG_KEY, statusKey);
         // 如果Redis中不存在维护时间或状态，则从数据库中获取维护时间
         if(!StringUtils.hasText(value) || status == null) {
             List<SysConfig> configByKey = sysConfigService.getConfigByKey(
-                    "system.maintenance", true, false, null);
+                    Constants.SYSTEM_MAINTENANCE_KEY, true, false, null);
             if (configByKey != null && !configByKey.isEmpty()) {
                 value = configByKey.get(0).getConfigValue();
                 status = configByKey.get(0).getStatus() == 1;

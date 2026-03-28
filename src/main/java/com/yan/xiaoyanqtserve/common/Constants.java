@@ -47,6 +47,11 @@ public class Constants {
     // 百炼API KEY，config_name
     public static final String DASHSCOPE_API_KEY = "dashscope.apiKey";
 
+    // 系统维护配置项目KEY
+    public static final String SYSTEM_MAINTENANCE_KEY = "system.maintenance";
+    // 系统维护配置项目的开启状态
+    public static final String SYSTEM_MAINTENANCE_STATUS = "system.maintenance.status";
+
 
     // HTTPRequest的请求属性  请求日志相关
     // 日志请求ID
