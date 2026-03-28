@@ -45,10 +45,10 @@ public class MaintenanceService {
      * @return 维护时间
      */
     public MaintenancePeriod getMaintenancePeriod() {
-        String valueKey = Constants.CONFIG_KEY + "system.maintenance";
-        String value = (String) redisUtil.get(valueKey);
-        String statusKey = Constants.CONFIG_KEY + "system.maintenance.status";
-        Boolean status = (Boolean) redisUtil.get(statusKey);
+        String valueKey = "system.maintenance";
+        String value = (String) redisUtil.hGet(Constants.CONFIG_KEY, valueKey);
+        String statusKey = "system.maintenance.status";
+        Boolean status = (Boolean) redisUtil.hGet(Constants.CONFIG_KEY, statusKey);
         // 如果Redis中不存在维护时间或状态，则从数据库中获取维护时间
         if(!StringUtils.hasText(value) || status == null) {
             List<SysConfig> configByKey = sysConfigService.getConfigByKey(
@@ -56,8 +56,8 @@ public class MaintenanceService {
             if (configByKey != null && !configByKey.isEmpty()) {
                 value = configByKey.get(0).getConfigValue();
                 status = configByKey.get(0).getStatus() == 1;
-                redisUtil.set(valueKey, value);
-                redisUtil.set(statusKey, status);
+                redisUtil.hSet(Constants.CONFIG_KEY,valueKey, value);
+                redisUtil.hSet(Constants.CONFIG_KEY, statusKey, status);
             }else{
                 log.warn("未查询到维护时间，请检查配置");
                 return null;
