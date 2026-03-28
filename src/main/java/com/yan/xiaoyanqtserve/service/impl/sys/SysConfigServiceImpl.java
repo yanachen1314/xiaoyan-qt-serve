@@ -55,50 +55,6 @@ public class SysConfigServiceImpl extends ServiceImpl<SysConfigMapper, SysConfig
         reloadCache();
     }
 
-    private boolean isModelList(String key) {
-        return key.startsWith(Constants.CONFIG_MODEL_LIST_PREFIX);
-    }
-
-    @Override
-    public void reloadCache() {
-        log.info("重新加载系统配置缓存...");
-        // 清空旧缓存
-        redisUtil.delete(Constants.CONFIG_KEY);
-        redisUtil.delete(Constants.CONFIG_MODEL_LIST_KEY);
-        // 从 DB 重新加载所有配置
-        LambdaQueryWrapper<SysConfig> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(SysConfig::getStatus, 1);
-        List<SysConfig> all = sysConfigMapper.selectList(wrapper);
-        for (SysConfig cfg : all) {
-            onChangeDealRedisCache(cfg);
-        }
-    }
-
-
-    /**
-     * 获取配置项的原始值
-     *
-     * @param key 配置键（精确匹配）
-     * @return 配置值（默认类型为String）
-     */
-    @Override
-    public String getValue(String key) {
-        // 获取缓存值, 找不到则从数据库中获取
-        Object val = redisUtil.hGet(Constants.CONFIG_KEY, key);
-        Object model_val = redisUtil.hGet(Constants.CONFIG_MODEL_LIST_KEY, key);
-        if (Objects.nonNull(val) || Objects.nonNull(model_val)) {
-            return val.toString();
-        }
-
-        List<SysConfig> sysConfigs = getConfigByKey(key, false);
-        SysConfig config = sysConfigs.size() == 1 ? sysConfigs.get(0) : null;
-        // 找不到则抛出异常
-        if (Objects.isNull(config) || !StringUtils.hasText(config.getConfigValue())) {
-            throw new BizException("配置不存在: " + key);
-        }
-        return config.getConfigValue();
-    }
-
     /**
      * 根据 key 获取指定类型的配置值
      *
@@ -140,49 +96,55 @@ public class SysConfigServiceImpl extends ServiceImpl<SysConfigMapper, SysConfig
         }
     }
 
-
     /**
-     * 分页查询配置
+     * 获取配置项的原始值
      *
-     * @param configPageRequest 分页查询参数
-     * @return IPage<SysConfig> 分页结果
+     * @param key 配置键（精确匹配）
+     * @return 配置值（默认类型为String）
      */
     @Override
-    public IPage<SysConfig> listByPage(ConfigPageRequest configPageRequest) {
-        // 构建分页对象
-        Page<SysConfig> page = new Page<>(configPageRequest.getCurrentPage(), configPageRequest.getPageSize());
+    public String getValue(String key) {
+        // 获取缓存值, 找不到则从数据库中获取
+        Object val = redisUtil.hGet(Constants.CONFIG_KEY, key);
+        Object model_val = redisUtil.hGet(Constants.CONFIG_MODEL_LIST_KEY, key);
+        if (Objects.nonNull(val) || Objects.nonNull(model_val)) {
+            return val.toString();
+        }
 
-        // 构建查询条件
-        LambdaQueryWrapper<SysConfig> wrapper = new LambdaQueryWrapper<>();
-
-        // 配置项 key 模糊匹配
-        wrapper.like(StringUtils.hasText(configPageRequest.getConfigKey()),
-                        SysConfig::getConfigKey, configPageRequest.getConfigKey())
-                // 配置项分组匹配
-                .eq(StringUtils.hasText(configPageRequest.getConfigGroup()),
-                        SysConfig::getConfigGroup, configPageRequest.getConfigGroup())
-                // 配置项类型匹配
-                .eq(StringUtils.hasText(configPageRequest.getConfigType()),
-                        SysConfig::getConfigType, configPageRequest.getConfigType())
-                // 排序：默认按创建时间升序（1,2,3）
-                .orderByAsc(SysConfig::getCreatedAt);
-
-        // 执行分页查询
-        return sysConfigMapper.selectPage(page, wrapper);
+        List<SysConfig> sysConfigs = getConfigByKey(key, false);
+        SysConfig config = sysConfigs.size() == 1 ? sysConfigs.get(0) : null;
+        // 找不到则抛出异常
+        if (Objects.isNull(config) || !StringUtils.hasText(config.getConfigValue())) {
+            throw new BizException("配置不存在: " + key);
+        }
+        return config.getConfigValue();
     }
 
     /**
      * 根据 key 获取配置项列表
-     *
+     * <p>直接从数据库查询</p>
      * @param key    配置项 key
-     * @param isLike 是否模糊匹配
+     * @param enableLike 是否开启模糊匹配，false 为精确匹配
      * @return 配置项列表
      */
-    public List<SysConfig> getConfigByKey(String key, boolean isLike) {
+    public List<SysConfig> getConfigByKey(String key, boolean enableLike) {
+        // 默认开启状态匹配，status == 1
+        return getConfigByKey(key, enableLike, true, 1);
+    }
+
+    /**
+     * 根据 key 获取配置项列表
+     * <p>直接从数据库查询</p>
+     * @param key    配置项 key
+     * @param enableLike 是否开启模糊匹配，false 为精确匹配
+     * @param enableStatus 是否开启状态匹配，false 不添加status查询参数
+     * @return 配置项列表
+     */
+    public List<SysConfig> getConfigByKey(String key, boolean enableLike, boolean enableStatus, Integer status) {
         LambdaQueryWrapper<SysConfig> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(SysConfig::getStatus, 1);
+        wrapper.eq(enableStatus, SysConfig::getStatus, status);
         // 配置项 key, 是否进行模糊匹配
-        if (isLike) {
+        if (enableLike) {
             wrapper.like(SysConfig::getConfigKey, key);
         } else {
             wrapper.eq(SysConfig::getConfigKey, key);
@@ -190,26 +152,14 @@ public class SysConfigServiceImpl extends ServiceImpl<SysConfigMapper, SysConfig
         return sysConfigMapper.selectList(wrapper);
     }
 
-    @Override
-    public void saveConfig(SysConfigDto config) {
-        SysConfig sysConfig = new SysConfig();
-        BeanUtils.copyProperties(config, sysConfig);
-        sysConfigMapper.insert(sysConfig);
-
-        onChangeDealRedisCache(sysConfig);
+    // 判断是否为模型列表配置项，即以 "dashscope.model" 开头的配置项
+    private boolean isModelList(String key) {
+        return key.startsWith(Constants.CONFIG_MODEL_LIST_PREFIX);
     }
 
-    @Override
-    public void update(SysConfig config) {
-        if (config.getConfigId() == null) {
-            throw new BizException("参数错误");
-        }
-        sysConfigMapper.updateById(config);
-        onChangeDealRedisCache(config);
-    }
     // 当配置更新或新增时，判断如何处理 Redis 缓存，确保数据一致性
-    private void onChangeDealRedisCache(SysConfig config){
-        if(config.getStatus() != null && config.getStatus() == 1){
+    private void onChangeDealRedisCache(SysConfig config) {
+        if (config.getStatus() != null && config.getStatus() == 1) {
             // 如果状态为1，则同步更新 Redis
             if (isModelList(config.getConfigKey())) {
                 // 模型列表的配置项
@@ -218,7 +168,7 @@ public class SysConfigServiceImpl extends ServiceImpl<SysConfigMapper, SysConfig
                 // 其他配置项
                 redisUtil.hSet(Constants.CONFIG_KEY, config.getConfigKey(), config.getConfigValue());
             }
-        }else{
+        } else {
             // 如果状态为0，则删除缓存
             if (isModelList(config.getConfigKey())) {
                 // 模型列表的配置项
@@ -226,23 +176,6 @@ public class SysConfigServiceImpl extends ServiceImpl<SysConfigMapper, SysConfig
             } else {
                 // 其他配置项
                 redisUtil.hDel(Constants.CONFIG_KEY, config.getConfigKey());
-            }
-        }
-    }
-
-    @Override
-    public void delete(Long configId) {
-        if (configId == null) {
-            throw new BizException("参数错误");
-        }
-        SysConfig cfg = sysConfigMapper.selectById(configId);
-        if (cfg != null) {
-            sysConfigMapper.deleteById(configId);
-            // 同步删除 Redis
-            if (isModelList(cfg.getConfigKey())) {
-                redisUtil.hDel(Constants.CONFIG_MODEL_LIST_KEY, cfg.getConfigKey());
-            } else {
-                redisUtil.hDel(Constants.CONFIG_KEY, cfg.getConfigKey());
             }
         }
     }
@@ -282,9 +215,90 @@ public class SysConfigServiceImpl extends ServiceImpl<SysConfigMapper, SysConfig
 
     }
 
+    @Override
+    public void reloadCache() {
+        log.info("重新加载系统配置缓存...");
+        // 清空旧缓存
+        redisUtil.delete(Constants.CONFIG_KEY);
+        redisUtil.delete(Constants.CONFIG_MODEL_LIST_KEY);
+        // 从 DB 重新加载所有配置
+        LambdaQueryWrapper<SysConfig> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(SysConfig::getStatus, 1);
+        List<SysConfig> all = sysConfigMapper.selectList(wrapper);
+        for (SysConfig cfg : all) {
+            onChangeDealRedisCache(cfg);
+        }
+    }
+
+    @Override
+    public void saveConfig(SysConfigDto config) {
+        SysConfig sysConfig = new SysConfig();
+        BeanUtils.copyProperties(config, sysConfig);
+        sysConfigMapper.insert(sysConfig);
+
+        onChangeDealRedisCache(sysConfig);
+    }
+
+    @Override
+    public void update(SysConfig config) {
+        if (config.getConfigId() == null) {
+            throw new BizException("参数错误");
+        }
+        sysConfigMapper.updateById(config);
+        onChangeDealRedisCache(config);
+    }
+
+    @Override
+    public void delete(Long configId) {
+        if (configId == null) {
+            throw new BizException("参数错误");
+        }
+        SysConfig cfg = sysConfigMapper.selectById(configId);
+        if (cfg != null) {
+            sysConfigMapper.deleteById(configId);
+            // 同步删除 Redis
+            if (isModelList(cfg.getConfigKey())) {
+                redisUtil.hDel(Constants.CONFIG_MODEL_LIST_KEY, cfg.getConfigKey());
+            } else {
+                redisUtil.hDel(Constants.CONFIG_KEY, cfg.getConfigKey());
+            }
+        }
+    }
+
+
+    /**
+     * 分页查询配置
+     * <p>直接从数据库查询</p>
+     * @param configPageRequest 分页查询参数
+     * @return IPage<SysConfig> 分页结果
+     */
+    @Override
+    public IPage<SysConfig> listByPage(ConfigPageRequest configPageRequest) {
+        // 构建分页对象
+        Page<SysConfig> page = new Page<>(configPageRequest.getCurrentPage(), configPageRequest.getPageSize());
+
+        // 构建查询条件
+        LambdaQueryWrapper<SysConfig> wrapper = new LambdaQueryWrapper<>();
+
+        // 配置项 key 模糊匹配
+        wrapper.like(StringUtils.hasText(configPageRequest.getConfigKey()),
+                        SysConfig::getConfigKey, configPageRequest.getConfigKey())
+                // 配置项分组匹配
+                .eq(StringUtils.hasText(configPageRequest.getConfigGroup()),
+                        SysConfig::getConfigGroup, configPageRequest.getConfigGroup())
+                // 配置项类型匹配
+                .eq(StringUtils.hasText(configPageRequest.getConfigType()),
+                        SysConfig::getConfigType, configPageRequest.getConfigType())
+                // 排序：默认按创建时间升序（1,2,3）
+                .orderByAsc(SysConfig::getCreatedAt);
+
+        // 执行分页查询
+        return sysConfigMapper.selectPage(page, wrapper);
+    }
+
     /**
      * 获取所有配置分组列表
-     *
+     * <p>直接从数据库查询</p>
      * @return 分组列表
      */
     @Override
