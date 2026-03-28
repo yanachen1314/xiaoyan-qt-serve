@@ -151,6 +151,7 @@ public class PublicController {
 
     /**
      * 检查系统维护状态
+     * @see com.yan.xiaoyanqtserve.filter.MaintenanceModeFilter
      * @return 系统维护状态
      */
     @GetMapping("/check/maintenance")
