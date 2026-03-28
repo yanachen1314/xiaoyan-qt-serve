@@ -30,6 +30,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 
 /**
  * 公开控制器
@@ -111,7 +112,7 @@ public class PublicController {
      * @param version 客户端当前版本，格式如 "v1.0.0" 或 "1.0.0"
      * @return 版本检查结果
      */
-    @GetMapping("/check/{version}")
+    @GetMapping("/check/version/{version}")
     public ApiResponse<VersionCheckVo> autoCheckVersion(@PathVariable("version") String version) {
         // 1. 获取服务器最新版本
         String versionKey = "system.version";
@@ -146,6 +147,17 @@ public class PublicController {
                 .build();
 
         return ApiResponse.success(vo);
+    }
+
+    /**
+     * 检查系统维护状态
+     * @return 系统维护状态
+     */
+    @GetMapping("/check/maintenance")
+    public ApiResponse<Map<String,Object>> checkMaintenance() {
+        return ApiResponse.success("系统运行中", Map.of(
+                "status", true,
+                "message", "系统运行正常"));
     }
 
 
