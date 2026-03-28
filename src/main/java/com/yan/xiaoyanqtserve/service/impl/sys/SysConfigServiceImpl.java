@@ -162,7 +162,7 @@ public class SysConfigServiceImpl extends ServiceImpl<SysConfigMapper, SysConfig
                 redisUtil.hSet(Constants.CONFIG_KEY, configKey, config.getConfigValue());
                 // 如果是系统维护配置项，则同步更新系统维护状态
                 if(configKey.equals(Constants.SYSTEM_MAINTENANCE_KEY)){
-                    redisUtil.hSet(Constants.CONFIG_KEY, Constants.SYSTEM_MAINTENANCE_STATUS, config.getStatus());
+                    redisUtil.hSet(Constants.CONFIG_KEY, Constants.SYSTEM_MAINTENANCE_STATUS, config.getStatus() == 1);
                 }
             }
         } else {
