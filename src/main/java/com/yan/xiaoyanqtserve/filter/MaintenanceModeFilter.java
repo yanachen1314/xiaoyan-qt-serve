@@ -58,11 +58,11 @@ public class MaintenanceModeFilter implements Filter {
 
     // 白名单路径（按需扩展）
     private boolean isAllowedPath(String uri) {
-        return uri.startsWith("/actuator/**") ||
-               uri.startsWith("/swagger-ui") ||
-               uri.startsWith("/v3/api-docs") ||
-               uri.equals("/favicon.ico") ||
-               uri.startsWith("/static/") ||
-               uri.startsWith("/resources/");
+        return  uri.startsWith("/api/public/auth/**") ||
+                uri.startsWith("/api/admin/**") ||
+                uri.startsWith("/actuator/**") ||
+                uri.equals("/favicon.ico") ||
+                uri.startsWith("/static/") ||
+                uri.startsWith("/resources/");
     }
 }
