@@ -1,5 +1,6 @@
 package com.yan.xiaoyanqtserve.filter;
 
+import com.yan.xiaoyanqtserve.common.dto.MaintenancePeriod;
 import com.yan.xiaoyanqtserve.common.enums.BizStatus;
 import com.yan.xiaoyanqtserve.common.utils.SecurityResponseUtil;
 import com.yan.xiaoyanqtserve.service.impl.MaintenanceService;
@@ -45,13 +46,14 @@ public class MaintenanceModeFilter implements Filter {
             // 3. 返回维护提示
             String message = "系统正在维护中，请稍后重试。";
 
+            MaintenancePeriod maintenancePeriod = maintenanceService.getMaintenancePeriod();
             securityResponseUtil.writeError(httpResponse,
                     HttpStatus.SERVICE_UNAVAILABLE.value(),
                     BizStatus.SERVICE_UNAVAILABLE,
                     message,
                     Map.of(
-                            "start", maintenanceService.getMaintenancePeriod().getStart(),
-                            "end", maintenanceService.getMaintenancePeriod().getEnd()
+                            "start", maintenancePeriod.getStart(),
+                            "end", maintenancePeriod.getEnd()
                     ));
             return;
         }
@@ -62,8 +64,7 @@ public class MaintenanceModeFilter implements Filter {
 
     // 白名单路径（按需扩展）
     private boolean isAllowedPath(String uri) {
-        return uri.startsWith("/actuator/health") ||
-               uri.startsWith("/actuator/info") ||
+        return uri.startsWith("/actuator/**") ||
                uri.startsWith("/swagger-ui") ||
                uri.startsWith("/v3/api-docs") ||
                uri.equals("/favicon.ico") ||
