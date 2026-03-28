@@ -1,6 +1,8 @@
 package com.yan.xiaoyanqtserve.service.impl;
 
+import com.yan.xiaoyanqtserve.common.Constants;
 import com.yan.xiaoyanqtserve.common.dto.MaintenancePeriod;
+import com.yan.xiaoyanqtserve.common.utils.RedisUtil;
 import com.yan.xiaoyanqtserve.service.SysConfigService;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
@@ -19,7 +21,7 @@ import java.time.LocalDateTime;
 public class MaintenanceService {
 
     @Resource
-    private SysConfigService sysConfigService;
+    private RedisUtil redisUtil;
 
     /**
      * 系统是否正在维护
@@ -38,7 +40,7 @@ public class MaintenanceService {
      * @return 维护时间
      */
     public MaintenancePeriod getMaintenancePeriod() {
-        String value = sysConfigService.getValue("system.maintenance");
+        String value = (String) redisUtil.get(Constants.CONFIG_KEY + "system.maintenance");
         if (StringUtils.hasText(value)) {
             MaintenancePeriod maintenancePeriod = MaintenancePeriod.parse(value);
             if (maintenancePeriod != null) {
