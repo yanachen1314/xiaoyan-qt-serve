@@ -72,7 +72,7 @@ public class ApiKeyAuthFilter extends OncePerRequestFilter {
             // 如果缓存中不存在，调用服务进行验证
             validationResult = keyInfoManagerService.filterKeyValid(apiKey);
             // 缓存校验结果，有效期 1 分钟
-            redisUtil.set(cacheKey, validationResult,1, TimeUnit.MINUTES);
+            redisUtil.set(cacheKey, validationResult, 1, TimeUnit.MINUTES);
         }
 
         if (validationResult.isSuccess()) {
