@@ -46,7 +46,7 @@ public class MaintenanceModeFilter implements Filter {
             // 3. 返回维护提示
             MaintenancePeriod maintenancePeriod = maintenanceService.getMaintenancePeriod();
             securityResponseUtil.writeError(httpResponse,
-                    HttpStatus.SERVICE_UNAVAILABLE.value(),
+                    HttpStatus.OK.value(),
                     BizStatus.SERVICE_UNAVAILABLE,
                     maintenancePeriod.maintenanceMessage(),
                     maintenancePeriod);

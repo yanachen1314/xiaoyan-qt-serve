@@ -152,13 +152,11 @@ public class PublicController {
     /**
      * 检查系统维护状态
      * @see com.yan.xiaoyanqtserve.filter.MaintenanceModeFilter
-     * @return 系统维护状态
+     * @return 系统维护状态。 false 示系统正常运行，true 示系统维护中
      */
     @GetMapping("/check/maintenance")
     public ApiResponse<Map<String,Object>> checkMaintenance() {
-        return ApiResponse.success("系统运行中", Map.of(
-                "status", true,
-                "message", "系统运行正常"));
+        return ApiResponse.success("系统运行正常", Map.of("status", false));
     }
 
 
