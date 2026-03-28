@@ -2,6 +2,7 @@ package com.yan.xiaoyanqtserve.filter;
 
 import com.yan.xiaoyanqtserve.common.dto.MaintenancePeriod;
 import com.yan.xiaoyanqtserve.common.enums.BizStatus;
+import com.yan.xiaoyanqtserve.common.utils.MainUtil;
 import com.yan.xiaoyanqtserve.common.utils.SecurityResponseUtil;
 import com.yan.xiaoyanqtserve.service.impl.MaintenanceService;
 import jakarta.servlet.*;
@@ -57,12 +58,15 @@ public class MaintenanceModeFilter implements Filter {
     }
 
     // 白名单路径（按需扩展）
-    private boolean isAllowedPath(String uri) {
-        return  uri.startsWith("/api/public/auth/**") ||
-                uri.startsWith("/api/admin/**") ||
-                uri.startsWith("/actuator/**") ||
-                uri.equals("/favicon.ico") ||
-                uri.startsWith("/static/") ||
-                uri.startsWith("/resources/");
+    private boolean isAllowedPath(String requestUri) {
+        String[] allowedPatterns = {
+                "/api/public/auth/**",
+                "/api/admin/**",
+                "/actuator/**",
+                "/favicon.ico",
+                "/static/**",
+                "/resources/**"
+        };
+        return MainUtil.isAllowedPath(allowedPatterns, requestUri);
     }
 }
