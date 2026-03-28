@@ -16,7 +16,7 @@ import java.io.IOException;
 import java.util.Map;
 
 @Component
-@Order(1) // 必须最高优先级！
+@Order(Integer.MIN_VALUE) // 必须最高优先级！
 @Slf4j
 public class MaintenanceModeFilter implements Filter {
 
