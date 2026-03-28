@@ -42,6 +42,7 @@ public enum BizStatus {
 
     //系统内部错误
     ERROR(500, "系统内部错误"),
+    SERVICE_UNAVAILABLE(503, "系统维护中"),
 
     // ======== 自定义业务状态码 ==========
     //接口未实现

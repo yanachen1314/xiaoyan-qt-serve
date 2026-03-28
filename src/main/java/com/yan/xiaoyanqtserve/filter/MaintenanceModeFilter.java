@@ -1,5 +1,7 @@
 package com.yan.xiaoyanqtserve.filter;
 
+import com.yan.xiaoyanqtserve.common.enums.BizStatus;
+import com.yan.xiaoyanqtserve.common.utils.SecurityResponseUtil;
 import com.yan.xiaoyanqtserve.service.impl.MaintenanceService;
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
@@ -18,9 +20,11 @@ import java.util.Map;
 public class MaintenanceModeFilter implements Filter {
 
     private final MaintenanceService maintenanceService;
+    private final SecurityResponseUtil securityResponseUtil;
 
-    public MaintenanceModeFilter(MaintenanceService maintenanceService) {
+    public MaintenanceModeFilter(MaintenanceService maintenanceService, SecurityResponseUtil securityResponseUtil) {
         this.maintenanceService = maintenanceService;
+        this.securityResponseUtil = securityResponseUtil;
     }
 
     @Override
@@ -30,41 +34,29 @@ public class MaintenanceModeFilter implements Filter {
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         HttpServletResponse httpResponse = (HttpServletResponse) response;
 
-        // ✅ 1. 检查是否在维护期
+        // 1. 检查是否在维护期
         if (maintenanceService.isSystemInMaintenance()) {
-            // ✅ 2. 白名单放行（如健康检查、静态资源）
+            // 2. 白名单放行（如健康检查、静态资源）
             if (isAllowedPath(httpRequest.getRequestURI())) {
                 chain.doFilter(request, response);
                 return;
             }
 
-            // 🔴 3. 返回维护提示
-            httpResponse.setStatus(HttpStatus.SERVICE_UNAVAILABLE.value());
-            httpResponse.setContentType("application/json;charset=UTF-8");
-
+            // 3. 返回维护提示
             String message = "系统正在维护中，请稍后重试。";
-            // 可从 DB 或配置中读取更友好的提示（如 config.remark 字段）
-            ConfigEntity config = maintenanceService.getMaintenancePeriod() != null ?
-                    maintenanceService.getConfigEntity() : null;
-            if (config != null && StringUtils.isNotBlank(config.getRemark())) {
-                message = config.getRemark();
-            }
 
-            httpResponse.getWriter().write(
-                JSON.toJSONString(Map.of(
-                    "code", 503,
-                    "message", message,
-                    "timestamp", System.currentTimeMillis(),
-                    "maintenanceWindow", Map.of(
-                        "start", maintenanceService.getMaintenancePeriod().getStart(),
-                        "end", maintenanceService.getMaintenancePeriod().getEnd()
-                    )
-                ))
-            );
+            securityResponseUtil.writeError(httpResponse,
+                    HttpStatus.SERVICE_UNAVAILABLE.value(),
+                    BizStatus.SERVICE_UNAVAILABLE,
+                    message,
+                    Map.of(
+                            "start", maintenanceService.getMaintenancePeriod().getStart(),
+                            "end", maintenanceService.getMaintenancePeriod().getEnd()
+                    ));
             return;
         }
 
-        // ✅ 正常流程
+        // 正常流程
         chain.doFilter(request, response);
     }
 
