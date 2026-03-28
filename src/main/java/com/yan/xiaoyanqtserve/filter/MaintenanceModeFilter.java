@@ -44,17 +44,12 @@ public class MaintenanceModeFilter implements Filter {
             }
 
             // 3. 返回维护提示
-            String message = "系统正在维护中，请稍后重试。";
-
             MaintenancePeriod maintenancePeriod = maintenanceService.getMaintenancePeriod();
             securityResponseUtil.writeError(httpResponse,
                     HttpStatus.SERVICE_UNAVAILABLE.value(),
                     BizStatus.SERVICE_UNAVAILABLE,
-                    message,
-                    Map.of(
-                            "start", maintenancePeriod.getStart(),
-                            "end", maintenancePeriod.getEnd()
-                    ));
+                    maintenancePeriod.getMessage(),
+                    maintenancePeriod);
             return;
         }
 

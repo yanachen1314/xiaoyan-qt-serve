@@ -43,6 +43,28 @@ public class MaintenancePeriod {
     }
 
     /**
+     * 获取维护时间消息
+     * @return 维护时间消息
+     */
+    public String getMessage() {
+        LocalDateTime now = LocalDateTime.now();
+        if(isInMaintenance(now)){
+            // 正在维护中，显示预计结束时间
+            long hoursLeft = java.time.Duration.between(now, end).toHours();
+            long minutesLeft = java.time.Duration.between(now, end).toMinutes() % 60;
+
+            if (hoursLeft > 0) {
+                return String.format("系统正在维护中，预计 %d小时%d分钟后恢复。", hoursLeft, minutesLeft);
+            } else if (minutesLeft > 0) {
+                return String.format("系统正在维护中，预计 %d分钟后恢复。", minutesLeft);
+            } else {
+                return "系统正在维护中，即将恢复。";
+            }
+        }
+        return "服务已恢复正常。";
+    }
+
+    /**
      * 从JSON字符串解析维护时间
      * @param json JSON字符串
      * @return 维护时间
