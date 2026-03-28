@@ -1,7 +1,6 @@
 package com.yan.xiaoyanqtserve.service.impl.sys;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -71,12 +70,7 @@ public class SysConfigServiceImpl extends ServiceImpl<SysConfigMapper, SysConfig
         wrapper.eq(SysConfig::getStatus, 1);
         List<SysConfig> all = sysConfigMapper.selectList(wrapper);
         for (SysConfig cfg : all) {
-            // 是否是模型列表
-            if (isModelList(cfg.getConfigKey())) {
-                redisUtil.hSet(Constants.CONFIG_MODEL_LIST_KEY, cfg.getConfigKey(), cfg.getConfigValue());
-            } else {
-                redisUtil.hSet(Constants.CONFIG_KEY, cfg.getConfigKey(), cfg.getConfigValue());
-            }
+            onChangeDealRedisCache(cfg);
         }
     }
 
@@ -201,12 +195,8 @@ public class SysConfigServiceImpl extends ServiceImpl<SysConfigMapper, SysConfig
         SysConfig sysConfig = new SysConfig();
         BeanUtils.copyProperties(config, sysConfig);
         sysConfigMapper.insert(sysConfig);
-        // 同步写入 Redis
-        if (isModelList(sysConfig.getConfigKey())) {
-            redisUtil.hSet(Constants.CONFIG_MODEL_LIST_KEY, sysConfig.getConfigKey(), sysConfig.getConfigValue());
-        } else {
-            redisUtil.hSet(Constants.CONFIG_KEY, sysConfig.getConfigKey(), sysConfig.getConfigValue());
-        }
+
+        onChangeDealRedisCache(sysConfig);
     }
 
     @Override
@@ -215,11 +205,28 @@ public class SysConfigServiceImpl extends ServiceImpl<SysConfigMapper, SysConfig
             throw new BizException("参数错误");
         }
         sysConfigMapper.updateById(config);
-        // 同步更新 Redis
-        if (isModelList(config.getConfigKey())) {
-            redisUtil.hSet(Constants.CONFIG_MODEL_LIST_KEY, config.getConfigKey(), config.getConfigValue());
-        } else {
-            redisUtil.hSet(Constants.CONFIG_KEY, config.getConfigKey(), config.getConfigValue());
+        onChangeDealRedisCache(config);
+    }
+    // 当配置更新或新增时，判断如何处理 Redis 缓存，确保数据一致性
+    private void onChangeDealRedisCache(SysConfig config){
+        if(config.getStatus() != null && config.getStatus() == 1){
+            // 如果状态为1，则同步更新 Redis
+            if (isModelList(config.getConfigKey())) {
+                // 模型列表的配置项
+                redisUtil.hSet(Constants.CONFIG_MODEL_LIST_KEY, config.getConfigKey(), config.getConfigValue());
+            } else {
+                // 其他配置项
+                redisUtil.hSet(Constants.CONFIG_KEY, config.getConfigKey(), config.getConfigValue());
+            }
+        }else{
+            // 如果状态为0，则删除缓存
+            if (isModelList(config.getConfigKey())) {
+                // 模型列表的配置项
+                redisUtil.hDel(Constants.CONFIG_MODEL_LIST_KEY, config.getConfigKey());
+            } else {
+                // 其他配置项
+                redisUtil.hDel(Constants.CONFIG_KEY, config.getConfigKey());
+            }
         }
     }
 
