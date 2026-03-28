@@ -5,6 +5,7 @@ import com.yan.xiaoyanqtserve.service.SysConfigService;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 
@@ -38,15 +39,15 @@ public class MaintenanceService {
      */
     public MaintenancePeriod getMaintenancePeriod() {
         String value = sysConfigService.getValue("system.maintenance");
-        if(value == null){
-            log.warn("未查询到维护时间，请检查配置");
-            return null;
-        }
-        MaintenancePeriod maintenancePeriod = MaintenancePeriod.parse(value);
-        if (maintenancePeriod == null){
+        if (StringUtils.hasText(value)) {
+            MaintenancePeriod maintenancePeriod = MaintenancePeriod.parse(value);
+            if (maintenancePeriod != null) {
+                return maintenancePeriod;
+            }
             log.warn("解析维护时间失败，请检查配置");
             return null;
         }
-        return maintenancePeriod;
+        log.warn("未查询到维护时间，请检查配置");
+        return null;
     }
 }
