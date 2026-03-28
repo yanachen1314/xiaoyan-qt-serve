@@ -17,6 +17,9 @@ spring:
       # 整个请求的最大大小（可以包含多个文件）
       max-request-size: 15MB
       enabled: true
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: GMT+8
 
 server:
   # HTTP请求、响应头信息的最大大小
