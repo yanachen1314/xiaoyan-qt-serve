@@ -60,7 +60,9 @@ public class MaintenanceModeFilter implements Filter {
     // 白名单路径（按需扩展）
     private boolean isAllowedPath(String requestUri) {
         String[] allowedPatterns = {
+                // 管理员登录接口
                 "/api/public/auth/**",
+                // 管理员运维接口
                 "/api/admin/**",
                 "/actuator/**",
                 "/favicon.ico",
