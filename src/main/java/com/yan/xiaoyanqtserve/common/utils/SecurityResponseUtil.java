@@ -2,6 +2,8 @@ package com.yan.xiaoyanqtserve.common.utils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.yan.xiaoyanqtserve.common.Constants;
 import com.yan.xiaoyanqtserve.common.enums.BizStatus;
 import jakarta.annotation.Resource;
@@ -10,14 +12,28 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.TimeZone;
 
 /**
  * Spring Security 响应工具类
  */
 @Component
 public class SecurityResponseUtil {
-    @Resource
+
     private ObjectMapper objectMapper;
+
+    @Resource
+    public void setObjectMapper(ObjectMapper objectMapper) {
+        // 创建副本，避免影响全局 ObjectMapper
+        this.objectMapper = objectMapper.copy();
+
+        // 配置日期格式
+        this.objectMapper.registerModule(new JavaTimeModule());
+        this.objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        this.objectMapper.setDateFormat(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"));
+        this.objectMapper.setTimeZone(TimeZone.getTimeZone("GMT+8"));
+    }
 
     /**
      * 构建错误响应
