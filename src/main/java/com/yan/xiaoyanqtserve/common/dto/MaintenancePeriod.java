@@ -46,7 +46,7 @@ public class MaintenancePeriod {
      * 获取维护时间消息
      * @return 维护时间消息
      */
-    public String getMessage() {
+    public String maintenanceMessage() {
         LocalDateTime now = LocalDateTime.now();
         if(isInMaintenance(now)){
             // 正在维护中，显示预计结束时间

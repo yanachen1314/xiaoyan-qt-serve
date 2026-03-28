@@ -13,7 +13,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.util.Map;
 
 @Component
 @Order(Integer.MIN_VALUE) // 必须最高优先级！
@@ -48,7 +47,7 @@ public class MaintenanceModeFilter implements Filter {
             securityResponseUtil.writeError(httpResponse,
                     HttpStatus.SERVICE_UNAVAILABLE.value(),
                     BizStatus.SERVICE_UNAVAILABLE,
-                    maintenancePeriod.getMessage(),
+                    maintenancePeriod.maintenanceMessage(),
                     maintenancePeriod);
             return;
         }
