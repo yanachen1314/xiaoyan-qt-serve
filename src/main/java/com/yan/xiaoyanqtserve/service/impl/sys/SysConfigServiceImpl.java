@@ -159,19 +159,19 @@ public class SysConfigServiceImpl extends ServiceImpl<SysConfigMapper, SysConfig
         Page<SysConfig> page = new Page<>(configPageRequest.getCurrentPage(), configPageRequest.getPageSize());
 
         // 构建查询条件
-        QueryWrapper<SysConfig> wrapper = new QueryWrapper<>();
+        LambdaQueryWrapper<SysConfig> wrapper = new LambdaQueryWrapper<>();
 
         // 配置项 key 模糊匹配
         wrapper.like(StringUtils.hasText(configPageRequest.getConfigKey()),
-                        "config_key", configPageRequest.getConfigKey())
+                        SysConfig::getConfigKey, configPageRequest.getConfigKey())
                 // 配置项分组匹配
                 .eq(StringUtils.hasText(configPageRequest.getConfigGroup()),
-                        "config_group", configPageRequest.getConfigGroup())
+                        SysConfig::getConfigGroup, configPageRequest.getConfigGroup())
                 // 配置项类型匹配
                 .eq(StringUtils.hasText(configPageRequest.getConfigType()),
-                        "config_type", configPageRequest.getConfigType())
+                        SysConfig::getConfigType, configPageRequest.getConfigType())
                 // 排序：默认按创建时间升序（1,2,3）
-                .orderByAsc("created_at");
+                .orderByAsc(SysConfig::getCreatedAt);
 
         // 执行分页查询
         return sysConfigMapper.selectPage(page, wrapper);
