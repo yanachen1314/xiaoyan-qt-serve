@@ -67,7 +67,7 @@ public interface SysConfigService extends IService<SysConfig> {
      * @param isLike    是否模糊匹配
      * @return 配置项列表
      */
-    List<SysConfig> listByKey(String key, boolean isLike);
+    List<SysConfig> getConfigByKey(String key, boolean isLike);
 
     /**
      * 新增配置

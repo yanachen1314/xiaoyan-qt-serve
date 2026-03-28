@@ -96,7 +96,7 @@ public class SysConfigServiceImpl extends ServiceImpl<SysConfigMapper, SysConfig
             return val.toString();
         }
 
-        List<SysConfig> sysConfigs = listByKey(key, false);
+        List<SysConfig> sysConfigs = getConfigByKey(key, false);
         SysConfig config = sysConfigs.size() == 1 ? sysConfigs.get(0) : null;
         // 找不到则抛出异常
         if (Objects.isNull(config) || !StringUtils.hasText(config.getConfigValue())) {
@@ -184,7 +184,7 @@ public class SysConfigServiceImpl extends ServiceImpl<SysConfigMapper, SysConfig
      * @param isLike 是否模糊匹配
      * @return 配置项列表
      */
-    public List<SysConfig> listByKey(String key, boolean isLike) {
+    public List<SysConfig> getConfigByKey(String key, boolean isLike) {
         LambdaQueryWrapper<SysConfig> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(SysConfig::getStatus, 1);
         // 配置项 key, 是否进行模糊匹配
@@ -256,7 +256,7 @@ public class SysConfigServiceImpl extends ServiceImpl<SysConfigMapper, SysConfig
                     .collect(Collectors.toList());
         }
         // 缓存数据为空，从数据库查询模型列表配置
-        List<SysConfig> sysConfigs = listByKey(Constants.CONFIG_MODEL_LIST_PREFIX, true);
+        List<SysConfig> sysConfigs = getConfigByKey(Constants.CONFIG_MODEL_LIST_PREFIX, true);
 
         if (sysConfigs.isEmpty()) {
             return Collections.emptyList();
