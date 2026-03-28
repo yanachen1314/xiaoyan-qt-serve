@@ -33,6 +33,16 @@ public class MaintenancePeriod {
     private LocalDateTime end;
 
     /**
+     * 维护状态是否开启
+     */
+    private Boolean status;
+
+    public MaintenancePeriod(LocalDateTime start, LocalDateTime end) {
+        this.start = start;
+        this.end = end;
+    }
+
+    /**
      * 判断当前时间是否在维护时间内
      * @param now 当前时间
      * @return 是否在维护时间内

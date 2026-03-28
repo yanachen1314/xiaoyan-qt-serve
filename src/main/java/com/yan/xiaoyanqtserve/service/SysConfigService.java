@@ -52,14 +52,7 @@ public interface SysConfigService extends IService<SysConfig> {
     <T> T getValue(String key, ConfigType type, Class<T> clazz);
 
 
-    /**
-     * 根据 key 获取配置项列表
-     * <p>直接从数据库查询</p>
-     * @param key    配置项 key
-     * @param enableLike 是否开启模糊匹配，false 为精确匹配
-     * @return 配置项列表
-     */
-    List<SysConfig> getConfigByKey(String key, boolean enableLike);
+
     /**
      * 根据 key 获取配置项列表
      * <p>直接从数据库查询</p>
@@ -69,6 +62,7 @@ public interface SysConfigService extends IService<SysConfig> {
      * @return 配置项列表
      */
     List<SysConfig> getConfigByKey(String key, boolean enableLike, boolean enableStatus, Integer status);
+    List<SysConfig> getConfigByKey(String key, boolean enableLike);
 
 
 

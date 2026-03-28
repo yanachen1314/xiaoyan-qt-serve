@@ -125,18 +125,6 @@ public class SysConfigServiceImpl extends ServiceImpl<SysConfigMapper, SysConfig
      * <p>直接从数据库查询</p>
      * @param key    配置项 key
      * @param enableLike 是否开启模糊匹配，false 为精确匹配
-     * @return 配置项列表
-     */
-    public List<SysConfig> getConfigByKey(String key, boolean enableLike) {
-        // 默认开启状态匹配，status == 1
-        return getConfigByKey(key, enableLike, true, 1);
-    }
-
-    /**
-     * 根据 key 获取配置项列表
-     * <p>直接从数据库查询</p>
-     * @param key    配置项 key
-     * @param enableLike 是否开启模糊匹配，false 为精确匹配
      * @param enableStatus 是否开启状态匹配，false 不添加status查询参数
      * @return 配置项列表
      */
@@ -150,6 +138,10 @@ public class SysConfigServiceImpl extends ServiceImpl<SysConfigMapper, SysConfig
             wrapper.eq(SysConfig::getConfigKey, key);
         }
         return sysConfigMapper.selectList(wrapper);
+    }
+    public List<SysConfig> getConfigByKey(String key, boolean enableLike) {
+        // 默认开启状态匹配，status == 1
+        return getConfigByKey(key, enableLike, true, 1);
     }
 
     // 判断是否为模型列表配置项，即以 "dashscope.model" 开头的配置项
