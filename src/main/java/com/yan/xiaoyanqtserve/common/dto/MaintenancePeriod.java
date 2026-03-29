@@ -64,11 +64,11 @@ public class MaintenancePeriod {
             long minutesLeft = java.time.Duration.between(now, end).toMinutes() % 60;
 
             if (hoursLeft > 0) {
-                return String.format("系统正在维护中，预计%d小时%d分钟后恢复。", hoursLeft, minutesLeft);
+                return String.format("系统正在维护中，预计%d小时%d分钟后恢复...", hoursLeft, minutesLeft);
             } else if (minutesLeft > 0) {
-                return String.format("系统正在维护中，预计%d分钟后恢复。", minutesLeft);
+                return String.format("系统正在维护中，预计%d分钟后恢复...", minutesLeft);
             } else {
-                return "系统正在维护中，即将恢复。";
+                return "系统正在维护中，即将恢复...";
             }
         }
         return "服务已恢复正常。";
