@@ -18,12 +18,12 @@ import java.io.IOException;
 @Component
 @Order(Integer.MIN_VALUE) // 必须最高优先级！
 @Slf4j
-public class MaintenanceModeFilter implements Filter {
+public class SystemModeFilter implements Filter {
 
     private final MaintenanceService maintenanceService;
     private final SecurityResponseUtil securityResponseUtil;
 
-    public MaintenanceModeFilter(MaintenanceService maintenanceService, SecurityResponseUtil securityResponseUtil) {
+    public SystemModeFilter(MaintenanceService maintenanceService, SecurityResponseUtil securityResponseUtil) {
         this.maintenanceService = maintenanceService;
         this.securityResponseUtil = securityResponseUtil;
     }
@@ -35,14 +35,14 @@ public class MaintenanceModeFilter implements Filter {
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         HttpServletResponse httpResponse = (HttpServletResponse) response;
 
-        // 1. 检查是否在维护期
-        if (maintenanceService.isSystemInMaintenance()) {
-            // 2. 白名单放行（如健康检查、静态资源）
-            if (isAllowedPath(httpRequest.getRequestURI())) {
-                chain.doFilter(request, response);
-                return;
-            }
+        // 1. 白名单放行（如健康检查、静态资源），优先处理
+        if (isAllowedPath(httpRequest.getRequestURI())) {
+            chain.doFilter(request, response);
+            return;
+        }
 
+        // 2. 检查是否在维护期
+        if (maintenanceService.isSystemInMaintenance()) {
             // 3. 返回维护提示
             MaintenancePeriod maintenancePeriod = maintenanceService.getMaintenancePeriod();
             securityResponseUtil.writeError(httpResponse,
@@ -53,7 +53,7 @@ public class MaintenanceModeFilter implements Filter {
             return;
         }
 
-        // 正常流程
+        // 正常流程放行
         chain.doFilter(request, response);
     }
 
