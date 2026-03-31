@@ -9,6 +9,7 @@ import com.yan.xiaoyanqtserve.service.SysConfigService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.util.concurrent.TimeUnit;
 
@@ -30,6 +31,17 @@ public class ClientVersionService {
      * @return 版本比较结果对象
      */
     public VersionCheckVo compareVersions(String clientVersion) {
+        if(!StringUtils.hasText(clientVersion)){
+            return VersionCheckVo.builder()
+                    .version("请下载最新版本")
+                    .clientVersion(clientVersion)
+                    .latest(false)
+                    .updateRequired(true)
+                    .message("请提供客户端版本号")
+                    .linkUrl(sysConfigService.getValue(Constants.LINK3_KEY))
+                    .build();
+        }
+
         // 获取最新版本号
         String latestVersion = getLatestVersion();
         // redis缓存键

@@ -44,16 +44,14 @@ public class SystemModeFilter implements Filter {
 
         // 2. 检查是否更新版本
         String clientVersion = httpRequest.getHeader(Constants.HEADER_CLIENT_VERSION_NAME);
-        if(clientVersion != null && !clientVersion.isEmpty()) {
-            VersionCheckVo versionCheckVo = clientVersionService.compareVersions(clientVersion);
-            if (versionCheckVo.getUpdateRequired()) {
-                securityResponseUtil.writeError(httpResponse,
-                        HttpStatus.OK.value(),
-                        BizStatus.UPDATE_REQUIRED,
-                        versionCheckVo.getMessage(),
-                        versionCheckVo);
-                return;
-            }
+        VersionCheckVo versionCheckVo = clientVersionService.compareVersions(clientVersion);
+        if (versionCheckVo.getUpdateRequired()) {
+            securityResponseUtil.writeError(httpResponse,
+                    HttpStatus.OK.value(),
+                    BizStatus.UPDATE_REQUIRED,
+                    versionCheckVo.getMessage(),
+                    versionCheckVo);
+            return;
         }
 
         // 3. 检查是否在维护期
@@ -71,6 +69,7 @@ public class SystemModeFilter implements Filter {
         // 正常流程放行
         chain.doFilter(request, response);
     }
+
     // 白名单路径（按需扩展）
     private boolean isAllowedPath(String requestUri) {
         String[] allowedPatterns = {
