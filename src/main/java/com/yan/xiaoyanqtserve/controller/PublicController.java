@@ -111,6 +111,7 @@ public class PublicController {
      * @param version 客户端当前版本，格式如 "v1.0.0" 或 "1.0.0"
      * @return 版本检查结果
      */
+    @Deprecated
     @GetMapping("/check/version/{version}")
     public ApiResponse<VersionCheckVo> autoCheckVersion(@PathVariable("version") String version) {
         // 1. 获取服务器最新版本
