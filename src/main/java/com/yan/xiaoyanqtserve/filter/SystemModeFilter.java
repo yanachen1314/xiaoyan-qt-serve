@@ -6,6 +6,7 @@ import com.yan.xiaoyanqtserve.common.enums.BizStatus;
 import com.yan.xiaoyanqtserve.common.utils.MainUtil;
 import com.yan.xiaoyanqtserve.common.utils.SecurityResponseUtil;
 import com.yan.xiaoyanqtserve.common.vo.VersionCheckVo;
+import com.yan.xiaoyanqtserve.service.SysConfigService;
 import com.yan.xiaoyanqtserve.service.impl.ClientVersionService;
 import com.yan.xiaoyanqtserve.service.impl.MaintenanceService;
 import jakarta.servlet.*;
@@ -16,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 
@@ -28,6 +30,7 @@ public class SystemModeFilter implements Filter {
     private final ClientVersionService clientVersionService;
     private final MaintenanceService maintenanceService;
     private final SecurityResponseUtil securityResponseUtil;
+    private final SysConfigService sysConfigService;
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response,
@@ -44,11 +47,26 @@ public class SystemModeFilter implements Filter {
 
         // 2. 检查是否更新版本
         String clientVersion = httpRequest.getHeader(Constants.HEADER_CLIENT_VERSION_NAME);
+        if (!StringUtils.hasText(clientVersion)) {
+            securityResponseUtil.writeError(httpResponse,
+                    HttpStatus.OK.value(),
+                    BizStatus.CLIENT_NON_VERSION,
+                    "请提供客户端版本号",
+                    VersionCheckVo.builder()
+                            .version(sysConfigService.getValue(Constants.VERSION_KEY))
+                            .clientVersion(clientVersion)
+                            .latest(false)
+                            .updateRequired(true)
+                            .message("请提供客户端版本号或下载最新版本")
+                            .linkUrl(sysConfigService.getValue(Constants.LINK3_KEY))
+                            .build());
+            return ;
+        }
         VersionCheckVo versionCheckVo = clientVersionService.compareVersions(clientVersion);
         if (versionCheckVo.getUpdateRequired()) {
             securityResponseUtil.writeError(httpResponse,
                     HttpStatus.OK.value(),
-                    BizStatus.UPDATE_REQUIRED,
+                    BizStatus.CLIENT_UPDATE_REQUIRED,
                     versionCheckVo.getMessage(),
                     versionCheckVo);
             return;
