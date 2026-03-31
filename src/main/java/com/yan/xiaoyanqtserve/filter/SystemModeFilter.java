@@ -40,37 +40,41 @@ public class SystemModeFilter implements Filter {
         HttpServletResponse httpResponse = (HttpServletResponse) response;
 
         // 1. 白名单放行（如健康检查、静态资源），优先处理
-        if (isAllowedPath(httpRequest.getRequestURI())) {
+        String requestURI = httpRequest.getRequestURI();
+        if (isAllowedPath(requestURI)) {
             chain.doFilter(request, response);
             return;
         }
 
-        // 2. 检查是否更新版本
-        String clientVersion = httpRequest.getHeader(Constants.HEADER_CLIENT_VERSION_NAME);
-        if (!StringUtils.hasText(clientVersion)) {
-            securityResponseUtil.writeError(httpResponse,
-                    HttpStatus.OK.value(),
-                    BizStatus.CLIENT_NON_VERSION,
-                    "请提供客户端版本号",
-                    VersionCheckVo.builder()
-                            .version(sysConfigService.getValue(Constants.VERSION_KEY))
-                            .clientVersion(clientVersion)
-                            .latest(false)
-                            .updateRequired(false)
-                            .message("请提供客户端版本号或下载最新版本")
-                            .linkUrl(sysConfigService.getValue(Constants.LINK3_KEY))
-                            .build());
-            return ;
+        // 2. 检查是否更新版本（检查维护状态的接口不做处理）
+        if(!requestURI.equals("/api/public/check/maintenance")){
+            String clientVersion = httpRequest.getHeader(Constants.HEADER_CLIENT_VERSION_NAME);
+            if (!StringUtils.hasText(clientVersion)) {
+                securityResponseUtil.writeError(httpResponse,
+                        HttpStatus.OK.value(),
+                        BizStatus.CLIENT_NON_VERSION,
+                        "请提供客户端版本号",
+                        VersionCheckVo.builder()
+                                .version(sysConfigService.getValue(Constants.VERSION_KEY))
+                                .clientVersion(clientVersion)
+                                .latest(false)
+                                .updateRequired(false)
+                                .message("请提供客户端版本号或下载最新版本")
+                                .linkUrl(sysConfigService.getValue(Constants.LINK3_KEY))
+                                .build());
+                return ;
+            }
+            VersionCheckVo versionCheckVo = clientVersionService.compareVersions(clientVersion);
+            if (versionCheckVo.getUpdateRequired()) {
+                securityResponseUtil.writeError(httpResponse,
+                        HttpStatus.OK.value(),
+                        BizStatus.CLIENT_UPDATE_REQUIRED,
+                        versionCheckVo.getMessage(),
+                        versionCheckVo);
+                return;
+            }
         }
-        VersionCheckVo versionCheckVo = clientVersionService.compareVersions(clientVersion);
-        if (versionCheckVo.getUpdateRequired()) {
-            securityResponseUtil.writeError(httpResponse,
-                    HttpStatus.OK.value(),
-                    BizStatus.CLIENT_UPDATE_REQUIRED,
-                    versionCheckVo.getMessage(),
-                    versionCheckVo);
-            return;
-        }
+
 
         // 3. 检查是否在维护期
         if (maintenanceService.isSystemInMaintenance()) {
