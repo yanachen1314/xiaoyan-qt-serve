@@ -56,7 +56,7 @@ public class SystemModeFilter implements Filter {
                             .version(sysConfigService.getValue(Constants.VERSION_KEY))
                             .clientVersion(clientVersion)
                             .latest(false)
-                            .updateRequired(true)
+                            .updateRequired(false)
                             .message("请提供客户端版本号或下载最新版本")
                             .linkUrl(sysConfigService.getValue(Constants.LINK3_KEY))
                             .build());
