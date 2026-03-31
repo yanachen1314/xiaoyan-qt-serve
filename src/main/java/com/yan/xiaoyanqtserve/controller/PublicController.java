@@ -121,7 +121,7 @@ public class PublicController {
             log.info("System config key '{}' is missing or empty.", Constants.VERSION_KEY);
             return ApiResponse.success(VersionCheckVo.builder()
                     .version("v0.0.0")
-                    .currentVersion(version)
+                    .clientVersion(version)
                     .latest(true)
                     .updateRequired(false)
                     .message("服务器版本信息未配置，请联系管理员")
@@ -135,7 +135,7 @@ public class PublicController {
         // 3. 构建响应
         VersionCheckVo vo = VersionCheckVo.builder()
                 .version(latestVersion)
-                .currentVersion(version)
+                .clientVersion(version)
                 .latest(result.isLatest())
                 .updateRequired(result.isUpdateRequired())
                 .message(result.getMessage())
