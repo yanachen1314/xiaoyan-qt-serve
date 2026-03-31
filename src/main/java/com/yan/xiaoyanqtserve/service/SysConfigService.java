@@ -24,15 +24,6 @@ public interface SysConfigService extends IService<SysConfig> {
     void reloadCache();
 
     /**
-     * 分页查询配置
-     *
-     * @param configPageRequest 分页查询参数
-     * @return IPage<SysConfig> 分页结果
-     */
-    IPage<SysConfig> listByPage(ConfigPageRequest configPageRequest);
-
-
-    /**
      * 根据 key 获取 String 类型配置值
      *
      * @param key 配置键
@@ -60,14 +51,28 @@ public interface SysConfigService extends IService<SysConfig> {
      */
     <T> T getValue(String key, ConfigType type, Class<T> clazz);
 
+
+
     /**
      * 根据 key 获取配置项列表
-     *
-     * @param key       配置项 key
-     * @param isLike    是否模糊匹配
+     * <p>直接从数据库查询</p>
+     * @param key    配置项 key
+     * @param enableLike 是否开启模糊匹配，false 为精确匹配
+     * @param enableStatus 是否开启状态匹配，false 不添加status查询参数
      * @return 配置项列表
      */
-    List<SysConfig> listByKey(String key, boolean isLike);
+    List<SysConfig> getConfigByKey(String key, boolean enableLike, boolean enableStatus, Integer status);
+    List<SysConfig> getConfigByKey(String key, boolean enableLike);
+
+
+
+    /**
+     * 分页查询配置
+     * <p>直接从数据库查询</p>
+     * @param configPageRequest 分页查询参数
+     * @return IPage<SysConfig> 分页结果
+     */
+    IPage<SysConfig> listByPage(ConfigPageRequest configPageRequest);
 
     /**
      * 新增配置

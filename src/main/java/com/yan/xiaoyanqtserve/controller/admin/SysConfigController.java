@@ -32,7 +32,7 @@ public class SysConfigController {
      */
     @GetMapping("/key/usageType")
     public ApiResponse<List<SysConfig>> getUsageType() {
-        return ApiResponse.success(sysConfigService.listByKey("apikey.usageType", true));
+        return ApiResponse.success(sysConfigService.getConfigByKey("apikey.usageType", true));
     }
 
 

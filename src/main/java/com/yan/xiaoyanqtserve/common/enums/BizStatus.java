@@ -60,7 +60,11 @@ public enum BizStatus {
     KEY_NON_ACTIVATIONS(1507, "密钥激活次数已用完"),
     KEY_NON_USES(1508, "密钥功能使用次数已用完"),
 
-    KEY_ALREADY_ACTIVATED(1509,"密钥已在其他设备激活");
+    KEY_ALREADY_ACTIVATED(1509,"密钥已在其他设备激活"),
+
+    SERVICE_UNAVAILABLE(2001, "系统维护中"),
+    CLIENT_UPDATE_REQUIRED(2002, "强制更新版本"),
+    CLIENT_NON_VERSION(2003, "无客户端版本号");
 
 
     BizStatus(int code, String msg) {

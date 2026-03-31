@@ -6,12 +6,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.lang.Nullable;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.util.StringUtils;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static com.yan.xiaoyanqtserve.common.Constants.HEADER_KEY_NAME;
 import static com.yan.xiaoyanqtserve.common.Constants.HEADER_PREFIX;
@@ -24,6 +22,31 @@ import static com.yan.xiaoyanqtserve.common.Constants.HEADER_PREFIX;
  */
 @Slf4j
 public class MainUtil {
+    private static final AntPathMatcher ANT_PATH_MATCHER = new AntPathMatcher();
+
+    /**
+     * 判断路径是否在允许的路径中
+     * <p>Spring 框架， 详见：{@link AntPathMatcher}</p>
+     * @param allowedPatterns 允许的路径数组，支持通配符配置
+     * @param path 要判断的路径
+     * @return 是否在允许的路径中
+     */
+    public static boolean isAllowedPath(String[] allowedPatterns, String path) {
+        for (String pattern : allowedPatterns) {
+            if (ANT_PATH_MATCHER.match(pattern, path)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    public static boolean isAllowedPath(List<String> allowedPatterns, String path) {
+        for (String pattern : allowedPatterns) {
+            if (ANT_PATH_MATCHER.match(pattern, path)) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     @Nullable
     public static String extractApiKeyFromHeader(HttpServletRequest request) {

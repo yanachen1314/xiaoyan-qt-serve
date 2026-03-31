@@ -27,6 +27,7 @@ public class Constants {
 
     // 定义Header名称常量
     public static final String HEADER_KEY_NAME = "X-API-Key";
+    public static final String HEADER_CLIENT_VERSION_NAME = "X-Client-Version";
     public static final String HEADER_AUTH_NAME = "Authorization";
     // 定义Header前缀
     public static final String HEADER_PREFIX = "Bearer ";
@@ -47,6 +48,15 @@ public class Constants {
     // 百炼API KEY，config_name
     public static final String DASHSCOPE_API_KEY = "dashscope.apiKey";
 
+    // 系统维护配置项目KEY
+    public static final String SYSTEM_MAINTENANCE_KEY = "system.maintenance";
+    // 系统维护配置项目的开启状态
+    public static final String SYSTEM_MAINTENANCE_STATUS = "system.maintenance.status";
+
+    // 客户端版本缓存KEY
+    public static final String VERSION_KEY = "system.version";
+    // LINK3地址缓存KEY
+    public static final String LINK3_KEY = "system.updateLink";
 
     // HTTPRequest的请求属性  请求日志相关
     // 日志请求ID

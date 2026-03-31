@@ -85,7 +85,7 @@ public class VersionCheckUtil {
     }
 
     private static String stripVersionPrefix(String version) {
-        if (version != null && version.startsWith("v") || version.startsWith("V")) {
+        if (version != null && (version.startsWith("v") || version.startsWith("V"))) {
             return version.substring(1).trim();
         }
         return version == null ? "" : version.trim();

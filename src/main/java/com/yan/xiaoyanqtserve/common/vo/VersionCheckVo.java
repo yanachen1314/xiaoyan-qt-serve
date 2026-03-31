@@ -16,7 +16,7 @@ public class VersionCheckVo {
     /**
      * 客户端传入版本（用于调试）
      */
-    private String currentVersion;
+    private String clientVersion;
     /**
      * 是否最新
      */

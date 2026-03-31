@@ -165,7 +165,7 @@ public class SecurityConfig {
                 // 异常处理：未认证
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint((req, res, ex) ->
-                                        responseUtil.writeError(res,BizStatus.UNAUTHORIZED,"登录已失效")))
+                                        responseUtil.writeError(res, BizStatus.UNAUTHORIZED, "登录已失效")))
 
                 .authorizeHttpRequests(auth ->
                         auth.anyRequest()
