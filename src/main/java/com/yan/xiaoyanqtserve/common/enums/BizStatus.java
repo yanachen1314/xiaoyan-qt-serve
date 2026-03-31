@@ -42,7 +42,6 @@ public enum BizStatus {
 
     //系统内部错误
     ERROR(500, "系统内部错误"),
-    SERVICE_UNAVAILABLE(503, "系统维护中"),
 
     // ======== 自定义业务状态码 ==========
     //接口未实现
@@ -61,7 +60,10 @@ public enum BizStatus {
     KEY_NON_ACTIVATIONS(1507, "密钥激活次数已用完"),
     KEY_NON_USES(1508, "密钥功能使用次数已用完"),
 
-    KEY_ALREADY_ACTIVATED(1509,"密钥已在其他设备激活");
+    KEY_ALREADY_ACTIVATED(1509,"密钥已在其他设备激活"),
+
+    SERVICE_UNAVAILABLE(2001, "系统维护中"),
+    UPDATE_REQUIRED(2002, "强制更新版本");
 
 
     BizStatus(int code, String msg) {
