@@ -52,6 +52,10 @@ public class Constants {
     // 系统维护配置项目的开启状态
     public static final String SYSTEM_MAINTENANCE_STATUS = "system.maintenance.status";
 
+    // 客户端版本缓存KEY
+    public static final String VERSION_KEY = "system.version";
+    // LINK3地址缓存KEY
+    public static final String LINK3_KEY = "system.updateLink";
 
     // HTTPRequest的请求属性  请求日志相关
     // 日志请求ID

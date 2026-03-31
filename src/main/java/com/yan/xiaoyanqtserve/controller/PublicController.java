@@ -1,13 +1,13 @@
 package com.yan.xiaoyanqtserve.controller;
 
+import com.yan.xiaoyanqtserve.common.Constants;
 import com.yan.xiaoyanqtserve.common.annotaions.RateLimiter;
 import com.yan.xiaoyanqtserve.common.dto.adminUser.AdminUserLoginRequest;
 import com.yan.xiaoyanqtserve.common.dto.adminUser.AdminUserResponse;
 import com.yan.xiaoyanqtserve.common.dto.adminUser.PasswordResetRequest;
 import com.yan.xiaoyanqtserve.common.dto.key.KeyActiveDto;
 import com.yan.xiaoyanqtserve.common.enums.RateLimiterType;
-import com.yan.xiaoyanqtserve.common.utils.MainUtil;
-import com.yan.xiaoyanqtserve.common.utils.VersionCheckUtil;
+import com.yan.xiaoyanqtserve.common.utils.*;
 import com.yan.xiaoyanqtserve.common.vo.KeyActiveVo;
 import com.yan.xiaoyanqtserve.common.vo.VersionCheckVo;
 import com.yan.xiaoyanqtserve.common.vo.VersionComparisonResult;
@@ -16,8 +16,6 @@ import com.yan.xiaoyanqtserve.entity.KeyInfo;
 import com.yan.xiaoyanqtserve.filter.SystemModeFilter;
 import com.yan.xiaoyanqtserve.security.AdminUserDetails;
 import com.yan.xiaoyanqtserve.service.AdminUserService;
-import com.yan.xiaoyanqtserve.common.utils.ApiResponse;
-import com.yan.xiaoyanqtserve.common.utils.JwtUtil;
 import com.yan.xiaoyanqtserve.service.SysConfigService;
 import com.yan.xiaoyanqtserve.service.impl.KeyInfoManagerService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -116,14 +114,11 @@ public class PublicController {
     @GetMapping("/check/version/{version}")
     public ApiResponse<VersionCheckVo> autoCheckVersion(@PathVariable("version") String version) {
         // 1. 获取服务器最新版本
-        String versionKey = "system.version";
-        String latestVersion = sysConfigService.getValue(versionKey);
-
-        String linkKey = "system.updateLink";
-        String linkUrl = sysConfigService.getValue(linkKey);
+        String latestVersion = sysConfigService.getValue(Constants.VERSION_KEY);
+        String linkUrl = sysConfigService.getValue(Constants.LINK3_KEY);
 
         if (latestVersion == null || latestVersion.trim().isEmpty()) {
-            log.info("System config key '{}' is missing or empty.", versionKey);
+            log.info("System config key '{}' is missing or empty.", Constants.VERSION_KEY);
             return ApiResponse.success(VersionCheckVo.builder()
                     .version("v0.0.0")
                     .currentVersion(version)
