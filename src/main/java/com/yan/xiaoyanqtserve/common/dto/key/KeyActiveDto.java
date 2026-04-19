@@ -11,6 +11,11 @@ import lombok.Data;
 @Data
 public class KeyActiveDto {
 
+    /**
+     * 设备ID有两种来源
+     * 1. 客户端设备ID是UUID生成的。
+     * 2. WEB端设备ID是用户浏览器设备指纹生成的。
+     */
     @NotBlank(message = "设备ID不能为空")
     private String deviceID;
 }
