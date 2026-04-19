@@ -85,6 +85,7 @@ public class SecurityConfig {
         http
                 // 启用 WebMvc Cors 配置
                 .cors(cors -> {
+                    cors.configurationSource(corsConfigurationSource());
                 })
 
                 // 禁用 表单登录/登出、session管理、csrf防护、匿名身份等默认配置，如果不disable。会默认创建默认filter
