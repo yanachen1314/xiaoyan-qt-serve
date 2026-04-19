@@ -46,8 +46,10 @@ public class SystemModeFilter implements Filter {
             return;
         }
 
-        // 2. 检查是否更新版本（检查维护状态的接口不做处理）
-        if(!requestURI.equals("/api/public/check/maintenance")){
+        // 2. 检查是否更新版本，以下两种情况中任意一种出现均不做处理，直接跳过版本检查
+        // （1）客户端维护状态的心跳检测接口
+        // （2）WEB 端所有接口
+        if(!isMaintenanceRequest(requestURI) && !isWebRequest(httpRequest)){
             String clientVersion = httpRequest.getHeader(Constants.HEADER_CLIENT_VERSION_NAME);
             if (!StringUtils.hasText(clientVersion)) {
                 securityResponseUtil.writeError(httpResponse,
@@ -90,6 +92,16 @@ public class SystemModeFilter implements Filter {
 
         // 正常流程放行
         chain.doFilter(request, response);
+    }
+    // 判断是否为维护请（心跳检测）
+    private boolean isMaintenanceRequest(String requestUri) {
+        return requestUri.equals("/api/public/check/maintenance");
+    }
+
+    // 判断是否为WEB请求
+    private boolean isWebRequest(HttpServletRequest httpRequest){
+        String deviceType = httpRequest.getHeader(Constants.HEADER_DEVICE_NAME);
+        return "WEB".equalsIgnoreCase(deviceType);
     }
 
     // 白名单路径（按需扩展）
