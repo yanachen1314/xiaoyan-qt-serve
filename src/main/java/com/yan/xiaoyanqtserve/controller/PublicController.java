@@ -64,6 +64,7 @@ public class PublicController {
     public ApiResponse<KeyActiveVo> activateKey(@Valid @RequestBody KeyActiveDto keyActiveDto,
                                                 HttpServletRequest request) {
         String apiKeyFromHeader = MainUtil.extractApiKeyFromHeader(request);
+        log.debug("Key activated: {} for device {}", apiKeyFromHeader, keyActiveDto.getDeviceID());
         if(apiKeyFromHeader == null){
             return ApiResponse.fail("API密钥不能为空");
         }
