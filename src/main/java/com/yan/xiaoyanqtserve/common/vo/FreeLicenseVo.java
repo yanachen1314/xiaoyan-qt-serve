@@ -23,7 +23,4 @@ public class FreeLicenseVo {
      * 申请的免费密钥
      */
     private String licenseKey;
-
-
-    private String expireTime;
 }

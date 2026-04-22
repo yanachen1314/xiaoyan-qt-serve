@@ -172,13 +172,26 @@ public class PublicController {
      * @return 提示信息
      */
     @PostMapping("/freeLicense")
-    public ApiResponse<FreeLicenseVo> sendMailRoundRobin(@RequestBody FreeLicenseDto freeLicenseDto) {
-        mailService.sendHtmlMail(null, freeLicenseDto.getEmail(),
-                "免费密钥", "这是一封通过轮询策略发送的免费密钥邮件");
-        return ApiResponse.success("免费密钥已发送", FreeLicenseVo.builder()
-                .email(freeLicenseDto.getEmail())
-                .licenseKey("FREE-KEY-123456")
-                .build());
+    public ApiResponse<FreeLicenseVo> sendMailRoundRobin(@Valid @RequestBody FreeLicenseDto freeLicenseDto) {
+
+        try {
+            // 生成一个免费密钥（5分钟）
+
+            // 发送提醒邮箱
+            mailService.sendFreeLicenseEmail(freeLicenseDto.getEmail(), "FREE-KEY-123456");
+
+            // 返回结果
+            return ApiResponse.success("免费密钥申请成功", FreeLicenseVo.builder()
+                    .email(freeLicenseDto.getEmail())
+                    .licenseKey("FREE-KEY-123456")
+                    .build());
+        } catch (Exception e) {
+            return ApiResponse.fail("免费密钥申请失败", FreeLicenseVo.builder()
+                    .email(freeLicenseDto.getEmail())
+                    .licenseKey("FREE-KEY-123456")
+                    .build());
+        }
+
     }
 
 

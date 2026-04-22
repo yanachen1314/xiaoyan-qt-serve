@@ -1,6 +1,7 @@
 package com.yan.xiaoyanqtserve.common.dto;
 
 import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -18,5 +19,6 @@ public class FreeLicenseDto {
      * 申请者邮箱
      */
     @Email(message = "邮箱格式不正确")
+    @NotBlank(message = "邮箱不能为空")
     private String email;
 }

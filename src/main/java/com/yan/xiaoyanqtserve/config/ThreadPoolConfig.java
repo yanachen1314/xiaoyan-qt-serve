@@ -53,7 +53,7 @@ public class ThreadPoolConfig {
         executor.setCorePoolSize(CORE_POOL_SIZE);
         executor.setMaxPoolSize(CORE_POOL_SIZE * 2);
         executor.setQueueCapacity(100);
-        executor.setThreadNamePrefix("AsyncMail-");
+        executor.setThreadNamePrefix("AsyncEmail-");
         executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
         executor.initialize();
         return executor;
