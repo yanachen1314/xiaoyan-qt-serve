@@ -49,7 +49,8 @@ CREATE TABLE `mail_send_record` (
 -- ----------------------------
 -- 初始化示例数据（可选，根据实际情况添加）
 -- ----------------------------
--- INSERT INTO `mail_account` (`email_address`, `host`, `port`, `password`, `protocol`, `ssl_enable`, `status`, `daily_limit`, `priority`, `remark`) 
--- VALUES 
--- ('2742015729@qq.com', 'smtp.qq.com', 465, 'your_qq_authorization_code', 'smtp', 1, 1, 500, 0, 'QQ邮箱主账号'),
--- ('xiaoyanai888@163.com', 'smtp.163.com', 465, 'your_163_authorization_code', 'smtp', 1, 1, 500, 1, '163邮箱备用账号');
+INSERT INTO `mail_account` (`email_address`, `host`, `port`, `password`, `password_create_time`, `protocol`, `ssl_enable`, `status`, `daily_limit`, `priority`, `remark`) 
+VALUES 
+('284257280@qq.com', 'smtp.qq.com', 465, 'ldnkohaquidwcbah', NOW(), 'smtp', 1, 1, 500, 0, 'QQ邮箱主账号'),
+('443421279@qq.com', 'smtp.qq.com', 465, 'lrmdkqqarzjfcadb', NOW(), 'smtp', 1, 1, 500, 1, 'QQ邮箱备用账号'),
+('xiaoyanai888@163.com', 'smtp.163.com', 465, 'BNrwt6dAuBCPa7iN', NOW(), 'smtp', 1, 1, 500, 2, '163邮箱备用账号');
