@@ -24,3 +24,14 @@ spring:
           max-idle: 8
           min-idle: 2
           max-wait: 2000
+
+  # ========= 邮箱配置 =========
+  mail:
+    properties:
+      mail:
+        debug: false # 关闭邮件调试
+
+# ===================== 日志配置 =======================
+logging:
+  level:
+    com.yan.xiaoyanqtserve: info

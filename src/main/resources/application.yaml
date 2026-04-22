@@ -30,12 +30,10 @@ spring:
     protocol: smtp
     properties:
       mail:
-        debug: true # 开启邮件调试
         smtp:
           auth: true
           ssl:
             enable: true
-
 server:
   # HTTP请求、响应头信息的最大大小
   port: ${SERVER_PORT:8080}
