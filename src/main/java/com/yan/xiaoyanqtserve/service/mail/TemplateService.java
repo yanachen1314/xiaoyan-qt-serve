@@ -120,6 +120,7 @@ public class TemplateService {
         context.setVariable("title", "免费卡密");
         context.setVariable("to", to);
         context.setVariable("license", license);
+        context.setVariable("website", Constants.WEB_DOMAIN);
 
         return templateEngine.process(TEMPLATE_PATH + MailTemplateEnum.FREE_LICENSE.getName(), context);
     }
