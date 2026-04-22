@@ -25,7 +25,7 @@ public class ThreadPoolConfig {
         executor.setCorePoolSize(CORE_POOL_SIZE);  // 根据模型服务能力调整
         executor.setMaxPoolSize(CORE_POOL_SIZE * 2);   // 最大线程数，根据需要调整
         executor.setQueueCapacity(500);
-        executor.setThreadNamePrefix("Aigc-model-");
+        executor.setThreadNamePrefix("AigcModel-");
         executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
         executor.initialize();
         return executor;
@@ -42,6 +42,19 @@ public class ThreadPoolConfig {
         executor.setMaxPoolSize(CORE_POOL_SIZE * 2);  // 最大线程数
         executor.setQueueCapacity(100); // 队列大小
         executor.setThreadNamePrefix("AsyncLog-"); // 线程名前缀
+        executor.initialize();
+        return executor;
+    }
+
+
+    @Bean(name = "mailTaskExecutor")
+    public Executor mailTaskExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(CORE_POOL_SIZE);
+        executor.setMaxPoolSize(CORE_POOL_SIZE * 2);
+        executor.setQueueCapacity(100);
+        executor.setThreadNamePrefix("AsyncMail-");
+        executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
         executor.initialize();
         return executor;
     }
