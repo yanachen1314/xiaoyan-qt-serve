@@ -27,6 +27,11 @@ spring:
     time-zone: GMT+8
 
   # ======= 系统邮箱配置 =======
+#  host: smtp.163.com
+#  username: xiaoyanai888@163.com
+#  password: BNrwt6dAuBCPa7iN
+#  # 授权密码启用时间，超过180天后需要重新授权
+#  pwd-active-time: 2025-11-29
   mail:
     host: smtp.qq.com
     username: 2742015729@qq.com
