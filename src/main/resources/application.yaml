@@ -4,6 +4,11 @@ xiaoyan:
     # 卡密加密密钥
     key: ${LICENSE_KEY:P9X7M2K4ZQ8F1T6W3R5N0A8L2Y7B4C9D6E1H5J3U8V2S4}
 
+server:
+  # HTTP请求、响应头信息的最大大小
+  port: ${SERVER_PORT:8080}
+  max-http-request-header-size: 102400
+
 # ===================== spring 配置 =======================
 spring:
   application:
@@ -34,10 +39,6 @@ spring:
           auth: true
           ssl:
             enable: true
-server:
-  # HTTP请求、响应头信息的最大大小
-  port: ${SERVER_PORT:8080}
-  max-http-request-header-size: 102400
 
 # ===================== mybatis-plus 配置 =======================
 mybatis-plus:
