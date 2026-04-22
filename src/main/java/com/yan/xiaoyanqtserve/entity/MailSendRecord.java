@@ -32,29 +32,53 @@ public class MailSendRecord implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
+    /**
+     * 主键ID
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 邮箱地址
+     */
     @TableField("email_address")
     private String emailAddress;
 
+    /**
+     * 发送日期
+     */
     @TableField("send_date")
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private LocalDate sendDate;
 
+    /**
+     * 发送数量
+     */
     @TableField("send_count")
     private Integer sendCount;
 
+    /**
+     * 成功数量
+     */
     @TableField("success_count")
     private Integer successCount;
 
+    /**
+     * 失败数量
+     */
     @TableField("fail_count")
     private Integer failCount;
 
+    /**
+     * 创建时间
+     */
     @TableField("created_time")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private LocalDateTime createdTime;
 
+    /**
+     * 更新时间
+     */
     @TableField("updated_time")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private LocalDateTime updatedTime;

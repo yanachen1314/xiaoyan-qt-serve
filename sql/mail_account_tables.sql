@@ -14,6 +14,7 @@ CREATE TABLE `mail_account` (
   `host` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT 'SMTP服务器地址',
   `port` int NOT NULL COMMENT 'SMTP端口',
   `password` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '邮箱密码/授权码',
+  `password_create_time` datetime DEFAULT NULL COMMENT '密码或授权码创建时间',
   `protocol` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT 'smtp' COMMENT '协议类型',
   `ssl_enable` tinyint DEFAULT 1 COMMENT '是否启用SSL: 0-否, 1-是',
   `status` tinyint DEFAULT 1 COMMENT '状态: 0-禁用, 1-启用',
