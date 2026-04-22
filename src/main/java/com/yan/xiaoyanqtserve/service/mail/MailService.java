@@ -109,8 +109,15 @@ public class MailService {
             helper.setText(htmlContent, true);
             javaMailSender.send(message);
         } catch (Exception e) {
-            log.error("发送邮件异常：{}", e.getMessage(), e);
-            throw new BizException("发送邮件异常");
+            // log.error("发送邮件异常：{}", e.getMessage(), e);
+            log.error("发送邮件异常：{}", e.getMessage());
+            if (e.getMessage().contains("550") || e.getMessage().contains("non-existent account")) {
+                throw new BizException("请检查收件人邮箱账号是否正确");
+            }else if (e.getMessage().contains("Authentication failed") || e.getMessage().contains("invalid authentication")) {
+                throw new BizException("请检查系统邮箱账号密码是否正确");
+            }else {
+                throw new BizException("发送邮件异常");
+            }
         }
     }
 }

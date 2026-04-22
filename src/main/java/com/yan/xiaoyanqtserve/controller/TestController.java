@@ -23,6 +23,6 @@ public class TestController {
 
     @GetMapping("/sendMail")
     public void sendMail() {
-        mailService.sendHtmlMail("2742015729@qq.com", "4434212729@qq.com", "测试邮件", "测试邮件");
+        mailService.sendHtmlMail("2742015729@qq.com", "443421279@qq.com", "测试邮件", "测试邮件");
     }
 }
