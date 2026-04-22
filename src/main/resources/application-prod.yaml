@@ -30,6 +30,12 @@ spring:
     properties:
       mail:
         debug: false # 关闭邮件调试
+  # ===================== Thymeleaf 模板配置 (生产环境) =====================
+  thymeleaf:
+    cache: true # 生产环境开启缓存以提高性能
+    encoding: UTF-8
+    suffix: .html
+    mode: HTML
 
 # ===================== 日志配置 =======================
 logging:

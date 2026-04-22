@@ -186,6 +186,7 @@ public class PublicController {
                     .licenseKey("FREE-KEY-123456")
                     .build());
         } catch (Exception e) {
+            log.error(e.getMessage(), e);
             return ApiResponse.fail("免费密钥申请失败", FreeLicenseVo.builder()
                     .email(freeLicenseDto.getEmail())
                     .build());
