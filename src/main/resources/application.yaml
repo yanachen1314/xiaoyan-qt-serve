@@ -20,6 +20,7 @@ spring:
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
     time-zone: GMT+8
+
   # ======= 系统邮箱配置 =======
   mail:
     host: smtp.qq.com
@@ -34,6 +35,7 @@ spring:
           auth: true
           ssl:
             enable: true
+
 server:
   # HTTP请求、响应头信息的最大大小
   port: ${SERVER_PORT:8080}
