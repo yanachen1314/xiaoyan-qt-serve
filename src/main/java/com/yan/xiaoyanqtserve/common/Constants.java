@@ -74,4 +74,13 @@ public class Constants {
     public static final String ATTRIBUTE_BIZ_CODE = "BIZ_CODE";
     // 响应消息
     public static final String ATTRIBUTE_RESPONSE_MESSAGE = "RESPONSE_MESSAGE";
+
+    // 邮件账号发送统计前缀: mail:send:count:{date}:{emailAddress}
+    public static final String MAIL_SEND_COUNT_PREFIX = "mail:send:count:";
+    // 邮件账号发送成功统计前缀
+    public static final String MAIL_SEND_SUCCESS_PREFIX = "mail:send:success:";
+    // 邮件账号发送失败统计前缀
+    public static final String MAIL_SEND_FAIL_PREFIX = "mail:send:fail:";
+    // 邮件账号轮询索引Key
+    public static final String MAIL_ACCOUNT_ROUND_ROBIN_KEY = "mail:account:round_robin";
 }
