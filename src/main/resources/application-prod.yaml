@@ -1,6 +1,6 @@
 # 自定义配置
 host:
-  # 直接通过服务器本机访问：MySQL、Redis、RabbitMQ、Minio、Bitiful预签名API
+  # 直接通过服务器本机访问：MySQL、Redis
   localhost: 127.0.0.1
 
 spring:
