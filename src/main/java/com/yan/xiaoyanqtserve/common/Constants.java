@@ -29,6 +29,9 @@ public class Constants {
     // 网站域名
     public static final String WEB_DOMAIN = "https://ai.xygo.cn";
 
+    // 购买卡密外链地址
+    public static final String SHOP_URL = "https://pay.ldxp.cn/shop/xiaoyanai";
+
     // 定义Header名称常量
     public static final String HEADER_KEY_NAME = "X-API-Key";
     public static final String HEADER_CLIENT_VERSION_NAME = "X-Client-Version";

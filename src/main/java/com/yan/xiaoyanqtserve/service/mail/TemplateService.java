@@ -121,6 +121,7 @@ public class TemplateService {
         context.setVariable("to", to);
         context.setVariable("license", license);
         context.setVariable("website", Constants.WEB_DOMAIN);
+        context.setVariable("shopUrl", Constants.SHOP_URL);
 
         return templateEngine.process(TEMPLATE_PATH + MailTemplateEnum.FREE_LICENSE.getName(), context);
     }
