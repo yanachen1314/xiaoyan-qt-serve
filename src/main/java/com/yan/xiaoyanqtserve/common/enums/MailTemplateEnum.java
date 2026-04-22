@@ -10,7 +10,7 @@ import lombok.Getter;
 @Getter
 public enum MailTemplateEnum {
     // 验证码邮件通知模板
-    VERIFY_CODE("VerifyCode1"),
+    VERIFY_CODE("VerifyCode"),
 
     // 欢迎邮件通知模板
     WELCOME("Welcome"),
