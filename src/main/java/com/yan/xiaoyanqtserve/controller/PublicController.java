@@ -2,6 +2,8 @@ package com.yan.xiaoyanqtserve.controller;
 
 import com.yan.xiaoyanqtserve.common.Constants;
 import com.yan.xiaoyanqtserve.common.annotaions.RateLimiter;
+import com.yan.xiaoyanqtserve.common.dto.FreeLicenseDto;
+import com.yan.xiaoyanqtserve.common.vo.FreeLicenseVo;
 import com.yan.xiaoyanqtserve.common.dto.adminUser.AdminUserLoginRequest;
 import com.yan.xiaoyanqtserve.common.dto.adminUser.AdminUserResponse;
 import com.yan.xiaoyanqtserve.common.dto.adminUser.PasswordResetRequest;
@@ -18,6 +20,7 @@ import com.yan.xiaoyanqtserve.security.AdminUserDetails;
 import com.yan.xiaoyanqtserve.service.AdminUserService;
 import com.yan.xiaoyanqtserve.service.SysConfigService;
 import com.yan.xiaoyanqtserve.service.impl.KeyInfoManagerService;
+import com.yan.xiaoyanqtserve.service.mail.MailService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -51,6 +54,8 @@ public class PublicController {
     private final KeyInfoManagerService managerService;
 
     private final SysConfigService sysConfigService;
+
+    private final MailService mailService;
 
     /**
      * 密钥激活接口
@@ -156,6 +161,26 @@ public class PublicController {
     public ApiResponse<Map<String,Object>> checkMaintenance() {
         return ApiResponse.success("系统运行正常", Map.of("status", false));
     }
+
+
+    /**
+     * 免费密钥申请接口
+     * <p>
+     * 邮箱轮询发送免费密钥
+     * </p>
+     * @param freeLicenseDto 包含收件人邮箱的参数
+     * @return 提示信息
+     */
+    @PostMapping("/freeLicense")
+    public ApiResponse<FreeLicenseVo> sendMailRoundRobin(@RequestBody FreeLicenseDto freeLicenseDto) {
+        mailService.sendHtmlMail(null, freeLicenseDto.getEmail(),
+                "免费密钥", "这是一封通过轮询策略发送的免费密钥邮件");
+        return ApiResponse.success("免费密钥已发送", FreeLicenseVo.builder()
+                .email(freeLicenseDto.getEmail())
+                .licenseKey("FREE-KEY-123456")
+                .build());
+    }
+
 
 
     /**

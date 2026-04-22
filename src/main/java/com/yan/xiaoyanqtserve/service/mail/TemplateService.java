@@ -107,4 +107,20 @@ public class TemplateService {
 
         return templateEngine.process(TEMPLATE_PATH + MailTemplateEnum.PWD_RESET.getName(), context);
     }
+
+    /**
+     * 生成免费授权码邮件模板
+     *
+     * @param to    收件人
+     * @param license 授权码/卡密
+     * @return HTML字符串
+     */
+    public String generateFreeLicenseTemplate(String to, String license) {
+        Context context = new Context();
+        context.setVariable("title", "免费卡密");
+        context.setVariable("to", to);
+        context.setVariable("license", license);
+
+        return templateEngine.process(TEMPLATE_PATH + MailTemplateEnum.FREE_LICENSE.getName(), context);
+    }
 }

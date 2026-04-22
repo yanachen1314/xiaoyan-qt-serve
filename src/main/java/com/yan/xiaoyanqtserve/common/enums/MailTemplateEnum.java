@@ -18,6 +18,9 @@ public enum MailTemplateEnum {
     // 密码重置邮件通知模板
     PWD_RESET("PwdReset"),
 
+    // 免费授权码邮件通知模板
+    FREE_LICENSE("FreeLicense"),
+
     // 网易邮箱授权码重置邮件通知模板
     NETEASE_AUTH_CODE_RESET("NeteaseAuthCodeReset");
 

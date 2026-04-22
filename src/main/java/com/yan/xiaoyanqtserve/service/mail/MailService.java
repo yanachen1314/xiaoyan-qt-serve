@@ -95,6 +95,16 @@ public class MailService {
     }
 
     /**
+     * 免费卡密邮件模板
+     * @param to 收件人
+     * @param license 卡密
+     */
+    public void sendFreeLicenseEmail(String to, String license) {
+        String htmlContent = templateService.generateFreeLicenseTemplate(to,license);
+        sendHtmlMail(null, to, "免费卡密", htmlContent);
+    }
+
+    /**
      * 通用的发送HTML邮件方法（支持多账号轮询）
      * @param from 邮件发送者，如果为null则使用轮询策略选择发送账号
      * @param to 收件人

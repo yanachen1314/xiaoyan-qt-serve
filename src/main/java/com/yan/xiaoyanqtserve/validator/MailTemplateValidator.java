@@ -26,8 +26,7 @@ public class MailTemplateValidator implements CommandLineRunner {
      * @throws IllegalStateException 如果模板文件不存在
      */
     private void validateTemplates() {
-        log.info("🔍 开始校验邮件模板一致性...");
-        
+
         for (MailTemplateEnum template : MailTemplateEnum.values()) {
             String path = "classpath:templates/mail/" + template.getName() + ".html";
             Resource resource = resourceLoader.getResource(path);
@@ -39,6 +38,6 @@ public class MailTemplateValidator implements CommandLineRunner {
                 );
             }
         }
-        log.info("✅ 邮件模板校验通过，共 {} 个模板。", MailTemplateEnum.values().length);
+        log.info("✅ 邮件模板名称一致性校验通过，共 {} 个模板。", MailTemplateEnum.values().length);
     }
 }
