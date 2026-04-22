@@ -40,3 +40,5 @@ mybatis-plus:
   config-location: classpath:mybatis-config.xml
   global-config:
     banner: false
+
+# ======= 系统邮箱配置 =======

@@ -45,7 +45,7 @@ public class ApiKeyController {
      * @param aigcRequestDto AI处理参数
      * @return 处理结果
      */
-    @RateLimiter(key = "active", time = 1, count = 2, limitBy = RateLimiterType.API_KEY)
+    @RateLimiter(key = "active", time = 1, count = 1, limitBy = RateLimiterType.API_KEY)
     @PostMapping("/deal/text")
     public ApiResponse<AigcResponseVo> aigcDealText(
             HttpServletRequest request, @Valid @RequestBody AigcRequestDto aigcRequestDto) {
