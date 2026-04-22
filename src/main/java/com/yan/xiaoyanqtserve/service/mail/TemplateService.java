@@ -1,6 +1,8 @@
 package com.yan.xiaoyanqtserve.service.mail;
 
 
+import com.yan.xiaoyanqtserve.common.Constants;
+import com.yan.xiaoyanqtserve.common.enums.MailTemplateEnum;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;

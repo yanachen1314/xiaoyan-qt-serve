@@ -25,6 +25,10 @@ public class Constants {
     // 是否允许CORS跨域携带 Cookie
     public static final Boolean CORS_allowCredentials = true;
 
+
+    // 网站域名
+    public static final String WEB_DOMAIN = "https://ai.xygo.cn";
+
     // 定义Header名称常量
     public static final String HEADER_KEY_NAME = "X-API-Key";
     public static final String HEADER_CLIENT_VERSION_NAME = "X-Client-Version";
