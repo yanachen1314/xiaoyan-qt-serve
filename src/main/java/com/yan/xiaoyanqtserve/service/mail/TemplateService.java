@@ -18,7 +18,7 @@ import java.util.Map;
 public class TemplateService {
 
     // 邮件模版路径：resources/templates/mail/*
-    private static final String TEMPLATE_PATH = "templates/mail/";
+    private static final String TEMPLATE_PATH = "mail/";
 
     @Resource
     private TemplateEngine templateEngine;

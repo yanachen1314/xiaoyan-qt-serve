@@ -37,7 +37,7 @@ public class MultiMailSenderConfig implements ApplicationRunner {
     public void run(ApplicationArguments args) throws Exception {
         log.info("开始初始化邮件发送器...");
         reloadMailSenders();
-        log.info("邮件发送器初始化完成，共加载 {} 个邮箱账号", mailSenderMap.size());
+        log.info("✅ 邮件发送器初始化完成，共加载 {} 个邮箱账号", mailSenderMap.size());
     }
 
     /**
