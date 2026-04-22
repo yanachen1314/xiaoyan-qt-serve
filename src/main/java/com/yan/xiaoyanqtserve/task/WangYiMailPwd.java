@@ -1,4 +1,4 @@
-package com.yan.xiaoyanqtserve.scheduling;
+package com.yan.xiaoyanqtserve.task;
 
 import com.yan.xiaoyanqtserve.service.mail.MailService;
 import jakarta.annotation.Resource;
@@ -15,7 +15,7 @@ import java.time.temporal.ChronoUnit;
  * @since 2025/11/29 15:49
  */
 @Slf4j
-public class MainScheduling {
+public class WangYiMailPwd {
 
     // 授权码激活时间，格式：yyyy-MM-dd
     @Value("${spring.mail.pwd-active-time}")
