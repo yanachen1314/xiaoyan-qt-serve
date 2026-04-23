@@ -186,9 +186,6 @@ public class PublicController {
 
             // 2. 从卡密池中获取一个未使用的免费卡密
             String licenseKey = managerService.getUnusedFreeKeyFromPool();
-            if (licenseKey == null) {
-                return ApiResponse.fail("免费卡密已领完，请关注后续活动");
-            }
 
             // 3. 发送邮件
             mailService.sendFreeLicenseEmail(email, licenseKey);

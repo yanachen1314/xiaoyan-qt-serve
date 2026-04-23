@@ -405,13 +405,17 @@ public class KeyInfoManagerService {
         Object freeKeyValueObj = redisUtil.sPop(Constants.FREE_KEY_POOL);
         
         if (freeKeyValueObj == null) {
-            throw new BizException("免费密钥池已空，请联系管理员补充！");
+            throw new BizException("免费密钥池已空，请联系客服补充！");
         }
         
         String freeKeyValue = freeKeyValueObj.toString();
 
         // 通过密钥值更新密钥信息（已售出）
-        keyInfoService.updateKeyInfoSelledByValue(freeKeyValue, true);
+        try {
+            keyInfoService.updateKeyInfoSelledByValue(freeKeyValue, true);
+        } catch (Exception e) {
+            log.error("【分发免费密钥】更新密钥信息失败，密钥值: {}", freeKeyValue);
+        }
 
         // 增加今日发放计数
         String today = LocalDate.now().toString();
