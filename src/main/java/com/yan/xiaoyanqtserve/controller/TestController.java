@@ -4,6 +4,7 @@ import com.yan.xiaoyanqtserve.config.MultiMailSenderConfig;
 import com.yan.xiaoyanqtserve.entity.MailAccount;
 import com.yan.xiaoyanqtserve.service.mail.MailAccountService;
 import com.yan.xiaoyanqtserve.service.mail.MailService;
+import com.yan.xiaoyanqtserve.task.MailSendRecordSyncTask;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
@@ -31,6 +32,7 @@ public class TestController {
     private final MailService mailService;
     private final MailAccountService mailAccountService;
     private final MultiMailSenderConfig multiMailSenderConfig;
+    private final MailSendRecordSyncTask mailSendRecordSyncTask;
 
     @GetMapping("/sendMail")
     public String sendMail() {
@@ -82,6 +84,46 @@ public class TestController {
         }
         result.put("accounts", accountStats);
         
+        return result;
+    }
+
+    /**
+     * 测试接口：手动触发邮件发送统计同步任务
+     * @return 任务执行结果
+     */
+    @GetMapping("/syncMailRecords")
+    public Map<String, Object> syncMailRecords() {
+        Map<String, Object> result = new HashMap<>();
+        try {
+            log.info("手动触发邮件发送统计同步任务");
+            mailSendRecordSyncTask.syncYesterdayRecords();
+            result.put("success", true);
+            result.put("message", "邮件发送统计同步任务执行完成");
+        } catch (Exception e) {
+            log.error("邮件发送统计同步任务执行失败", e);
+            result.put("success", false);
+            result.put("message", "任务执行失败: " + e.getMessage());
+        }
+        return result;
+    }
+
+    /**
+     * 测试接口：手动触发免费密钥池重置和补充任务
+     * @return 任务执行结果
+     */
+    @GetMapping("/resetFreeKeyPool")
+    public Map<String, Object> resetFreeKeyPool() {
+        Map<String, Object> result = new HashMap<>();
+        try {
+            log.info("手动触发免费密钥池重置和补充任务");
+            mailSendRecordSyncTask.resetDailyFreeKeyCountAndReplenishPool();
+            result.put("success", true);
+            result.put("message", "免费密钥池重置和补充任务执行完成");
+        } catch (Exception e) {
+            log.error("免费密钥池重置和补充任务执行失败", e);
+            result.put("success", false);
+            result.put("message", "任务执行失败: " + e.getMessage());
+        }
         return result;
     }
 }
