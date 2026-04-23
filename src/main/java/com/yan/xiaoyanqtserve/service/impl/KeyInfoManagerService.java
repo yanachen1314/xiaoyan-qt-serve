@@ -410,12 +410,8 @@ public class KeyInfoManagerService {
         
         String freeKeyValue = freeKeyValueObj.toString();
 
-        // 通过密钥值获取密钥信息
-        KeyInfo unusedFreeKey = keyInfoService.getByKeyValue(freeKeyValue);
-        if (unusedFreeKey == null) {
-            log.error("从密钥池中获取的密钥值不存在: {}", freeKeyValue);
-            throw new BizException("免费密钥不存在");
-        }
+        // 通过密钥值更新密钥信息（已售出）
+        keyInfoService.updateKeyInfoSelledByValue(freeKeyValue, true);
 
         // 增加今日发放计数
         String today = LocalDate.now().toString();
