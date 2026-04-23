@@ -27,11 +27,6 @@ spring:
     time-zone: GMT+8
 
   # ======= 系统邮箱配置 =======
-#  host: smtp.163.com
-#  username: xiaoyanai888@163.com
-#  password: BNrwt6dAuBCPa7iN
-#  # 授权密码启用时间，超过180天后需要重新授权
-#  pwd-active-time: 2025-11-29
   mail:
     host: smtp.qq.com
     username: 2742015729@qq.com
@@ -44,6 +39,12 @@ spring:
           auth: true
           ssl:
             enable: true
+
+    safety_limits:
+      daily_total_max: ${SAFETY_LIMITS_DAILY_TOTAL_MAX:100}          # 日发送上限总额
+      main_hourly_max: ${SAFETY_LIMITS_MAIN_HOURLY_MAX:50}           # 单邮箱每小时上限
+      main_minute_rate: ${SAFETY_LIMITS_MAIN_MINUTE_RATE:6}           # 单邮箱每分钟 6 封（安全余量）
+      main_retry_after_bounce: ${SAFETY_LIMITS_MAIN_RETRY_AFTER_BOUNCE:0.1}  # 单邮箱退信率 > 10% 立即降级
 
 # ===================== mybatis-plus 配置 =======================
 mybatis-plus:
