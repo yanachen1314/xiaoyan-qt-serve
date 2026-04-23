@@ -395,36 +395,34 @@ public class KeyInfoManagerService {
      * 从密钥池中获取一个未使用的免费密钥
      * @return 未使用的免费密钥
      */
-    public KeyInfo getUnusedFreeKeyFromPool() {
-        String today = LocalDate.now().toString();
-        
+    public String getUnusedFreeKeyFromPool() {
         // 判断今日是否已经发出指定数量的免费密钥
         if(isTodayFreeKeyLimitReached()) {
             throw new BizException("今日免费密钥已发完了，明天早点来哦！");
         }
 
-        // 从redis中的免费密钥池（ID列表）获取一个未使用的密钥ID
-        String poolKey = Constants.FREE_KEY_POOL + today;
-        Object freeKeyIdObj = redisUtil.sPop(poolKey);
+        // 从redis中的免费密钥池（密钥值列表，公共池）获取一个未使用的密钥值
+        Object freeKeyValueObj = redisUtil.sPop(Constants.FREE_KEY_POOL);
         
-        if (freeKeyIdObj == null) {
+        if (freeKeyValueObj == null) {
             throw new BizException("免费密钥池已空，请联系管理员补充！");
         }
         
-        Long unusedFreeKeyId = Long.parseLong(freeKeyIdObj.toString());
+        String freeKeyValue = freeKeyValueObj.toString();
 
-        // 通过ID获取密钥信息
-        KeyInfo unusedFreeKey = keyInfoService.getById(unusedFreeKeyId);
+        // 通过密钥值获取密钥信息
+        KeyInfo unusedFreeKey = keyInfoService.getByKeyValue(freeKeyValue);
         if (unusedFreeKey == null) {
-            log.error("从密钥池中获取的密钥ID不存在: {}", unusedFreeKeyId);
+            log.error("从密钥池中获取的密钥值不存在: {}", freeKeyValue);
             throw new BizException("免费密钥不存在");
         }
 
         // 增加今日发放计数
+        String today = LocalDate.now().toString();
         String countKey = Constants.FREE_KEY_DAILY_COUNT + today;
         redisUtil.incr(countKey, 1);
 
-        return unusedFreeKey;
+        return freeKeyValue;
     }
 
     /**

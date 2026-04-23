@@ -48,4 +48,11 @@ public interface ProductTypeService extends IService<ProductType> {
      * @param id 产品类型id
      */
     void deleteById(Long id);
+
+    /**
+     * 根据产品编码获取产品类型
+     * @param freeKeyProductCode 产品编码
+     * @return 产品详情
+     */
+    ProductType getByProductCode(String freeKeyProductCode);
 }

@@ -87,8 +87,12 @@ public class Constants {
     // 邮件账号轮询索引Key
     public static final String MAIL_ACCOUNT_ROUND_ROBIN_KEY = "mail:account:round_robin";
 
-    // 免费密钥池（存储免费密钥ID的Set集合）
-    public static final String FREE_KEY_POOL = "free_key:pool:";
+    // 邮箱免费密钥池（存储免费密钥ID的Set集合，公共池）
+    public static final String FREE_KEY_POOL = "free_key:pool";
     // 今日免费密钥发放数量统计
     public static final String FREE_KEY_DAILY_COUNT = "free_key:daily_count:";
+    // 邮箱免费密钥的使用场景标识
+    public static final String FREE_KEY_USAGE_TYPE = "apikey.usageType.emailFree";
+    // 邮箱免费密钥的产品码
+    public static final String FREE_KEY_PRODUCT_CODE = "EMAIL_FREE_KEY";
 }

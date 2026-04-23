@@ -112,4 +112,20 @@ public class ProductTypeServiceImpl extends ServiceImpl<ProductTypeMapper, Produ
         productTypeMapper.deleteById(id);
         redisUtil.delete(CACHE_KEY + id);
     }
+
+    /**
+     * 根据产品编码获取产品类型（模糊搜索）
+     * @param freeKeyProductCode 产品编码
+     * @return 产品详情
+     */
+    @Override
+    public ProductType getByProductCode(String freeKeyProductCode) {
+        LambdaQueryWrapper<ProductType> queryWrapper = new LambdaQueryWrapper<>();
+        // 添加查询条件
+        if (StringUtils.hasText(freeKeyProductCode)) {
+            queryWrapper.like(ProductType::getProductCode, freeKeyProductCode);
+        }
+        return this.getOne(queryWrapper);
+    }
+
 }
