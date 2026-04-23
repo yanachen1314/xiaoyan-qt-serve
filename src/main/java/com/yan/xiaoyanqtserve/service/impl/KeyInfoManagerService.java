@@ -7,6 +7,7 @@ import com.yan.xiaoyanqtserve.common.dto.key.ValidationResult;
 import com.yan.xiaoyanqtserve.common.enums.BizStatus;
 import com.yan.xiaoyanqtserve.common.utils.LicenseKeyGenerator;
 import com.yan.xiaoyanqtserve.common.utils.RedisLockUtil;
+import com.yan.xiaoyanqtserve.config.MailSafetyLimitsConfig;
 import com.yan.xiaoyanqtserve.entity.KeyInfo;
 import com.yan.xiaoyanqtserve.common.exception.BizException;
 import com.yan.xiaoyanqtserve.entity.ProductType;
@@ -37,6 +38,7 @@ public class KeyInfoManagerService {
     private final ProductTypeService productTypeService;
 
     private final RedisLockUtil redisLockUtil;
+    private final MailSafetyLimitsConfig mailSafetyLimitsConfig;
 
 
     /**
@@ -383,5 +385,30 @@ public class KeyInfoManagerService {
         } finally {
             redisLockUtil.unlock(lockKey);
         }
+    }
+
+
+    /**
+     * 从密钥池中获取一个未使用的免费密钥
+     * @return 未使用的免费密钥
+     */
+    public KeyInfo getUnusedFreeKeyFromPool() {
+        // 判断今日是否已经发出指定数量的免费密钥
+        if(isTodayFreeKeyLimitReached()) {
+            throw new BizException("今日免费密钥已发完了，明天早点来哦！");
+        }
+
+
+        // 从redis中的免费密钥池（ID列表）获取一个未使用的密钥ID
+        Long unusedFreeKeyId = null;
+
+        // 通过ID获取密钥信息
+        KeyInfo unusedFreeKey = keyInfoService.getById(unusedFreeKeyId);
+
+        return null;
+    }
+
+    private boolean isTodayFreeKeyLimitReached() {
+        return false;
     }
 }

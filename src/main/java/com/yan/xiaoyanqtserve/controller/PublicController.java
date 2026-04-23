@@ -19,7 +19,6 @@ import com.yan.xiaoyanqtserve.filter.SystemModeFilter;
 import com.yan.xiaoyanqtserve.security.AdminUserDetails;
 import com.yan.xiaoyanqtserve.service.AdminUserService;
 import com.yan.xiaoyanqtserve.service.FreeLicenseService;
-import com.yan.xiaoyanqtserve.service.KeyInfoService;
 import com.yan.xiaoyanqtserve.service.SysConfigService;
 import com.yan.xiaoyanqtserve.service.impl.KeyInfoManagerService;
 import com.yan.xiaoyanqtserve.service.mail.MailService;
@@ -60,8 +59,6 @@ public class PublicController {
     private final MailService mailService;
 
     private final FreeLicenseService freeLicenseService;
-
-    private final KeyInfoService keyInfoService;
 
     /**
      * 密钥激活接口
@@ -188,7 +185,7 @@ public class PublicController {
             }
 
             // 2. 从卡密池中获取一个未使用的免费卡密
-            KeyInfo freeKey = keyInfoService.getUnusedFreeKey();
+            KeyInfo freeKey = managerService.getUnusedFreeKeyFromPool();
             if (freeKey == null) {
                 return ApiResponse.fail("免费卡密已领完，请关注后续活动");
             }

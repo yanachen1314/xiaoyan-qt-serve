@@ -3,7 +3,10 @@ package com.yan.xiaoyanqtserve.common.dto.key;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 /**
  * 密钥生成请求参数
@@ -11,6 +14,9 @@ import lombok.Data;
  * @since 2026/3/10 15:42
  */
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
+@ToString
 public class GenerateKeyDto {
     /**
      * 密钥数量
