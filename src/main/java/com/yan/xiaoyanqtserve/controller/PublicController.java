@@ -174,13 +174,11 @@ public class PublicController {
      * <p>
      * 邮箱轮询发送免费密钥，一个邮箱只能领取一次
      * </p>
-     * @param freeLicenseDto 包含收件人邮箱的参数
-     * @param request HTTP请求对象，用于获取客户端IP和User-Agent
+     * @param freeLicenseDto 包含收件人邮箱及自动填充的设备信息
      * @return 提示信息
      */
     @PostMapping("/freeLicense")
-    public ApiResponse<FreeLicenseVo> sendMailRoundRobin(@Valid @RequestBody FreeLicenseDto freeLicenseDto,
-                                                         HttpServletRequest request) {
+    public ApiResponse<FreeLicenseVo> sendMailRoundRobin(@Valid @RequestBody FreeLicenseDto freeLicenseDto) {
         String email = freeLicenseDto.getEmail();
 
         try {
@@ -200,11 +198,14 @@ public class PublicController {
             // 3. 发送邮件
             mailService.sendFreeLicenseEmail(email, licenseKey);
 
-            // 4. 记录领取信息
-            String deviceId = request.getHeader(Constants.HEADER_DEVICE_NAME);
-            String clientIp = NetUtil.getClientIpAddress(request);
-            String userAgent = request.getHeader("User-Agent");
-            freeLicenseService.recordLicense(email, licenseKey, deviceId, clientIp, userAgent);
+            // 4. 记录领取信息（设备信息已由参数解析器自动填充到DTO中）
+            freeLicenseService.recordLicense(
+                    email,
+                    licenseKey,
+                    freeLicenseDto.getDeviceId(),
+                    freeLicenseDto.getClientIp(),
+                    freeLicenseDto.getUserAgent()
+            );
 
             // 5. 返回结果
             return ApiResponse.success("免费密钥申请成功", FreeLicenseVo.builder()
