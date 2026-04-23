@@ -78,9 +78,9 @@ public class MailSendRecordSyncTask {
     }
 
     /**
-     * 每天00:00:10执行，重置每日免费密钥发放计数并补充密钥池
+     * 每天00:10执行，重置每日免费密钥发放计数并补充密钥池
      */
-    @Scheduled(cron = "0 0 0 * * ?")
+    @Scheduled(cron = "0 10 0 * * ?")
     public void resetDailyFreeKeyCountAndReplenishPool() {
         log.info("开始执行每日免费密钥重置和补充任务...");
         String today = LocalDate.now().toString();
