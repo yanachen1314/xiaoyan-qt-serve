@@ -4,6 +4,7 @@ import com.yan.xiaoyanqtserve.common.Constants;
 import com.yan.xiaoyanqtserve.common.dto.FreeLicenseDto;
 import com.yan.xiaoyanqtserve.common.utils.NetUtil;
 import jakarta.servlet.http.HttpServletRequest;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.core.MethodParameter;
 import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
@@ -41,9 +42,9 @@ public class FreeLicenseDtoArgumentResolver implements HandlerMethodArgumentReso
      * 解析参数，先通过默认JSON解析器解析请求体，再自动填充设备信息
      */
     @Override
-    public Object resolveArgument(MethodParameter parameter,
+    public Object resolveArgument(@NotNull MethodParameter parameter,
                                   ModelAndViewContainer mavContainer,
-                                  NativeWebRequest webRequest,
+                                  @NotNull NativeWebRequest webRequest,
                                   WebDataBinderFactory binderFactory) throws Exception {
         // 使用默认的 RequestBody 解析器解析 JSON 请求体
         FreeLicenseDto dto = (FreeLicenseDto) delegate.resolveArgument(

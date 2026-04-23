@@ -8,6 +8,8 @@ import lombok.NoArgsConstructor;
 
 /**
  * 免费密钥申请Dto
+ *
+ * @see com.yan.xiaoyanqtserve.resolver.FreeLicenseDtoArgumentResolver 参数解析器
  * @author yanchen
  * @since 2026/4/22 22:29
  */

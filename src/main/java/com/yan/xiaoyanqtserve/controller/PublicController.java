@@ -180,7 +180,7 @@ public class PublicController {
     @PostMapping("/freeLicense")
     public ApiResponse<FreeLicenseVo> sendMailRoundRobin(@Valid @RequestBody FreeLicenseDto freeLicenseDto) {
         String email = freeLicenseDto.getEmail();
-
+        log.debug("申请参数：{}", freeLicenseDto);
         try {
             // 1. 检查该邮箱是否已领取
             if (freeLicenseService.hasReceived(email)) {
