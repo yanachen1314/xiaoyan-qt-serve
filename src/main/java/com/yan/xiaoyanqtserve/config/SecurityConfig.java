@@ -29,6 +29,8 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.util.Collections;
+
 /**
  * Spring Security 配置
  */
@@ -60,14 +62,18 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration cfg = new CorsConfiguration();
-        // 允许前端地址
-        cfg.setAllowedOrigins(Constants.ORIGINS_WHITE_LIST);
+        // 允许任意地址访问
+        cfg.setAllowedOriginPatterns(Collections.singletonList("*"));
         // 允许的请求方法
         cfg.setAllowedMethods(ListUtil.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         // 允许的请求头
-        cfg.setAllowedHeaders(ListUtil.of("Authorization", "Content-Type", "*"));
-        // 是否允许携带 Cookie
-        cfg.setAllowCredentials(Constants.CORS_allowCredentials);
+        cfg.setAllowedHeaders(ListUtil.of("Authorization", "Content-Type", "X-Device", "X-Client-Version", "X-API-Key"));
+        // 暴露响应头
+        cfg.setExposedHeaders(ListUtil.of("Authorization"));
+        // 预检请求缓存时间（秒）
+        cfg.setMaxAge(3600L);
+        // 是否允许携带 Cookie（使用 allowedOriginPatterns 时可设为 true）
+        cfg.setAllowCredentials(true);
         // 注册对所有路径都生效
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", cfg);
