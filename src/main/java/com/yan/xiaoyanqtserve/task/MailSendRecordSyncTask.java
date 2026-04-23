@@ -3,10 +3,13 @@ package com.yan.xiaoyanqtserve.task;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.yan.xiaoyanqtserve.common.Constants;
 import com.yan.xiaoyanqtserve.common.utils.RedisUtil;
+import com.yan.xiaoyanqtserve.entity.KeyInfo;
 import com.yan.xiaoyanqtserve.entity.MailAccount;
 import com.yan.xiaoyanqtserve.entity.MailSendRecord;
 import com.yan.xiaoyanqtserve.mapper.MailAccountMapper;
 import com.yan.xiaoyanqtserve.mapper.MailSendRecordMapper;
+import com.yan.xiaoyanqtserve.service.KeyInfoService;
+import com.yan.xiaoyanqtserve.service.impl.KeyInfoManagerService;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -34,6 +37,12 @@ public class MailSendRecordSyncTask {
 
     @Resource
     private MailSendRecordMapper mailSendRecordMapper;
+
+    @Resource
+    private KeyInfoService keyInfoService;
+
+    @Resource
+    private KeyInfoManagerService keyInfoManagerService;
 
     /**
      * 每天00:10执行，同步昨天的发送统计数据到数据库
@@ -66,6 +75,73 @@ public class MailSendRecordSyncTask {
         }
         
         log.info("邮件发送统计数据同步完成，成功: {} 个，失败: {} 个", successCount, failCount);
+    }
+
+    /**
+     * 每天00:00:10执行，重置每日免费密钥发放计数并补充密钥池
+     */
+    @Scheduled(cron = "0 0 0 * * ?")
+    public void resetDailyFreeKeyCountAndReplenishPool() {
+        log.info("开始执行每日免费密钥重置和补充任务...");
+        String today = LocalDate.now().toString();
+
+        // 1. 重置今日免费密钥发放计数
+        String countKey = Constants.FREE_KEY_DAILY_COUNT + today;
+        redisUtil.delete(countKey);
+        log.info("已重置今日免费密钥发放计数");
+
+        // 2. 检查密钥池剩余数量，如果小于日发送上限则重新生成200个
+        String poolKey = Constants.FREE_KEY_POOL + today;
+        Long currentPoolSize = redisUtil.sSize(poolKey);
+        
+        if (currentPoolSize == null) {
+            currentPoolSize = 0L;
+        }
+        
+        Integer dailyTotalMax = 100;
+        if (currentPoolSize < dailyTotalMax) {
+            log.info("密钥池剩余数量: {}，小于日发送上限: {}，开始生成200个免费密钥", currentPoolSize, dailyTotalMax);
+            replenishFreeKeyPool(poolKey);
+        } else {
+            log.info("密钥池剩余数量: {}，充足，无需补充", currentPoolSize);
+        }
+        
+        log.info("每日免费密钥重置和补充任务执行完成");
+    }
+
+    /**
+     * 补充免费密钥池
+     * 生成200个免费密钥并添加到Redis池中
+     * 
+     * @param poolKey Redis密钥池的key
+     */
+    private void replenishFreeKeyPool(String poolKey) {
+        try {
+            // 查询免费密钥对应的产品类型ID（假设productType=1为免费类型）
+            // 这里直接查询未售出、未激活的密钥
+            LambdaQueryWrapper<KeyInfo> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.eq(KeyInfo::getSelled, 0)
+                    .eq(KeyInfo::getActivated, 0)
+                    .eq(KeyInfo::getStatus, 1)
+                    .last("LIMIT 200");
+            
+            List<KeyInfo> freeKeys = keyInfoService.list(queryWrapper);
+            
+            if (freeKeys.isEmpty()) {
+                log.warn("数据库中没有可用的免费密钥，请先在后台生成密钥");
+                return;
+            }
+            
+            // 将密钥ID添加到Redis池中
+            for (KeyInfo key : freeKeys) {
+                redisUtil.sAdd(poolKey, key.getId());
+            }
+            
+            log.info("成功补充 {} 个免费密钥到池中", freeKeys.size());
+        } catch (Exception e) {
+            log.error("补充免费密钥池失败", e);
+            throw new RuntimeException("补充免费密钥池失败", e);
+        }
     }
 
     /**

@@ -86,4 +86,9 @@ public class Constants {
     public static final String MAIL_SEND_FAIL_PREFIX = "mail:send:fail:";
     // 邮件账号轮询索引Key
     public static final String MAIL_ACCOUNT_ROUND_ROBIN_KEY = "mail:account:round_robin";
+
+    // 免费密钥池（存储免费密钥ID的Set集合）
+    public static final String FREE_KEY_POOL = "free_key:pool:";
+    // 今日免费密钥发放数量统计
+    public static final String FREE_KEY_DAILY_COUNT = "free_key:daily_count:";
 }

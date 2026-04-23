@@ -178,6 +178,20 @@ public class RedisUtil {
         redisTemplate.opsForSet().remove(key, values);
     }
 
+    /**
+     * 随机从 Set 中弹出一个元素（并移除）
+     */
+    public Object sPop(String key) {
+        return redisTemplate.opsForSet().pop(key);
+    }
+
+    /**
+     * 获取 Set 的长度
+     */
+    public Long sSize(String key) {
+        return redisTemplate.opsForSet().size(key);
+    }
+
     // ============================= List =============================
 
     /**

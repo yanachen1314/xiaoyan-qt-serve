@@ -7,6 +7,7 @@ import com.yan.xiaoyanqtserve.common.dto.key.ValidationResult;
 import com.yan.xiaoyanqtserve.common.enums.BizStatus;
 import com.yan.xiaoyanqtserve.common.utils.LicenseKeyGenerator;
 import com.yan.xiaoyanqtserve.common.utils.RedisLockUtil;
+import com.yan.xiaoyanqtserve.common.utils.RedisUtil;
 import com.yan.xiaoyanqtserve.config.MailSafetyLimitsConfig;
 import com.yan.xiaoyanqtserve.entity.KeyInfo;
 import com.yan.xiaoyanqtserve.common.exception.BizException;
@@ -18,6 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
@@ -36,6 +38,7 @@ public class KeyInfoManagerService {
     private final LicenseKeyGenerator licenseKeyGenerator;
     private final KeyInfoService keyInfoService;
     private final ProductTypeService productTypeService;
+    private final RedisUtil redisUtil;
 
     private final RedisLockUtil redisLockUtil;
     private final MailSafetyLimitsConfig mailSafetyLimitsConfig;
@@ -393,22 +396,51 @@ public class KeyInfoManagerService {
      * @return 未使用的免费密钥
      */
     public KeyInfo getUnusedFreeKeyFromPool() {
+        String today = LocalDate.now().toString();
+        
         // 判断今日是否已经发出指定数量的免费密钥
         if(isTodayFreeKeyLimitReached()) {
             throw new BizException("今日免费密钥已发完了，明天早点来哦！");
         }
 
-
         // 从redis中的免费密钥池（ID列表）获取一个未使用的密钥ID
-        Long unusedFreeKeyId = null;
+        String poolKey = Constants.FREE_KEY_POOL + today;
+        Object freeKeyIdObj = redisUtil.sPop(poolKey);
+        
+        if (freeKeyIdObj == null) {
+            throw new BizException("免费密钥池已空，请联系管理员补充！");
+        }
+        
+        Long unusedFreeKeyId = Long.parseLong(freeKeyIdObj.toString());
 
         // 通过ID获取密钥信息
         KeyInfo unusedFreeKey = keyInfoService.getById(unusedFreeKeyId);
+        if (unusedFreeKey == null) {
+            log.error("从密钥池中获取的密钥ID不存在: {}", unusedFreeKeyId);
+            throw new BizException("免费密钥不存在");
+        }
 
-        return null;
+        // 增加今日发放计数
+        String countKey = Constants.FREE_KEY_DAILY_COUNT + today;
+        redisUtil.incr(countKey, 1);
+
+        return unusedFreeKey;
     }
 
+    /**
+     * 判断今日免费密钥发放是否已达上限
+     * @return true 表示已达上限，false 表示未达上限
+     */
     private boolean isTodayFreeKeyLimitReached() {
-        return false;
+        String today = LocalDate.now().toString();
+        String countKey = Constants.FREE_KEY_DAILY_COUNT + today;
+        
+        Object countObj = redisUtil.get(countKey);
+        if (countObj == null) {
+            return false;
+        }
+        
+        long todayCount = Long.parseLong(countObj.toString());
+        return todayCount >= mailSafetyLimitsConfig.getDailyTotalMax();
     }
 }
