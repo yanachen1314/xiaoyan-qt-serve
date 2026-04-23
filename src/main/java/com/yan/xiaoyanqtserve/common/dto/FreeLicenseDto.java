@@ -9,7 +9,6 @@ import lombok.NoArgsConstructor;
 /**
  * 免费密钥申请Dto
  *
- * @see com.yan.xiaoyanqtserve.resolver.FreeLicenseDtoArgumentResolver 参数解析器
  * @author yanchen
  * @since 2026/4/22 22:29
  */
@@ -24,19 +23,5 @@ public class FreeLicenseDto {
     @NotBlank(message = "邮箱不能为空")
     private String email;
 
-    /**
-     * 设备ID/设备指纹（由请求解析器自动填充）
-     */
-    private String deviceId;
-
-    /**
-     * 客户端IP地址（由请求解析器自动填充）
-     */
-    private String clientIp;
-
-    /**
-     * 用户代理信息（由请求解析器自动填充）
-     */
-    private String userAgent;
 }
 

@@ -175,9 +175,13 @@ public class PublicController {
      * @return 提示信息
      */
     @PostMapping("/freeLicense")
-    public ApiResponse<FreeLicenseVo> sendMailRoundRobin(@Valid @RequestBody FreeLicenseDto freeLicenseDto) {
+    public ApiResponse<FreeLicenseVo> sendMailRoundRobin(@Valid @RequestBody FreeLicenseDto freeLicenseDto,
+                                                        HttpServletRequest request) {
         String email = freeLicenseDto.getEmail();
-        log.debug("申请参数：{}", freeLicenseDto);
+        String deviceId = request.getHeader(Constants.HEADER_DEVICE_NAME);
+        String clientIp = NetUtil.getClientIpAddress(request);
+        String userAgent = request.getHeader("User-Agent");
+        log.debug("申请邮箱：{}，设备ID：{}，客户端IP：{}，用户代理：{}", email, deviceId, clientIp, userAgent);
         try {
             // 1. 检查该邮箱是否已领取
             if (freeLicenseService.hasReceived(email)) {
@@ -194,9 +198,9 @@ public class PublicController {
             freeLicenseService.recordLicense(
                     email,
                     licenseKey,
-                    freeLicenseDto.getDeviceId(),
-                    freeLicenseDto.getClientIp(),
-                    freeLicenseDto.getUserAgent()
+                    deviceId,
+                    clientIp,
+                    userAgent
             );
 
             // 5. 返回结果
