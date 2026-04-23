@@ -131,6 +131,22 @@ public class KeyInfoServiceImpl extends ServiceImpl<KeyInfoMapper, KeyInfo> impl
     }
 
     /**
+     * 获取一个未使用的免费卡密
+     * <p>查找 usage_type = 'free' 且未激活的卡密</p>
+     * @return 免费卡密信息，如果卡密池为空则返回 null
+     */
+    @Override
+    public KeyInfo getUnusedFreeKey() {
+        LambdaQueryWrapper<KeyInfo> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(KeyInfo::getUsageType, "free")
+                .eq(KeyInfo::getStatus, 1)
+                .eq(KeyInfo::getActivated, 0)
+                .orderByAsc(KeyInfo::getCreatedTime)
+                .last("LIMIT 1");
+        return getOne(queryWrapper);
+    }
+
+    /**
      * 将权益时间转换为字符串
      * @param equityTime 权益时间（单位：分钟），null值会被视为0
      * @return 权益时间字符串，如"30分钟"、"2小时"、"3天"

@@ -47,4 +47,11 @@ public interface KeyInfoService extends IService<KeyInfo> {
      * @return 密钥详情
      */
     KeyInfoVo getDetailKeyInfo(Long keyId);
+
+    /**
+     * 获取一个未使用的免费卡密
+     * <p>查找 usage_type = 'free' 且未激活的卡密</p>
+     * @return 免费卡密信息，如果卡密池为空则返回 null
+     */
+    KeyInfo getUnusedFreeKey();
 }

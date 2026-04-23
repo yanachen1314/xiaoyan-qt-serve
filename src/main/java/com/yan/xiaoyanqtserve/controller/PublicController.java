@@ -18,6 +18,8 @@ import com.yan.xiaoyanqtserve.entity.KeyInfo;
 import com.yan.xiaoyanqtserve.filter.SystemModeFilter;
 import com.yan.xiaoyanqtserve.security.AdminUserDetails;
 import com.yan.xiaoyanqtserve.service.AdminUserService;
+import com.yan.xiaoyanqtserve.service.FreeLicenseService;
+import com.yan.xiaoyanqtserve.service.KeyInfoService;
 import com.yan.xiaoyanqtserve.service.SysConfigService;
 import com.yan.xiaoyanqtserve.service.impl.KeyInfoManagerService;
 import com.yan.xiaoyanqtserve.service.mail.MailService;
@@ -56,6 +58,10 @@ public class PublicController {
     private final SysConfigService sysConfigService;
 
     private final MailService mailService;
+
+    private final FreeLicenseService freeLicenseService;
+
+    private final KeyInfoService keyInfoService;
 
     /**
      * 密钥激活接口
@@ -166,32 +172,53 @@ public class PublicController {
     /**
      * 免费密钥申请接口
      * <p>
-     * 邮箱轮询发送免费密钥
+     * 邮箱轮询发送免费密钥，一个邮箱只能领取一次
      * </p>
      * @param freeLicenseDto 包含收件人邮箱的参数
+     * @param request HTTP请求对象，用于获取客户端IP和User-Agent
      * @return 提示信息
      */
     @PostMapping("/freeLicense")
-    public ApiResponse<FreeLicenseVo> sendMailRoundRobin(@Valid @RequestBody FreeLicenseDto freeLicenseDto) {
+    public ApiResponse<FreeLicenseVo> sendMailRoundRobin(@Valid @RequestBody FreeLicenseDto freeLicenseDto,
+                                                         HttpServletRequest request) {
+        String email = freeLicenseDto.getEmail();
 
         try {
-            // 生成一个免费密钥（5分钟）
+            // 1. 检查该邮箱是否已领取
+            if (freeLicenseService.hasReceived(email)) {
+                return ApiResponse.fail("该邮箱已领取过免费卡密，请勿重复领取");
+            }
 
-            // 发送提醒邮箱
-            mailService.sendFreeLicenseEmail(freeLicenseDto.getEmail(), "FREE-KEY-123456");
+            // 2. 从卡密池中获取一个未使用的免费卡密
+            KeyInfo freeKey = keyInfoService.getUnusedFreeKey();
+            if (freeKey == null) {
+                return ApiResponse.fail("免费卡密已领完，请关注后续活动");
+            }
 
-            // 返回结果
+            String licenseKey = freeKey.getKeyValue();
+
+            // 3. 发送邮件
+            mailService.sendFreeLicenseEmail(email, licenseKey);
+
+            // 4. 记录领取信息
+            String deviceId = request.getHeader(Constants.HEADER_DEVICE_NAME);
+            String clientIp = NetUtil.getClientIpAddress(request);
+            String userAgent = request.getHeader("User-Agent");
+            freeLicenseService.recordLicense(email, licenseKey, deviceId, clientIp, userAgent);
+
+            // 5. 返回结果
             return ApiResponse.success("免费密钥申请成功", FreeLicenseVo.builder()
-                    .email(freeLicenseDto.getEmail())
-                    .licenseKey("FREE-KEY-123456")
+                    .email(email)
+                    .licenseKey(licenseKey)
                     .build());
         } catch (Exception e) {
-            log.error(e.getMessage(), e);
-            return ApiResponse.fail("免费密钥申请失败", FreeLicenseVo.builder()
-                    .email(freeLicenseDto.getEmail())
-                    .build());
+            log.error("免费卡密领取失败: {}", e.getMessage(), e);
+            // 如果是重复领取（并发情况下的唯一索引冲突）
+            if (e.getMessage() != null && e.getMessage().contains("Duplicate")) {
+                return ApiResponse.fail("该邮箱已领取过免费卡密，请勿重复领取");
+            }
+            return ApiResponse.fail("免费密钥申请失败，请稍后重试");
         }
-
     }
 
 
