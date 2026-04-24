@@ -23,6 +23,7 @@ import com.yan.xiaoyanqtserve.service.FreeLicenseService;
 import com.yan.xiaoyanqtserve.service.SysConfigService;
 import com.yan.xiaoyanqtserve.service.impl.KeyInfoManagerService;
 import com.yan.xiaoyanqtserve.service.mail.MailService;
+import com.yan.xiaoyanqtserve.validator.EmailValidator;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -165,11 +166,12 @@ public class KeyPublicController {
      * @param email 申请者邮箱
      */
     private void validateEmail(String email) {
-        // 邮箱后缀校验
+        // 邮箱账号格式校验
         List<String> emailSuffixList = sysConfigService.getEmailSuffixList();
-        if (emailSuffixList == null || !emailSuffixList.contains("@" + email.split("@")[1])) {
-            throw new IllegalArgumentException("邮箱后缀不正确");
+        if (!EmailValidator.isValidEmail(email, emailSuffixList)) {
+            throw new IllegalArgumentException("邮箱格式不正确");
         }
+
         // 检查该邮箱是否已领取
         if (freeLicenseService.hasReceived(email)) {
             throw new IllegalArgumentException("该邮箱已领取过免费卡密，请勿重复领取");
