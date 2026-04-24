@@ -1,9 +1,10 @@
 package com.yan.xiaoyanqtserve.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.yan.xiaoyanqtserve.entity.FreeLicenseRecord;
-import com.yan.xiaoyanqtserve.mapper.FreeLicenseRecordMapper;
-import com.yan.xiaoyanqtserve.service.FreeLicenseService;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.yan.xiaoyanqtserve.entity.MailFreeKeyRecord;
+import com.yan.xiaoyanqtserve.mapper.MailFreeKeyRecordMapper;
+import com.yan.xiaoyanqtserve.service.MailFreeKeyRecordService;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DuplicateKeyException;
@@ -18,10 +19,10 @@ import java.time.LocalDateTime;
  */
 @Slf4j
 @Service
-public class FreeLicenseServiceImpl implements FreeLicenseService {
+public class MailFreeKeyRecordServiceImpl extends ServiceImpl<MailFreeKeyRecordMapper, MailFreeKeyRecord> implements MailFreeKeyRecordService {
 
     @Resource
-    private FreeLicenseRecordMapper freeLicenseRecordMapper;
+    private MailFreeKeyRecordMapper mailFreeKeyRecordMapper;
 
     /**
      * 检查邮箱是否已领取过免费卡密
@@ -31,9 +32,9 @@ public class FreeLicenseServiceImpl implements FreeLicenseService {
      */
     @Override
     public boolean hasReceived(String email) {
-        LambdaQueryWrapper<FreeLicenseRecord> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(FreeLicenseRecord::getEmail, email);
-        return freeLicenseRecordMapper.selectCount(queryWrapper) > 0;
+        LambdaQueryWrapper<MailFreeKeyRecord> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(MailFreeKeyRecord::getEmail, email);
+        return mailFreeKeyRecordMapper.selectCount(queryWrapper) > 0;
     }
 
     /**
@@ -44,8 +45,8 @@ public class FreeLicenseServiceImpl implements FreeLicenseService {
      * @throws DuplicateKeyException 如果该邮箱已领取过
      */
     @Override
-    public void recordLicense(FreeLicenseRecord record) {
+    public void recordLicense(MailFreeKeyRecord record) {
         record.setCreatedTime(LocalDateTime.now());
-        freeLicenseRecordMapper.insert(record);
+        mailFreeKeyRecordMapper.insert(record);
     }
 }

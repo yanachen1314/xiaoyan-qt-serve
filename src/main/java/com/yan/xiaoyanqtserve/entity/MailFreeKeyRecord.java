@@ -26,7 +26,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class FreeLicenseRecord implements Serializable {
+public class MailFreeKeyRecord implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 1L;

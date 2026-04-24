@@ -1,7 +1,7 @@
 package com.yan.xiaoyanqtserve.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.yan.xiaoyanqtserve.entity.FreeLicenseRecord;
+import com.yan.xiaoyanqtserve.entity.MailFreeKeyRecord;
 import org.apache.ibatis.annotations.Mapper;
 
 /**
@@ -10,5 +10,5 @@ import org.apache.ibatis.annotations.Mapper;
  * @since 2026/4/22
  */
 @Mapper
-public interface FreeLicenseRecordMapper extends BaseMapper<FreeLicenseRecord> {
+public interface MailFreeKeyRecordMapper extends BaseMapper<MailFreeKeyRecord> {
 }

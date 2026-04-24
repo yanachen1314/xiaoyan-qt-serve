@@ -1,6 +1,7 @@
 package com.yan.xiaoyanqtserve.service;
 
-import com.yan.xiaoyanqtserve.entity.FreeLicenseRecord;
+import com.baomidou.mybatisplus.extension.service.IService;
+import com.yan.xiaoyanqtserve.entity.MailFreeKeyRecord;
 import org.springframework.dao.DuplicateKeyException;
 
 /**
@@ -8,7 +9,7 @@ import org.springframework.dao.DuplicateKeyException;
  * @author yanchen
  * @since 2026/4/22
  */
-public interface FreeLicenseService {
+public interface MailFreeKeyRecordService extends IService<MailFreeKeyRecord> {
 
     /**
      * 检查邮箱是否已领取过免费卡密
@@ -25,5 +26,5 @@ public interface FreeLicenseService {
      * @param record 领取记录实体
      * @throws DuplicateKeyException 如果该邮箱已领取过
      */
-    void recordLicense(FreeLicenseRecord record);
+    void recordLicense(MailFreeKeyRecord record);
 }

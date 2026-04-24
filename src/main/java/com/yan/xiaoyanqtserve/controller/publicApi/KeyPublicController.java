@@ -4,22 +4,13 @@ import com.yan.xiaoyanqtserve.common.Constants;
 import com.yan.xiaoyanqtserve.common.annotaions.RateLimiter;
 import com.yan.xiaoyanqtserve.common.dto.FreeLicenseDto;
 import com.yan.xiaoyanqtserve.common.vo.FreeLicenseVo;
-import com.yan.xiaoyanqtserve.common.dto.adminUser.AdminUserLoginRequest;
-import com.yan.xiaoyanqtserve.common.dto.adminUser.AdminUserResponse;
-import com.yan.xiaoyanqtserve.common.dto.adminUser.PasswordResetRequest;
 import com.yan.xiaoyanqtserve.common.dto.key.KeyActiveDto;
 import com.yan.xiaoyanqtserve.common.enums.RateLimiterType;
 import com.yan.xiaoyanqtserve.common.utils.*;
 import com.yan.xiaoyanqtserve.common.vo.KeyActiveVo;
-import com.yan.xiaoyanqtserve.common.vo.VersionCheckVo;
-import com.yan.xiaoyanqtserve.common.vo.VersionComparisonResult;
-import com.yan.xiaoyanqtserve.entity.AdminUser;
-import com.yan.xiaoyanqtserve.entity.FreeLicenseRecord;
+import com.yan.xiaoyanqtserve.entity.MailFreeKeyRecord;
 import com.yan.xiaoyanqtserve.entity.KeyInfo;
-import com.yan.xiaoyanqtserve.filter.SystemModeFilter;
-import com.yan.xiaoyanqtserve.security.AdminUserDetails;
-import com.yan.xiaoyanqtserve.service.AdminUserService;
-import com.yan.xiaoyanqtserve.service.FreeLicenseService;
+import com.yan.xiaoyanqtserve.service.MailFreeKeyRecordService;
 import com.yan.xiaoyanqtserve.service.SysConfigService;
 import com.yan.xiaoyanqtserve.service.impl.KeyInfoManagerService;
 import com.yan.xiaoyanqtserve.service.mail.MailService;
@@ -28,15 +19,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 
 /**
  * 密钥公开控制器
@@ -51,7 +37,7 @@ import java.util.Map;
 public class KeyPublicController {
     private final KeyInfoManagerService managerService;
     private final MailService mailService;
-    private final FreeLicenseService freeLicenseService;
+    private final MailFreeKeyRecordService mailFreeKeyRecordService;
     private final SysConfigService sysConfigService;
 
     /**
@@ -134,7 +120,7 @@ public class KeyPublicController {
                 throw new IllegalArgumentException("邮箱格式不正确");
             }
             // 检查该邮箱是否已领取
-            if (freeLicenseService.hasReceived(email)) {
+            if (mailFreeKeyRecordService.hasReceived(email)) {
                 throw new IllegalArgumentException("该邮箱已领取过免费卡密，请勿重复领取");
             }
 
@@ -145,7 +131,7 @@ public class KeyPublicController {
             mailService.sendFreeLicenseEmail(email, licenseKey);
 
             // 4. 记录领取信息
-            freeLicenseService.recordLicense(FreeLicenseRecord.builder()
+            mailFreeKeyRecordService.recordLicense(MailFreeKeyRecord.builder()
                     .email(email)
                     .licenseKey(licenseKey)
                     .deviceType(deviceType)
