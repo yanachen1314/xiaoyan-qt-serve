@@ -19,7 +19,7 @@ public class EmailValidator {
         String domain = email.substring(atIndex).toLowerCase();
 
         for (String suffix : emailSuffixList) {
-            if (domain.endsWith(suffix)) {
+            if (domain.equalsIgnoreCase(suffix)) {
                 return switch (suffix) {
                     case "qq.com", "foxmail.com" -> validateQQAccount(account);
                     case "163.com" -> validate163Account(account);
