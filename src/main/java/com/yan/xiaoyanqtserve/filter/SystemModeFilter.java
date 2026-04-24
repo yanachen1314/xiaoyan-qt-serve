@@ -100,8 +100,9 @@ public class SystemModeFilter implements Filter {
 
     // 判断是否为WEB请求
     private boolean isWebRequest(HttpServletRequest httpRequest){
-        String deviceType = httpRequest.getHeader(Constants.HEADER_DEVICE_NAME);
-        return "WEB".equalsIgnoreCase(deviceType);
+        String deviceType = httpRequest.getHeader(Constants.HEADER_DEVICE_TYPE);
+        String deviceId = httpRequest.getHeader(Constants.HEADER_DEVICE_ID);
+        return "WEB".equalsIgnoreCase(deviceType) && StringUtils.hasText(deviceId);
     }
 
     // 白名单路径（按需扩展）

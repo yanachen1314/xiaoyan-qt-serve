@@ -40,23 +40,12 @@ public class FreeLicenseServiceImpl implements FreeLicenseService {
      * 记录领取信息
      * <p>利用数据库唯一索引 uk_email 防止重复领取，捕获 DuplicateKeyException</p>
      *
-     * @param email 邮箱地址
-     * @param licenseKey 卡密
-     * @param deviceId 设备ID/设备指纹
-     * @param clientIp 客户端IP地址
-     * @param userAgent 用户代理信息
+     * @param record 领取记录实体
      * @throws DuplicateKeyException 如果该邮箱已领取过
      */
     @Override
-    public void recordLicense(String email, String licenseKey, String deviceId, String clientIp, String userAgent) {
-        FreeLicenseRecord record = new FreeLicenseRecord();
-        record.setEmail(email);
-        record.setLicenseKey(licenseKey);
-        record.setDeviceId(deviceId);
-        record.setClientIp(clientIp);
-        record.setUserAgent(userAgent);
+    public void recordLicense(FreeLicenseRecord record) {
         record.setCreatedTime(LocalDateTime.now());
-
         freeLicenseRecordMapper.insert(record);
     }
 }

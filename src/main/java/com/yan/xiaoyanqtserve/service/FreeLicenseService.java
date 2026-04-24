@@ -1,5 +1,8 @@
 package com.yan.xiaoyanqtserve.service;
 
+import com.yan.xiaoyanqtserve.entity.FreeLicenseRecord;
+import org.springframework.dao.DuplicateKeyException;
+
 /**
  * 免费领取卡密记录服务接口
  * @author yanchen
@@ -17,12 +20,10 @@ public interface FreeLicenseService {
 
     /**
      * 记录领取信息
+     * <p>利用数据库唯一索引 uk_email 防止重复领取，捕获 DuplicateKeyException</p>
      *
-     * @param email 邮箱地址
-     * @param licenseKey 卡密
-     * @param deviceId 设备ID/设备指纹
-     * @param clientIp 客户端IP地址
-     * @param userAgent 用户代理信息
+     * @param record 领取记录实体
+     * @throws DuplicateKeyException 如果该邮箱已领取过
      */
-    void recordLicense(String email, String licenseKey, String deviceId, String clientIp, String userAgent);
+    void recordLicense(FreeLicenseRecord record);
 }

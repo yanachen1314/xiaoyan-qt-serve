@@ -14,6 +14,7 @@ import com.yan.xiaoyanqtserve.common.vo.KeyActiveVo;
 import com.yan.xiaoyanqtserve.common.vo.VersionCheckVo;
 import com.yan.xiaoyanqtserve.common.vo.VersionComparisonResult;
 import com.yan.xiaoyanqtserve.entity.AdminUser;
+import com.yan.xiaoyanqtserve.entity.FreeLicenseRecord;
 import com.yan.xiaoyanqtserve.entity.KeyInfo;
 import com.yan.xiaoyanqtserve.filter.SystemModeFilter;
 import com.yan.xiaoyanqtserve.security.AdminUserDetails;
@@ -178,10 +179,11 @@ public class PublicController {
     public ApiResponse<FreeLicenseVo> sendMailRoundRobin(@Valid @RequestBody FreeLicenseDto freeLicenseDto,
                                                         HttpServletRequest request) {
         String email = freeLicenseDto.getEmail();
-        String deviceId = request.getHeader(Constants.HEADER_DEVICE_NAME);
+        String deviceType = request.getHeader(Constants.HEADER_DEVICE_TYPE);
+        String deviceId = request.getHeader(Constants.HEADER_DEVICE_ID);
         String clientIp = NetUtil.getClientIpAddress(request);
         String userAgent = request.getHeader("User-Agent");
-        log.debug("申请邮箱：{}，设备ID：{}，客户端IP：{}，用户代理：{}", email, deviceId, clientIp, userAgent);
+        log.debug("申请邮箱：{}，设备类型：{}，设备ID：{}，客户端IP：{}，用户代理：{}", email, deviceType, deviceId, clientIp, userAgent);
         try {
             // 1. 检查该邮箱是否已领取
             if (freeLicenseService.hasReceived(email)) {
@@ -194,13 +196,15 @@ public class PublicController {
             // 3. 发送邮件
             mailService.sendFreeLicenseEmail(email, licenseKey);
 
-            // 4. 记录领取信息（设备信息已由参数解析器自动填充到DTO中）
-            freeLicenseService.recordLicense(
-                    email,
-                    licenseKey,
-                    deviceId,
-                    clientIp,
-                    userAgent
+            // 4. 记录领取信息
+            freeLicenseService.recordLicense(FreeLicenseRecord.builder()
+                    .email(email)
+                    .licenseKey(licenseKey)
+                    .deviceType(deviceType)
+                    .deviceId(deviceId)
+                    .clientIp(clientIp)
+                    .userAgent(userAgent)
+                    .build()
             );
 
             // 5. 返回结果

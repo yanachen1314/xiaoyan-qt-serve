@@ -25,6 +25,7 @@ import java.time.LocalDateTime;
 @TableName("free_license_record")
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class FreeLicenseRecord implements Serializable {
 
     @Serial
@@ -47,6 +48,12 @@ public class FreeLicenseRecord implements Serializable {
      */
     @TableField("license_key")
     private String licenseKey;
+
+    /**
+     * 设备类型（web：网页端，app：win APP端）
+     */
+    @TableField("device_type")
+    private String deviceType;
 
     /**
      * 设备ID/设备指纹
