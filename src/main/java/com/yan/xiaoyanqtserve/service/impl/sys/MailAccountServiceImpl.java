@@ -1,4 +1,4 @@
-package com.yan.xiaoyanqtserve.service.impl;
+package com.yan.xiaoyanqtserve.service.impl.sys;
 
 import com.yan.xiaoyanqtserve.entity.MailAccount;
 import com.yan.xiaoyanqtserve.mapper.MailAccountMapper;
