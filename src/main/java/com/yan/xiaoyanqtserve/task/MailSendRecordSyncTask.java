@@ -6,10 +6,8 @@ import com.yan.xiaoyanqtserve.common.dto.key.GenerateKeyDto;
 import com.yan.xiaoyanqtserve.common.utils.RedisUtil;
 import com.yan.xiaoyanqtserve.config.MailSafetyLimitsConfig;
 import com.yan.xiaoyanqtserve.entity.MailAccount;
-import com.yan.xiaoyanqtserve.entity.MailSendRecord;
 import com.yan.xiaoyanqtserve.entity.ProductType;
 import com.yan.xiaoyanqtserve.mapper.MailAccountMapper;
-import com.yan.xiaoyanqtserve.mapper.MailSendRecordMapper;
 import com.yan.xiaoyanqtserve.service.ProductTypeService;
 import com.yan.xiaoyanqtserve.service.impl.KeyInfoManagerService;
 import jakarta.annotation.Resource;
@@ -36,9 +34,6 @@ public class MailSendRecordSyncTask {
 
     @Resource
     private MailAccountMapper mailAccountMapper;
-
-    @Resource
-    private MailSendRecordMapper mailSendRecordMapper;
 
     @Resource
     private KeyInfoManagerService keyInfoManagerService;
@@ -70,7 +65,6 @@ public class MailSendRecordSyncTask {
                 long failCnt = getCount(Constants.MAIL_SEND_FAIL_PREFIX, emailAddress, yesterday);
                 
                 if (sendCount > 0 || successCnt > 0 || failCnt > 0) {
-                    saveOrUpdateRecord(emailAddress, yesterday, (int) sendCount, (int) successCnt, (int) failCnt);
                     successCount++;
                 }
             } catch (Exception e) {
@@ -174,38 +168,4 @@ public class MailSendRecordSyncTask {
         }
     }
 
-    /**
-     * 保存或更新发送记录到数据库
-     * 
-     * @param emailAddress 邮箱地址
-     * @param date         日期
-     * @param sendCount    发送数量
-     * @param successCount 成功数量
-     * @param failCount    失败数量
-     */
-    private void saveOrUpdateRecord(String emailAddress, LocalDate date, int sendCount, int successCount, int failCount) {
- /*       LambdaQueryWrapper<MailSendRecord> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(MailSendRecord::getEmailAddress, emailAddress);
-        queryWrapper.eq(MailSendRecord::getSendDate, date);
-        
-        MailSendRecord existingRecord = mailSendRecordMapper.selectOne(queryWrapper);
-        
-        if (existingRecord != null) {
-            existingRecord.setSendCount(existingRecord.getSendCount() + sendCount);
-            existingRecord.setSuccessCount(existingRecord.getSuccessCount() + successCount);
-            existingRecord.setFailCount(existingRecord.getFailCount() + failCount);
-            mailSendRecordMapper.updateById(existingRecord);
-        } else {
-            MailSendRecord newRecord = new MailSendRecord();
-            newRecord.setEmailAddress(emailAddress);
-            newRecord.setSendDate(date);
-            newRecord.setSendCount(sendCount);
-            newRecord.setSuccessCount(successCount);
-            newRecord.setFailCount(failCount);
-            mailSendRecordMapper.insert(newRecord);
-        }*/
-        
-        log.debug("同步邮箱 {} 在 {} 的统计数据: 发送={}，成功={}，失败={}", 
-                emailAddress, date, sendCount, successCount, failCount);
-    }
 }

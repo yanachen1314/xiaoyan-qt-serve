@@ -62,8 +62,8 @@ public class MailSendRecord implements Serializable {
     /**
      * 结果信息
      */
-    @TableField("result_mag")
-    private String resultMag;
+    @TableField("result_msg")
+    private String resultMsg;
 
     /**
      * 创建时间

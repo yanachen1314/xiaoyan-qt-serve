@@ -3,6 +3,7 @@ package com.yan.xiaoyanqtserve.controller.publicApi;
 import com.yan.xiaoyanqtserve.common.Constants;
 import com.yan.xiaoyanqtserve.common.annotaions.RateLimiter;
 import com.yan.xiaoyanqtserve.common.dto.FreeLicenseDto;
+import com.yan.xiaoyanqtserve.common.dto.MailRecordDto;
 import com.yan.xiaoyanqtserve.common.vo.FreeLicenseVo;
 import com.yan.xiaoyanqtserve.common.dto.key.KeyActiveDto;
 import com.yan.xiaoyanqtserve.common.enums.RateLimiterType;
@@ -13,6 +14,7 @@ import com.yan.xiaoyanqtserve.entity.KeyInfo;
 import com.yan.xiaoyanqtserve.service.MailFreeKeyRecordService;
 import com.yan.xiaoyanqtserve.service.SysConfigService;
 import com.yan.xiaoyanqtserve.service.impl.KeyInfoManagerService;
+import com.yan.xiaoyanqtserve.service.mail.MailRecordSyncService;
 import com.yan.xiaoyanqtserve.service.mail.MailService;
 import com.yan.xiaoyanqtserve.validator.EmailValidator;
 import jakarta.servlet.http.HttpServletRequest;
@@ -39,6 +41,7 @@ public class KeyPublicController {
     private final MailService mailService;
     private final MailFreeKeyRecordService mailFreeKeyRecordService;
     private final SysConfigService sysConfigService;
+    private final MailRecordSyncService mailRecordSyncService;
 
     /**
      * 密钥激活接口
@@ -130,16 +133,15 @@ public class KeyPublicController {
             // 3. 发送邮件
             mailService.sendFreeLicenseEmail(email, licenseKey);
 
-            // 4. 记录领取信息
-            mailFreeKeyRecordService.recordLicense(MailFreeKeyRecord.builder()
-                    .email(email)
+            // 4. 异步记录领取信息
+            mailRecordSyncService.saveRecordAsync(MailRecordDto.builder()
+                    .applicantEmail(email)
                     .licenseKey(licenseKey)
                     .deviceType(deviceType)
                     .deviceId(deviceId)
                     .clientIp(clientIp)
                     .userAgent(userAgent)
-                    .build()
-            );
+                    .build());
 
             // 5. 返回结果
             return ApiResponse.success("免费卡密发送成功，请注意查收邮件", FreeLicenseVo.builder()
