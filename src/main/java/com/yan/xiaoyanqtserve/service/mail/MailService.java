@@ -101,7 +101,7 @@ public class MailService {
      */
     public void sendFreeLicenseEmail(String to, String license) {
         String htmlContent = templateService.generateFreeLicenseTemplate(to,license);
-        sendHtmlMail(null, to, "免费卡密", htmlContent);
+        sendHtmlMail(null, to, "【小烟改写工具】免费卡密发送", htmlContent);
     }
 
     /**
