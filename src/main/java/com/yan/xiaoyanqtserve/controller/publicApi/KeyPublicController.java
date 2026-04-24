@@ -66,11 +66,11 @@ public class KeyPublicController {
                                                 HttpServletRequest request) {
         String apiKeyFromHeader = MainUtil.extractApiKeyFromHeader(request);
         log.debug("Key activated: {} for device {}", apiKeyFromHeader, keyActiveDto.getDeviceID());
-        if(apiKeyFromHeader == null){
+        if (apiKeyFromHeader == null) {
             return ApiResponse.fail("API密钥不能为空");
         }
         // 调用 KeyInfoService 的 activateKey 方法激活密钥
-        KeyInfo keyInfo = managerService.activateKey(keyActiveDto,apiKeyFromHeader);
+        KeyInfo keyInfo = managerService.activateKey(keyActiveDto, apiKeyFromHeader);
 
         // 激活成功
         Integer totalUses = keyInfo.getTotalUses();
@@ -108,7 +108,6 @@ public class KeyPublicController {
     }
 
 
-
     /**
      * 免费密钥申请接口
      * <p>
@@ -119,7 +118,7 @@ public class KeyPublicController {
      */
     @PostMapping("/freeLicense")
     public ApiResponse<FreeLicenseVo> sendMailRoundRobin(@Valid @RequestBody FreeLicenseDto freeLicenseDto,
-                                                        HttpServletRequest request) {
+                                                         HttpServletRequest request) {
         String email = freeLicenseDto.getEmail();
         String deviceType = request.getHeader(Constants.HEADER_DEVICE_TYPE);
         String deviceId = request.getHeader(Constants.HEADER_DEVICE_ID);
@@ -168,7 +167,7 @@ public class KeyPublicController {
     private void validateEmail(String email) {
         // 邮箱后缀校验
         List<String> emailSuffixList = sysConfigService.getEmailSuffixList();
-        if (emailSuffixList == null || !emailSuffixList.contains(email.split("@")[1])) {
+        if (emailSuffixList == null || !emailSuffixList.contains("@" + email.split("@")[1])) {
             throw new IllegalArgumentException("邮箱后缀不正确");
         }
         // 检查该邮箱是否已领取
