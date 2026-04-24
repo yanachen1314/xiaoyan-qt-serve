@@ -147,7 +147,7 @@ public class KeyPublicController {
             );
 
             // 5. 返回结果
-            return ApiResponse.success("免费密钥申请成功", FreeLicenseVo.builder()
+            return ApiResponse.success("免费卡密发送成功，请注意查收邮件", FreeLicenseVo.builder()
                     .email(email)
                     .build());
         } catch (Exception e) {
