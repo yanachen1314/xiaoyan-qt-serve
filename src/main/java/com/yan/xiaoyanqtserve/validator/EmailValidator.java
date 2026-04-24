@@ -108,4 +108,93 @@ public class EmailValidator {
         // 字符范围检查 (仅允许 a-z, 0-9, .)
         return accountLower.matches("[a-z0-9.]+");
     }
+
+    /**
+     * 测试邮箱验证器功能
+     * 
+     * @param args 命令行参数（未使用）
+     */
+    public static void main(String[] args) {
+        // 定义支持的后缀列表
+        List<String> emailSuffixList = List.of("@qq.com", "@foxmail.com", "@163.com", "@vip.163.com", "@gmail.com");
+
+        System.out.println("========== QQ邮箱测试 ==========");
+        // 有效的QQ邮箱 - 纯数字QQ号（5-10位）
+        runTest("12345@qq.com", emailSuffixList, true);   // 5位QQ号
+        runTest("1234567890@qq.com", emailSuffixList, true); // 10位QQ号
+        runTest("1234@qq.com", emailSuffixList, false);  // 4位太短
+        runTest("12345678901@qq.com", emailSuffixList, false); // 11位太长
+
+        // 有效的QQ邮箱 - 字母账号（3-18位，字母开头）
+        runTest("abc@qq.com", emailSuffixList, true);    // 3位字母
+        runTest("test_user@qq.com", emailSuffixList, true); // 带下划线
+        runTest("user123@qq.com", emailSuffixList, true); // 字母数字组合
+        runTest("1abc@qq.com", emailSuffixList, false);  // 数字开头无效
+        runTest("ab@qq.com", emailSuffixList, false);    // 2位太短
+
+        System.out.println("\n========== Foxmail邮箱测试 ==========");
+        runTest("test@foxmail.com", emailSuffixList, true);
+        runTest("user123@foxmail.com", emailSuffixList, true);
+        runTest("12345@foxmail.com", emailSuffixList, true); // QQ数字格式
+
+        System.out.println("\n========== 163邮箱测试 ==========");
+        // 有效的163邮箱 - 手机号格式（11位）
+        runTest("13800138000@163.com", emailSuffixList, true);
+        runTest("12345678901@163.com", emailSuffixList, true);
+        runTest("1234567890@163.com", emailSuffixList, false); // 10位不是手机号
+
+        // 有效的163邮箱 - 普通邮箱格式（6-18位）
+        runTest("testuser@163.com", emailSuffixList, true);
+        runTest("test_user@163.com", emailSuffixList, true);
+        runTest("test123@163.com", emailSuffixList, true);
+        runTest("abcde@163.com", emailSuffixList, false);  // 5位太短
+        runTest("1testuser@163.com", emailSuffixList, false); // 数字开头无效
+
+        System.out.println("\n========== VIP.163邮箱测试 ==========");
+        runTest("testuser@vip.163.com", emailSuffixList, true);
+        runTest("test_user123@vip.163.com", emailSuffixList, true);
+        runTest("test@vip.163.com", emailSuffixList, false); // 4位太短（需要5-20位）
+        runTest("1testuser@vip.163.com", emailSuffixList, false); // 数字开头无效
+
+        System.out.println("\n========== Gmail邮箱测试 ==========");
+        runTest("testuser@gmail.com", emailSuffixList, true);
+        runTest("test.user@gmail.com", emailSuffixList, true);
+        runTest("t.e.s.t@gmail.com", emailSuffixList, true);
+        runTest("testuser123@gmail.com", emailSuffixList, true);
+        runTest(".test@gmail.com", emailSuffixList, false); // 以点开头无效
+        runTest("test.@gmail.com", emailSuffixList, false); // 以点结尾无效
+        runTest("te..st@gmail.com", emailSuffixList, false); // 连续点无效
+        runTest("test@gmail.com", emailSuffixList, false);  // 4位太短（需要6-30位）
+        runTest("test_user@gmail.com", emailSuffixList, false); // 下划线在Gmail无效
+
+        System.out.println("\n========== 基础格式测试 ==========");
+        runTest("@qq.com", emailSuffixList, false);        // 账号为空
+        runTest("test", emailSuffixList, false);           // 缺少@
+        runTest("test@qq", emailSuffixList, false);        // 后缀不匹配
+        runTest("test@@qq.com", emailSuffixList, false);   // 多个@
+        runTest("test@qq.com@", emailSuffixList, false);   // @在结尾
+        runTest("TEST@QQ.COM", emailSuffixList, true);     // 大写应正常匹配
+        runTest("Test.User@Gmail.Com", emailSuffixList, true); // 混合大写
+
+        System.out.println("\n========== 不支持的后缀测试 ==========");
+        runTest("test@hotmail.com", emailSuffixList, false);
+        runTest("test@outlook.com", emailSuffixList, false);
+        runTest("test@yahoo.com", emailSuffixList, false);
+
+        System.out.println("\n========== 测试完成 ==========");
+    }
+
+    /**
+     * 执行单个测试用例并输出结果
+     * 
+     * @param email 待测试的邮箱地址
+     * @param emailSuffixList 支持的邮箱后缀列表
+     * @param expected 期望的验证结果（true表示有效，false表示无效）
+     */
+    private static void runTest(String email, List<String> emailSuffixList, boolean expected) {
+        boolean actual = isValidEmail(email, emailSuffixList);
+        String status = (actual == expected) ? "✓ PASS" : "✗ FAIL";
+        System.out.println(String.format("[%s] 邮箱: %-30s 期望: %-5s 实际: %-5s",
+                status, email, expected, actual));
+    }
 }
