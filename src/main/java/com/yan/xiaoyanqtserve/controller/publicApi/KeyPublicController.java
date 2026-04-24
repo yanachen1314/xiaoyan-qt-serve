@@ -128,7 +128,15 @@ public class KeyPublicController {
         log.debug("申请邮箱：{}，设备类型：{}，设备ID：{}，客户端IP：{}，用户代理：{}", email, deviceType, deviceId, clientIp, userAgent);
         try {
             // 1. 邮箱校验
-            validateEmail(email);
+            // 邮箱账号格式校验
+            List<String> emailSuffixList = sysConfigService.getEmailSuffixList();
+            if (!EmailValidator.isValidEmail(email, emailSuffixList)) {
+                throw new IllegalArgumentException("邮箱格式不正确");
+            }
+            // 检查该邮箱是否已领取
+            if (freeLicenseService.hasReceived(email)) {
+                throw new IllegalArgumentException("该邮箱已领取过免费卡密，请勿重复领取");
+            }
 
             // 2. 从卡密池中获取一个未使用的免费卡密
             String licenseKey = managerService.getUnusedFreeKeyFromPool();
@@ -161,20 +169,4 @@ public class KeyPublicController {
         }
     }
 
-    /**
-     * 邮箱校验
-     * @param email 申请者邮箱
-     */
-    private void validateEmail(String email) {
-        // 邮箱账号格式校验
-        List<String> emailSuffixList = sysConfigService.getEmailSuffixList();
-        if (!EmailValidator.isValidEmail(email, emailSuffixList)) {
-            throw new IllegalArgumentException("邮箱格式不正确");
-        }
-
-        // 检查该邮箱是否已领取
-        if (freeLicenseService.hasReceived(email)) {
-            throw new IllegalArgumentException("该邮箱已领取过免费卡密，请勿重复领取");
-        }
-    }
 }
