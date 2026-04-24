@@ -1,11 +1,11 @@
 package com.yan.xiaoyanqtserve.controller.publicApi;
 
-import cn.hutool.json.JSONConfig;
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONArray;
 import com.yan.xiaoyanqtserve.common.Constants;
 import com.yan.xiaoyanqtserve.common.dto.adminUser.AdminUserLoginRequest;
 import com.yan.xiaoyanqtserve.common.dto.adminUser.AdminUserResponse;
 import com.yan.xiaoyanqtserve.common.dto.adminUser.PasswordResetRequest;
-import com.yan.xiaoyanqtserve.common.enums.ConfigType;
 import com.yan.xiaoyanqtserve.common.utils.ApiResponse;
 import com.yan.xiaoyanqtserve.common.utils.JwtUtil;
 import com.yan.xiaoyanqtserve.common.utils.VersionCheckUtil;
@@ -30,7 +30,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 公开控制器
+ * 系统公开控制器
  * @author yanchen
  * @since 2026/3/10 15:11
  */
@@ -55,9 +55,8 @@ public class SystemController {
      * @return 可申请的邮箱后缀JSON字符串
      */
     @GetMapping("/email/apply-suffix")
-    public ApiResponse<String> applyEmailSuffix() {
-        String stringValue = sysConfigService.getValue(Constants.EMAIL_SUFFIX_KEY);
-        return ApiResponse.success(stringValue);
+    public ApiResponse<List<String>> applyEmailSuffix() {
+        return ApiResponse.success(sysConfigService.getEmailSuffixList());
     }
 
     /**
@@ -107,7 +106,7 @@ public class SystemController {
      * @return 系统维护状态。 false 示系统正常运行，true 示系统维护中
      */
     @GetMapping("/check/maintenance")
-    public ApiResponse<Map<String,Object>> checkMaintenance() {
+    public ApiResponse<Map<String, Object>> checkMaintenance() {
         return ApiResponse.success("系统运行正常", Map.of("status", false));
     }
 

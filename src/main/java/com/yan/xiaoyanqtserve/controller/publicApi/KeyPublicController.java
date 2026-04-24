@@ -34,10 +34,11 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 
 /**
- * 公开控制器
+ * 密钥公开控制器
  * @author yanchen
  * @since 2026/3/10 15:11
  */
@@ -48,10 +49,9 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class KeyPublicController {
     private final KeyInfoManagerService managerService;
-
     private final MailService mailService;
-
     private final FreeLicenseService freeLicenseService;
+    private final SysConfigService sysConfigService;
 
     /**
      * 密钥激活接口
@@ -127,10 +127,8 @@ public class KeyPublicController {
         String userAgent = request.getHeader("User-Agent");
         log.debug("申请邮箱：{}，设备类型：{}，设备ID：{}，客户端IP：{}，用户代理：{}", email, deviceType, deviceId, clientIp, userAgent);
         try {
-            // 1. 检查该邮箱是否已领取
-            if (freeLicenseService.hasReceived(email)) {
-                return ApiResponse.fail("该邮箱已领取过免费卡密，请勿重复领取");
-            }
+            // 1. 邮箱校验
+            validateEmail(email);
 
             // 2. 从卡密池中获取一个未使用的免费卡密
             String licenseKey = managerService.getUnusedFreeKeyFromPool();
@@ -163,4 +161,19 @@ public class KeyPublicController {
         }
     }
 
+    /**
+     * 邮箱校验
+     * @param email 申请者邮箱
+     */
+    private void validateEmail(String email) {
+        // 邮箱后缀校验
+        List<String> emailSuffixList = sysConfigService.getEmailSuffixList();
+        if (emailSuffixList == null || !emailSuffixList.contains(email.split("@")[1])) {
+            throw new IllegalArgumentException("邮箱后缀不正确");
+        }
+        // 检查该邮箱是否已领取
+        if (freeLicenseService.hasReceived(email)) {
+            throw new IllegalArgumentException("该邮箱已领取过免费卡密，请勿重复领取");
+        }
+    }
 }

@@ -1,5 +1,7 @@
 package com.yan.xiaoyanqtserve.service.impl.sys;
 
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONArray;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -9,6 +11,7 @@ import com.yan.xiaoyanqtserve.common.Constants;
 import com.yan.xiaoyanqtserve.common.dto.adminUser.ConfigPageRequest;
 import com.yan.xiaoyanqtserve.common.dto.adminUser.SysConfigDto;
 import com.yan.xiaoyanqtserve.common.enums.ConfigType;
+import com.yan.xiaoyanqtserve.common.utils.ApiResponse;
 import com.yan.xiaoyanqtserve.common.utils.RedisUtil;
 import com.yan.xiaoyanqtserve.entity.SysConfig;
 import com.yan.xiaoyanqtserve.common.exception.BizException;
@@ -54,6 +57,28 @@ public class SysConfigServiceImpl extends ServiceImpl<SysConfigMapper, SysConfig
     public void init() {
         reloadCache();
     }
+
+    /**
+     * 获取邮箱后缀列表
+     * @return  邮箱后缀列表
+     */
+    @Override
+    public List<String> getEmailSuffixList() {
+        String stringValue = getValue(Constants.EMAIL_SUFFIX_KEY);
+        try {
+            JSONArray arrayValue = JSON.parseArray(stringValue);
+            List<String> stringList = arrayValue.toList(String.class);
+            if (stringList == null || stringList.isEmpty()) {
+               throw new BizException("未配置邮箱后缀");
+            }
+            return stringList;
+        } catch (Exception e) {
+            log.error("可申请的邮箱后缀解析失败:{}", e.getMessage());
+            throw new BizException("邮箱后缀解析失败");
+        }
+    }
+
+
 
     /**
      * 根据 key 获取指定类型的配置值

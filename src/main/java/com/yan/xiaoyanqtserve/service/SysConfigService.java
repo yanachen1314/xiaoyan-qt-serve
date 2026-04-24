@@ -18,6 +18,15 @@ import java.util.List;
  * @since 2026-03-10
  */
 public interface SysConfigService extends IService<SysConfig> {
+
+
+    /**
+     * 获取邮箱后缀列表
+     * @return  邮箱后缀列表
+     */
+    List<String> getEmailSuffixList();
+
+
     /**
      * 重新加载缓存（所有配置），可在修改后调用
      */
