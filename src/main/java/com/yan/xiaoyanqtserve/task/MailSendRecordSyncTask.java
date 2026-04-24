@@ -184,7 +184,7 @@ public class MailSendRecordSyncTask {
      * @param failCount    失败数量
      */
     private void saveOrUpdateRecord(String emailAddress, LocalDate date, int sendCount, int successCount, int failCount) {
-        LambdaQueryWrapper<MailSendRecord> queryWrapper = new LambdaQueryWrapper<>();
+ /*       LambdaQueryWrapper<MailSendRecord> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(MailSendRecord::getEmailAddress, emailAddress);
         queryWrapper.eq(MailSendRecord::getSendDate, date);
         
@@ -203,7 +203,7 @@ public class MailSendRecordSyncTask {
             newRecord.setSuccessCount(successCount);
             newRecord.setFailCount(failCount);
             mailSendRecordMapper.insert(newRecord);
-        }
+        }*/
         
         log.debug("同步邮箱 {} 在 {} 的统计数据: 发送={}，成功={}，失败={}", 
                 emailAddress, date, sendCount, successCount, failCount);

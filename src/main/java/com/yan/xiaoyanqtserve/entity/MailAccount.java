@@ -5,9 +5,7 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonFormat;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
@@ -16,16 +14,17 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 
 /**
+ * <p>
  * 邮件账号配置表
- * @author yanchen
- * @since 2026/4/22
+ * </p>
+ *
+ * @author 烟尘
+ * @since 2026-04-24
  */
 @Getter
 @Setter
 @ToString
 @TableName("mail_account")
-@AllArgsConstructor
-@NoArgsConstructor
 public class MailAccount implements Serializable {
 
     @Serial

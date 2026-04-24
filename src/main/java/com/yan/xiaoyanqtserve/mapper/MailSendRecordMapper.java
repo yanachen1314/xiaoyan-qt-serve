@@ -5,10 +5,14 @@ import com.yan.xiaoyanqtserve.entity.MailSendRecord;
 import org.apache.ibatis.annotations.Mapper;
 
 /**
+ * <p>
  * 邮件发送统计表 Mapper 接口
- * @author yanchen
- * @since 2026/4/22
+ * </p>
+ *
+ * @author 烟尘
+ * @since 2026-04-24
  */
 @Mapper
 public interface MailSendRecordMapper extends BaseMapper<MailSendRecord> {
+
 }
