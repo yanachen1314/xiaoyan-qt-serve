@@ -8,8 +8,8 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ThreadPoolExecutor;
 
-@Configuration
 @EnableAsync
+@Configuration
 public class ThreadPoolConfig {
 
     // 服务器核心线程数
@@ -33,7 +33,7 @@ public class ThreadPoolConfig {
 
 
     /**
-     * 异步处理配置类，用于配置异步任务执行器
+     * 日志保存异步任务线程池
      */
     @Bean(name = "loggingExecutor")
     public Executor loggingExecutor() {
@@ -46,7 +46,9 @@ public class ThreadPoolConfig {
         return executor;
     }
 
-
+    /**
+     * 邮件发送异步任务线程池
+     */
     @Bean(name = "mailTaskExecutor")
     public Executor mailTaskExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();

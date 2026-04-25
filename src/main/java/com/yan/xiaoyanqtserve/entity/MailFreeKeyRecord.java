@@ -22,7 +22,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @ToString
-@TableName("free_license_record")
+@TableName("mail_free_key_record")
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder

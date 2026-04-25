@@ -5,10 +5,12 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -25,8 +27,10 @@ import java.time.LocalDateTime;
 @Setter
 @ToString
 @TableName("mail_send_record")
+@Builder
 public class MailSendRecord implements Serializable {
 
+    @Serial
     private static final long serialVersionUID = 1L;
 
     /**
