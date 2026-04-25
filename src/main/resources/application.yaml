@@ -15,6 +15,9 @@ spring:
     name: xiaoyanQt-serve
   profiles:
     active: dev
+  # 导入 tac验证码 配置
+  config:
+    import: classpath:application-tac.yaml
   servlet:
     multipart:
       # 单个文件的最大大小

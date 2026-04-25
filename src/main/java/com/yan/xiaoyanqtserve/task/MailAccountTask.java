@@ -20,10 +20,6 @@ import java.time.temporal.ChronoUnit;
 @Component
 public class MailAccountTask {
 
-    // 授权码激活时间，格式：yyyy-MM-dd
-    @Value("${spring.mail.pwd-active-time}")
-    private String pwdActiveTime;
-
     @Resource
     private MailService mailService;
 
@@ -37,7 +33,7 @@ public class MailAccountTask {
     public void MailPwdReset() {
         try {
             // 授权密码启用时间
-            LocalDate activeDate = LocalDate.parse(pwdActiveTime);
+            LocalDate activeDate = LocalDate.parse("2023-04-01");
             // 过期时间（180天后）
             LocalDate expiryDate = activeDate.plusDays(180);
             // 当前时间
