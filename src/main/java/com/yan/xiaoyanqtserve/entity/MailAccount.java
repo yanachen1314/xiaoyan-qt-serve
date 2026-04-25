@@ -9,7 +9,6 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
-import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
@@ -19,7 +18,7 @@ import java.time.LocalDateTime;
  * </p>
  *
  * @author 烟尘
- * @since 2026-04-24
+ * @since 2026-04-25
  */
 @Getter
 @Setter
@@ -27,7 +26,6 @@ import java.time.LocalDateTime;
 @TableName("mail_account")
 public class MailAccount implements Serializable {
 
-    @Serial
     private static final long serialVersionUID = 1L;
 
     /**

@@ -9,7 +9,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
  * </p>
  *
  * @author 烟尘
- * @since 2026-04-24
+ * @since 2026-04-25
  */
 public interface MailSendRecordService extends IService<MailSendRecord> {
 

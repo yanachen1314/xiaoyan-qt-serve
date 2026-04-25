@@ -10,7 +10,7 @@ import org.apache.ibatis.annotations.Mapper;
  * </p>
  *
  * @author 烟尘
- * @since 2026-04-24
+ * @since 2026-04-25
  */
 @Mapper
 public interface MailAccountMapper extends BaseMapper<MailAccount> {
