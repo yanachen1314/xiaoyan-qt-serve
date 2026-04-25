@@ -1,21 +1,24 @@
 package com.yan.xiaoyanqtserve.task;
 
+import com.yan.xiaoyanqtserve.config.MultiMailSenderConfig;
 import com.yan.xiaoyanqtserve.service.mail.MailService;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 
 /**
- * 一般定时任务
+ * 邮件系统账号定时任务
  * @author yanchen
  * @since 2025/11/29 15:49
  */
 @Slf4j
-public class WangYiMailPwd {
+@Component
+public class MailAccountTask {
 
     // 授权码激活时间，格式：yyyy-MM-dd
     @Value("${spring.mail.pwd-active-time}")
@@ -23,6 +26,9 @@ public class WangYiMailPwd {
 
     @Resource
     private MailService mailService;
+
+    @Resource
+    private MultiMailSenderConfig multiMailSenderConfig;
 
     /**
      * 每天12点检测网易邮箱授权密码是否过期（180天内有效）
@@ -47,5 +53,16 @@ public class WangYiMailPwd {
             log.error("检查授权码过期时间时发生异常: {}", e.getMessage(), e);
         }
     }
+
+
+    /**
+     * 定时刷新邮件发送器配置，每10分钟检查一次数据库是否有新增/变更的账号
+     */
+    @Scheduled(fixedRate = 600000)
+    public void scheduledReload() {
+        log.debug("定时刷新邮件发送器配置...");
+        multiMailSenderConfig.reloadMailSenders();
+    }
+
 
 }

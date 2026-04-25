@@ -27,7 +27,7 @@ import java.util.List;
  */
 @Slf4j
 @Component
-public class MailSendRecordSyncTask {
+public class MailRecordSyncTask {
 
     @Resource
     private RedisUtil redisUtil;

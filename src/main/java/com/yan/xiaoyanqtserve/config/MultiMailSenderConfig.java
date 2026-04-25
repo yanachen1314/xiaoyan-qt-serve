@@ -40,19 +40,11 @@ public class MultiMailSenderConfig implements ApplicationRunner {
         log.info("✅ 邮件发送器初始化完成，共加载 {} 个邮箱账号", mailSenderMap.size());
     }
 
-    /**
-     * 定时刷新邮件发送器配置，每10分钟检查一次数据库是否有新增/变更的账号
-     */
-    @Scheduled(fixedRate = 600000)
-    public void scheduledReload() {
-        log.debug("定时刷新邮件发送器配置...");
-        reloadMailSenders();
-    }
 
     /**
      * 从数据库加载所有启用的邮箱账号并创建JavaMailSender
      */
-    private void reloadMailSenders() {
+    public void reloadMailSenders() {
         try {
             LambdaQueryWrapper<MailAccount> queryWrapper = new LambdaQueryWrapper<>();
             queryWrapper.eq(MailAccount::getStatus, 1);

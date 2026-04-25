@@ -4,7 +4,7 @@ import com.yan.xiaoyanqtserve.config.MultiMailSenderConfig;
 import com.yan.xiaoyanqtserve.entity.MailAccount;
 import com.yan.xiaoyanqtserve.service.mail.MailAccountService;
 import com.yan.xiaoyanqtserve.service.mail.MailService;
-import com.yan.xiaoyanqtserve.task.MailSendRecordSyncTask;
+import com.yan.xiaoyanqtserve.task.MailRecordSyncTask;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
@@ -32,7 +32,7 @@ public class TestController {
     private final MailService mailService;
     private final MailAccountService mailAccountService;
     private final MultiMailSenderConfig multiMailSenderConfig;
-    private final MailSendRecordSyncTask mailSendRecordSyncTask;
+    private final MailRecordSyncTask mailRecordSyncTask;
 
     @GetMapping("/sendMail")
     public String sendMail() {
@@ -96,7 +96,7 @@ public class TestController {
         Map<String, Object> result = new HashMap<>();
         try {
             log.info("手动触发邮件发送统计同步任务");
-            mailSendRecordSyncTask.syncYesterdayRecords();
+            mailRecordSyncTask.syncYesterdayRecords();
             result.put("success", true);
             result.put("message", "邮件发送统计同步任务执行完成");
         } catch (Exception e) {
@@ -116,7 +116,7 @@ public class TestController {
         Map<String, Object> result = new HashMap<>();
         try {
             log.info("手动触发免费密钥池重置和补充任务");
-            mailSendRecordSyncTask.resetDailyFreeKeyCountAndReplenishPool();
+            mailRecordSyncTask.resetDailyFreeKeyCountAndReplenishPool();
             result.put("success", true);
             result.put("message", "免费密钥池重置和补充任务执行完成");
         } catch (Exception e) {
