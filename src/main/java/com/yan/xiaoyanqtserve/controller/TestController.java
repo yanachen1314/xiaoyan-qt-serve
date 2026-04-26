@@ -1,6 +1,7 @@
 package com.yan.xiaoyanqtserve.controller;
 
 import com.yan.xiaoyanqtserve.config.MultiMailSenderConfig;
+import com.yan.xiaoyanqtserve.config.XiaoyanSecurityConfig;
 import com.yan.xiaoyanqtserve.entity.MailAccount;
 import com.yan.xiaoyanqtserve.service.mail.MailAccountService;
 import com.yan.xiaoyanqtserve.service.mail.MailService;
@@ -33,6 +34,14 @@ public class TestController {
     private final MailAccountService mailAccountService;
     private final MultiMailSenderConfig multiMailSenderConfig;
     private final MailRecordSyncTask mailRecordSyncTask;
+
+    private final XiaoyanSecurityConfig config;
+    @GetMapping("/config/test")
+    public XiaoyanSecurityConfig testConfig() {
+        // 应输出密钥长度（32+）
+        log.info("License Key Length: {}", config.getLicense().getKey().length());
+        return config;
+    }
 
     @GetMapping("/sendMail")
     public String sendMail() {

@@ -27,7 +27,7 @@ public class LicenseKeyGenerator {
 
     private static final String HMAC_ALGO = "HmacSHA256";
 
-    @Value("${xiaoyan.license.key}")
+    @Value("${xiaoyan.security.license.key}")
     private String SECRET;
 
     /**
