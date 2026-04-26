@@ -5,10 +5,8 @@ import cloud.tianai.captcha.application.vo.ImageCaptchaVO;
 import cloud.tianai.captcha.common.constant.CaptchaTypeConstant;
 import cloud.tianai.captcha.common.response.ApiResponse;
 import cloud.tianai.captcha.validator.common.model.dto.ImageCaptchaTrack;
-import jakarta.annotation.Resource;
-import jakarta.servlet.http.HttpServletRequest;
+import com.yan.xiaoyanqtserve.common.enums.CaptchaType;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Collections;
@@ -32,23 +30,11 @@ public class TacCaptchaController {
      */
     @RequestMapping("/gen")
     public ApiResponse<ImageCaptchaVO> genCaptcha(@RequestParam(value = "type", required = false)String type) {
-        if (StringUtils.isBlank(type)) {
-            type = CaptchaTypeConstant.SLIDER;
+        CaptchaType captchaType = CaptchaType.getByTypeName(type);
+        if(captchaType == null){
+            return ApiResponse.ofError("验证码类型不存在");
         }
-        if ("RANDOM".equals(type)) {
-            int i = ThreadLocalRandom.current().nextInt(0, 4);
-            if (i == 0) {
-                type = CaptchaTypeConstant.SLIDER;
-            } else if (i == 1) {
-                type = CaptchaTypeConstant.CONCAT;
-            } else if (i == 2) {
-                type = CaptchaTypeConstant.ROTATE;
-            } else{
-                type = CaptchaTypeConstant.WORD_IMAGE_CLICK;
-            }
-
-        }
-        return imageCaptchaApplication.generateCaptcha(type);
+        return imageCaptchaApplication.generateCaptcha(captchaType.name());
     }
     /**
      * 校验验证码

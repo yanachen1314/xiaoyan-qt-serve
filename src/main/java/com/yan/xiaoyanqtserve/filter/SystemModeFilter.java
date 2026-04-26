@@ -112,10 +112,8 @@ public class SystemModeFilter implements Filter {
                 "/api/public/auth/**",
                 // 管理员运维接口
                 "/api/admin/**",
-                "/actuator/**",
-                "/favicon.ico",
-                "/static/**",
-                "/resources/**"
+                // 验证码相关的接口
+                "/api/public/tac/**"
         };
         return MainUtil.isAllowedPath(allowedPatterns, requestUri);
     }
