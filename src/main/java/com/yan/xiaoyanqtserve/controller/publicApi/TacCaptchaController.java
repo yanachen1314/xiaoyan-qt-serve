@@ -28,7 +28,7 @@ public class TacCaptchaController {
      * @param type 验证码类型
      * @return 验证码数据
      */
-    @RequestMapping("/gen")
+    @PostMapping("/gen")
     public ApiResponse<ImageCaptchaVO> genCaptcha(@RequestParam(value = "type", required = false)String type) {
         CaptchaType captchaType = CaptchaType.getByTypeName(type);
         if(captchaType == null){
