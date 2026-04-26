@@ -18,7 +18,7 @@ import java.util.Collections;
 @RestController
 @RequestMapping("/api/public/tac")
 @RequiredArgsConstructor
-public class TacCaptchaController {
+public class CaptchaController {
 
     private final ImageCaptchaApplication imageCaptchaApplication;
 
