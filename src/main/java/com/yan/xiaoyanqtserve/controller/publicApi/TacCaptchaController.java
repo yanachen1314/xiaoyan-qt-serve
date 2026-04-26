@@ -2,7 +2,6 @@ package com.yan.xiaoyanqtserve.controller.publicApi;
 
 import cloud.tianai.captcha.application.ImageCaptchaApplication;
 import cloud.tianai.captcha.application.vo.ImageCaptchaVO;
-import cloud.tianai.captcha.common.constant.CaptchaTypeConstant;
 import cloud.tianai.captcha.common.response.ApiResponse;
 import cloud.tianai.captcha.validator.common.model.dto.ImageCaptchaTrack;
 import com.yan.xiaoyanqtserve.common.enums.CaptchaType;
@@ -10,14 +9,14 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Collections;
-import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * 验证码相关控制器
  * @author yanchen
  * @since 2026/4/25 19:18
  */
-@RestController("/api/public/tac")
+@RestController
+@RequestMapping("/api/public/tac")
 @RequiredArgsConstructor
 public class TacCaptchaController {
 
