@@ -11,6 +11,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 
 /**
  * 验证码相关控制器
@@ -33,10 +35,10 @@ public class CaptchaController {
     @PostMapping("/verify")
     public ApiResponse<?> verifyAliyunCaptcha(@RequestBody CaptchaVerifyDto captchaVerifyDto) {
         boolean captchaResult = aliyunCaptchaService.verifyCaptcha("f1yi7e7j", captchaVerifyDto.getCaptchaVerifyParam());
-        log.info("验证码校验结果：{}", captchaResult);
         return ApiResponse.success(CaptchaVerifyVo.builder()
                 .captchaResult(captchaResult)
-                .bizResult(true)
+                .bizResult(Map.of(
+                        "status",true))
                 .build());
     }
 
@@ -45,6 +47,6 @@ public class CaptchaController {
     @Builder
     public static class CaptchaVerifyVo {
         private Boolean captchaResult;
-        private Boolean bizResult;
+        private Object bizResult;
     }
 }

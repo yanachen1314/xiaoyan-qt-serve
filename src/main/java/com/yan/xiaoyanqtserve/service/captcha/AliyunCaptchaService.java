@@ -6,6 +6,7 @@ import com.aliyun.captcha20230305.models.VerifyIntelligentCaptchaResponse;
 import com.aliyun.captcha20230305.models.VerifyIntelligentCaptchaResponseBody;
 import com.aliyun.tea.TeaException;
 import com.aliyun.teaopenapi.models.Config;
+import com.yan.xiaoyanqtserve.common.exception.BizException;
 import com.yan.xiaoyanqtserve.service.SysConfigService;
 import jakarta.annotation.PostConstruct;
 import lombok.Data;
@@ -71,7 +72,7 @@ public class AliyunCaptchaService {
         // 服务禁用时直接通过验证
         if (!sysConfigService.getCaptchaServiceEnabled()) {
             log.debug("验证码服务已禁用，自动通过验证");
-            return true;
+            return handleServiceException(new BizException("验证码服务已禁用"));
         }
 
         if (client == null) {
@@ -99,7 +100,7 @@ public class AliyunCaptchaService {
             // 验证结果代码，如：T001，F001，F002
             String verifyCode = responseBody.getResult().getVerifyCode();
 
-            log.debug("阿里云验证码服务调用结果（Scene: {}） " +
+            log.info("阿里云验证码服务调用结果（Scene: {}） " +
                             "| HTTPStatusCode: {} | Success: {} | Code: {} | Message: {} | VerifyResult: {} | VerifyCode: {}",
                     sceneId, httpStatusCode, success, code, message, verifyResult, verifyCode);
 
