@@ -3,6 +3,7 @@ package com.yan.xiaoyanqtserve.service.captcha;
 import com.aliyun.captcha20230305.Client;
 import com.aliyun.captcha20230305.models.VerifyIntelligentCaptchaRequest;
 import com.aliyun.captcha20230305.models.VerifyIntelligentCaptchaResponse;
+import com.aliyun.captcha20230305.models.VerifyIntelligentCaptchaResponseBody;
 import com.aliyun.tea.TeaException;
 import com.aliyun.teaopenapi.models.Config;
 import com.yan.xiaoyanqtserve.service.SysConfigService;
@@ -62,7 +63,7 @@ public class AliyunCaptchaService {
 
     /**
      * 验证验证码
-     * @param sceneId 验证场景ID
+     * @param sceneId 验证场景ID,服务端写入本次验证对应的场景ID，建议传入，尤其在多场景下，防止前端被篡改为其他场景。
      * @param captchaVerifyParam 前端传来的验证参数
      * @return 验证结果（true=通过，false=不通过）
      */
@@ -84,14 +85,24 @@ public class AliyunCaptchaService {
 
         try {
             VerifyIntelligentCaptchaResponse response = client.verifyIntelligentCaptcha(request);
-            Boolean verifyResult = response.getBody().getResult().getVerifyResult();
+            // HTTP状态码
+            Integer httpStatusCode = response.getStatusCode();
+            VerifyIntelligentCaptchaResponseBody responseBody = response.getBody();
+            // 请求是否成功.true：表示请求成功, false：表示请求失败。
+            Boolean success = responseBody.getSuccess();
+            // 返回码,如：Success、InternalError
+            String code = responseBody.getCode();
+            // 返回码描述
+            String message = responseBody.getMessage();
+            // 验证结果。true：表示验证通过, false：表示验证不通过。
+            Boolean verifyResult = responseBody.getResult().getVerifyResult();
+            // 验证结果代码，如：T001，F001，F002
+            String verifyCode = responseBody.getResult().getVerifyCode();
 
-            if (Boolean.TRUE.equals(verifyResult)) {
-                log.debug("验证码验证通过 | Scene: {}", sceneId);
-            } else {
-                log.warn("验证码验证失败 | Scene: {} | Code: {}",
-                        sceneId, response.getBody().getResult().getVerifyCode());
-            }
+            log.debug("阿里云验证码服务调用结果（Scene: {}） " +
+                            "| HTTPStatusCode: {} | Success: {} | Code: {} | Message: {} | VerifyResult: {} | VerifyCode: {}",
+                    sceneId, httpStatusCode, success, code, message, verifyResult, verifyCode);
+
             return Boolean.TRUE.equals(verifyResult);
         } catch (TeaException e) {
             log.error("阿里云验证码服务调用异常 [HTTP:{}] [Code:{}] [Message:{}] [Recommend:{}]",
