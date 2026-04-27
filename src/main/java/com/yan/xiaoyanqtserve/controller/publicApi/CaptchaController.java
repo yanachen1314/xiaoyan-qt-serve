@@ -6,7 +6,6 @@ import com.yan.xiaoyanqtserve.service.captcha.AliyunCaptchaService;
 import jakarta.annotation.Resource;
 import lombok.Builder;
 import lombok.Data;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
@@ -33,7 +32,7 @@ public class CaptchaController {
      * @return 验证码数据
      */
     @PostMapping("/verify")
-    public ApiResponse<?> verifyAliyunCaptcha(@RequestBody CaptchaVerifyDto captchaVerifyDto) {
+    public ApiResponse<CaptchaVerifyVo> verifyAliyunCaptcha(@RequestBody CaptchaVerifyDto captchaVerifyDto) {
         boolean captchaResult = aliyunCaptchaService.verifyCaptcha("f1yi7e7j", captchaVerifyDto.getCaptchaVerifyParam());
         return ApiResponse.success(CaptchaVerifyVo.builder()
                 .captchaResult(captchaResult)
@@ -46,7 +45,9 @@ public class CaptchaController {
     @Data
     @Builder
     public static class CaptchaVerifyVo {
+        // 验证码结果
         private Boolean captchaResult;
+        // 业务结果
         private Object bizResult;
     }
 }

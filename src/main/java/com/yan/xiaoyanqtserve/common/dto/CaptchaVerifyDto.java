@@ -20,6 +20,7 @@ public class CaptchaVerifyDto {
 
     @Data
     public static class BizParam {
-
+        // 申请人邮箱
+        private String applicantEmail;
     }
 }
