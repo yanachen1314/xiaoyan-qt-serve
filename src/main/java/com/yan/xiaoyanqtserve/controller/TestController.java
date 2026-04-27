@@ -4,6 +4,7 @@ import com.yan.xiaoyanqtserve.common.utils.ApiResponse;
 import com.yan.xiaoyanqtserve.config.MultiMailSenderConfig;
 import com.yan.xiaoyanqtserve.config.XiaoyanSecurityConfig;
 import com.yan.xiaoyanqtserve.entity.MailAccount;
+import com.yan.xiaoyanqtserve.service.SysConfigService;
 import com.yan.xiaoyanqtserve.service.mail.MailAccountService;
 import com.yan.xiaoyanqtserve.service.mail.MailService;
 import com.yan.xiaoyanqtserve.task.MailRecordSyncTask;
@@ -37,13 +38,16 @@ public class TestController {
     private final MailAccountService mailAccountService;
     private final MultiMailSenderConfig multiMailSenderConfig;
     private final MailRecordSyncTask mailRecordSyncTask;
-
+    private final SysConfigService sysConfigService;
     private final XiaoyanSecurityConfig config;
+
     @GetMapping("/config/test")
     public ApiResponse<Map<String, Object>> testConfig() {
+
         return ApiResponse.success("获取配置成功", Map.of(
                 "license", config.getLicense(),
-                "bizData", config.getBizData()
+                "bizData", config.getBizData(),
+                "captchaServiceEnabled",sysConfigService.getCaptchaServiceEnabled()
         ));
     }
 
