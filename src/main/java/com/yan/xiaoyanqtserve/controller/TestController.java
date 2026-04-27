@@ -43,8 +43,7 @@ public class TestController {
     public ApiResponse<Map<String, Object>> testConfig() {
         return ApiResponse.success("获取配置成功", Map.of(
                 "license", config.getLicense(),
-                "bizData", config.getBizData(),
-                "credentials", config.getCredentials()
+                "bizData", config.getBizData()
         ));
     }
 

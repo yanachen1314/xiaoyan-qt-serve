@@ -9,10 +9,15 @@ xiaoyan:
       algorithm: ${ENCRYPT_ALGORITHM}
       encrypt-private-key: ${ENCRYPT_PRIVATE_KEY}
       encrypt-public-key: ${ENCRYPT_PUBLIC_KEY}
-    # 凭证配置
-    credentials:
-      access-key: ${CREDENTIALS_ACCESS_KEY}
-      secret-key: ${CREDENTIALS_SECRET_KEY}
+
+aliyun:
+  captcha:
+    access-key-id: ${CAPTCHA_AK}
+    access-key-secret: ${CAPTCHA_SK}
+    endpoint: captcha.cn-shanghai.aliyuncs.com
+    connect-timeout: 5000
+    read-timeout: 5000
+
 host:
   # 直接通过服务器本机访问：MySQL、Redis
   localhost: 127.0.0.1

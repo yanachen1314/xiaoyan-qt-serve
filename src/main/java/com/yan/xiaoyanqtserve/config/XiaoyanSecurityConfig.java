@@ -9,7 +9,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.validation.annotation.Validated;
 import java.nio.charset.StandardCharsets;
-import java.util.Base64;
 
 /**
  * 安全配置中心 - 严格遵循以下安全原则：
@@ -26,12 +25,10 @@ public class XiaoyanSecurityConfig {
 
     private final LicenseConfig license;
     private final BizDataConfig bizData;
-    private final CredentialsConfig credentials;
 
     public XiaoyanSecurityConfig() {
         this.license = new LicenseConfig();
         this.bizData = new BizDataConfig();
-        this.credentials = new CredentialsConfig();
     }
 
 
@@ -65,18 +62,12 @@ public class XiaoyanSecurityConfig {
                 !publicKey.contains("-----END PUBLIC KEY-----")) {
             throw new IllegalStateException("无效的 PUBLIC KEY 格式!");
         }
-
-        // 云凭证验证
-        String accessKey = credentials.getAccessKey();
-        if (accessKey == null || accessKey.length() < 16) {
-            throw new IllegalStateException("CREDENTIALS_ACCESS_KEY 长度不足!");
-        }
     }
 
     // ================= 内部配置类 =================
     @Getter
     @Setter
-    // @ToString(exclude = {"key"}) // 关键：排除密钥字段
+    @ToString(exclude = {"key"}) // 关键：排除密钥字段
     public static class LicenseConfig {
         @NotBlank
         private String key;
@@ -117,14 +108,4 @@ public class XiaoyanSecurityConfig {
         }
     }
 
-    @Getter
-    @Setter
-    @ToString(exclude = {"accessKey", "secretKey"}) // 关键：排除密钥字段
-    public static class CredentialsConfig {
-        @NotBlank
-        private String accessKey;
-
-        @NotBlank
-        private String secretKey;
-    }
 }

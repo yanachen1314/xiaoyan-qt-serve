@@ -26,6 +26,11 @@ public interface SysConfigService extends IService<SysConfig> {
      */
     List<String> getEmailSuffixList();
 
+    /**
+     * 获取验证码服务是否启用
+     * @return 验证码服务是否启用
+     */
+    Boolean getCaptchaServiceEnabled();
 
     /**
      * 重新加载缓存（所有配置），可在修改后调用

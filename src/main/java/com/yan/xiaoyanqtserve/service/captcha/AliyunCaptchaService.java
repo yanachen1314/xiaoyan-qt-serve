@@ -1,58 +1,153 @@
 package com.yan.xiaoyanqtserve.service.captcha;
 
+import com.aliyun.captcha20230305.Client;
+import com.aliyun.captcha20230305.models.VerifyIntelligentCaptchaRequest;
+import com.aliyun.captcha20230305.models.VerifyIntelligentCaptchaResponse;
 import com.aliyun.tea.TeaException;
+import com.aliyun.teaopenapi.models.Config;
+import com.yan.xiaoyanqtserve.service.SysConfigService;
+import jakarta.annotation.PostConstruct;
+import lombok.Data;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Service;
 
 /**
- * 阿里云验证码2.0封装服务（V2版）
+ * 阿里云验证码2.0封装服务（V2版）- 配置驱动实现
  * @author yanchen
- * @since 2026/4/26 22:13
+ * @since 2026/4/27
  */
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class AliyunCaptchaService {
 
+    private final CaptchaProperties properties;
+    private final SysConfigService sysConfigService;
 
-    public static void main(String[] args_) throws Exception {
-        java.util.List<String> args = java.util.Arrays.asList(args_);
-        // ====================== 1. 初始化配置 ======================
-        com.aliyun.teaopenapi.models.Config config = new com.aliyun.teaopenapi.models.Config();
-        // 设置您的AccessKey ID 和 AccessKey Secret。
-        // getEnvProperty只是个示例方法，需要您自己实现AccessKey ID 和 AccessKey Secret安全的获取方式。
-        config.accessKeyId = "ACCESS_KEY_ID";
-        config.accessKeySecret = "ACCESS_KEY_SECRET";
-        //设置请求地址 国内调用地址 captcha.cn-shanghai.aliyuncs.com   新加坡调用地址 captcha.ap-southeast-1.aliyuncs.com
-        config.endpoint = "captcha.cn-shanghai.aliyuncs.com";
-        // 设置连接超时为5000毫秒
-        config.connectTimeout = 5000;
-        // 设置读超时为5000毫秒
-        config.readTimeout = 5000;
-        // ====================== 2. 初始化客户端（实际生产代码中建议复用client） ======================
-        com.aliyun.captcha20230305.Client client = new com.aliyun.captcha20230305.Client(config);
-        // 创建APi请求
-        com.aliyun.captcha20230305.models.VerifyIntelligentCaptchaRequest request = new com.aliyun.captcha20230305.models.VerifyIntelligentCaptchaRequest();
-        // 本次验证的场景ID，建议传入，防止前端被篡改场景
-        request.sceneId = "本次验证的场景ID";
-        // 前端传来的验证参数 CaptchaVerifyParam
-        request.captchaVerifyParam = "前端传来的验证参数 CaptchaVerifyParam";
-        // ====================== 3. 发起请求） ======================
-        try {
-            com.aliyun.captcha20230305.models.VerifyIntelligentCaptchaResponse resp = client.verifyIntelligentCaptcha(request);
-            // 建议使用您系统中的日志组件，打印返回
-            // 获取验证码验证结果（请注意判空），将结果返回给前端。出现异常建议认为验证通过，优先保证业务可用，然后尽快排查异常原因。
-            Boolean captchaVerifyResult = resp.body.result.verifyResult;
-            // 原因code
-            String captchaVerifyCode = resp.body.result.verifyCode;
-        } catch (TeaException error) {
-            // 建议使用您系统中的日志组件，打印异常
-            // 出现异常建议认为验证通过，优先保证业务可用，然后尽快排查异常原因。
-            Boolean captchaVerifyResult = true;
-        } catch (Exception _error) {
-            TeaException error = new TeaException(_error.getMessage(), _error);
-            // 建议使用您系统中的日志组件，打印异常
-            // 出现异常建议认为验证通过，优先保证业务可用，然后尽快排查异常原因。
-            Boolean captchaVerifyResult = true;
+    // 阿里云Client
+    private Client client;
+
+
+    /**
+     * 初始化阿里云Client（单例复用）
+     */
+    @PostConstruct
+    public void init() {
+        if (!sysConfigService.getCaptchaServiceEnabled()) {
+            log.warn("阿里云验证码服务已禁用，跳过初始化");
+            return;
         }
+
+        try {
+            Config config = new Config()
+                    .setAccessKeyId(properties.getAccessKeyId())
+                    .setAccessKeySecret(properties.getAccessKeySecret())
+                    .setEndpoint(properties.getEndpoint())
+                    .setConnectTimeout(properties.getConnectTimeout())
+                    .setReadTimeout(properties.getReadTimeout());
+
+            this.client = new Client(config);
+            log.info("阿里云验证码Client初始化成功 | Endpoint: {} | Timeout: {}/{}ms",
+                    properties.getEndpoint(),
+                    properties.getConnectTimeout(),
+                    properties.getReadTimeout());
+        } catch (Exception e) {
+            log.error("阿里云验证码Client初始化失败，请检查配置", e);
+            throw new IllegalStateException("阿里云验证码服务初始化失败", e);
+        }
+    }
+
+    /**
+     * 验证验证码
+     * @param sceneId 验证场景ID
+     * @param captchaVerifyParam 前端传来的验证参数
+     * @return 验证结果（true=通过，false=不通过）
+     */
+    public boolean verifyCaptcha(String sceneId, String captchaVerifyParam) {
+        // 服务禁用时直接通过验证
+        if (!sysConfigService.getCaptchaServiceEnabled()) {
+            log.debug("验证码服务已禁用，自动通过验证");
+            return true;
+        }
+
+        if (client == null) {
+            log.error("阿里云Client未初始化，请检查配置");
+            return handleServiceException(new IllegalStateException("Client未初始化"));
+        }
+
+        VerifyIntelligentCaptchaRequest request = new VerifyIntelligentCaptchaRequest()
+                .setSceneId(sceneId)
+                .setCaptchaVerifyParam(captchaVerifyParam);
+
+        try {
+            VerifyIntelligentCaptchaResponse response = client.verifyIntelligentCaptcha(request);
+            Boolean verifyResult = response.getBody().getResult().getVerifyResult();
+
+            if (Boolean.TRUE.equals(verifyResult)) {
+                log.debug("验证码验证通过 | Scene: {}", sceneId);
+            } else {
+                log.warn("验证码验证失败 | Scene: {} | Code: {}",
+                        sceneId, response.getBody().getResult().getVerifyCode());
+            }
+            return Boolean.TRUE.equals(verifyResult);
+        } catch (TeaException e) {
+            log.error("阿里云验证码服务调用异常 [HTTP:{}] [Code:{}] [Message:{}] [Recommend:{}]",
+                    e.getCode(),
+                    e.getData().get("Code"),
+                    e.getMessage(),
+                    e.getData().get("Recommend"),
+                    e);
+            return handleServiceException(e);
+        } catch (Exception e) {
+            log.error("验证码验证发生未预期异常", e);
+            return handleServiceException(e);
+        }
+    }
+
+    /**
+     * 异常处理策略：优先保证业务可用
+     */
+    private boolean handleServiceException(Exception e) {
+        // 生产环境建议添加熔断机制
+        log.warn("验证码服务异常降级处理 - 业务优先策略启用 (异常: {})", e.getClass().getSimpleName());
+        return true;
+    }
+
+
+    /**
+     * 阿里云验证码配置属性
+     */
+    @Data
+    @Configuration
+    @ConfigurationProperties(prefix = "aliyun.captcha")
+    public static class CaptchaProperties {
+        /**
+         * AccessKey ID（必须）
+         */
+        private String accessKeyId;
+
+        /**
+         * AccessKey Secret（必须）
+         */
+        private String accessKeySecret;
+
+        /**
+         * 服务端点（默认：captcha.cn-shanghai.aliyuncs.com）
+         */
+        private String endpoint = "captcha.cn-shanghai.aliyuncs.com";
+
+        /**
+         * 连接超时（毫秒，默认：5000）
+         */
+        private Integer connectTimeout = 5000;
+
+        /**
+         * 读取超时（毫秒，默认：5000）
+         */
+        private Integer readTimeout = 5000;
+
     }
 }

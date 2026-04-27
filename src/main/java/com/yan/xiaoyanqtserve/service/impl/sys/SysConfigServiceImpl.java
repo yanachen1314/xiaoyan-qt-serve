@@ -11,7 +11,6 @@ import com.yan.xiaoyanqtserve.common.Constants;
 import com.yan.xiaoyanqtserve.common.dto.adminUser.ConfigPageRequest;
 import com.yan.xiaoyanqtserve.common.dto.adminUser.SysConfigDto;
 import com.yan.xiaoyanqtserve.common.enums.ConfigType;
-import com.yan.xiaoyanqtserve.common.utils.ApiResponse;
 import com.yan.xiaoyanqtserve.common.utils.RedisUtil;
 import com.yan.xiaoyanqtserve.entity.SysConfig;
 import com.yan.xiaoyanqtserve.common.exception.BizException;
@@ -64,7 +63,7 @@ public class SysConfigServiceImpl extends ServiceImpl<SysConfigMapper, SysConfig
      */
     @Override
     public List<String> getEmailSuffixList() {
-        String stringValue = getValue(Constants.EMAIL_SUFFIX_KEY);
+        String stringValue = getValue(Constants.SYSTEM_EMAIL_SUFFIX_KEY);
         try {
             JSONArray arrayValue = JSON.parseArray(stringValue);
             List<String> stringList = arrayValue.toList(String.class);
@@ -78,6 +77,14 @@ public class SysConfigServiceImpl extends ServiceImpl<SysConfigMapper, SysConfig
         }
     }
 
+    /**
+     * 获取验证码服务是否启用
+     * @return 验证码服务是否启用
+     */
+    @Override
+    public Boolean getCaptchaServiceEnabled() {
+        return Boolean.parseBoolean(getValue(Constants.SYSTEM_CAPTCHA_ENABLED));
+    }
 
 
     /**

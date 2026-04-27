@@ -96,6 +96,9 @@ public class Constants {
     public static final String FREE_KEY_USAGE_TYPE = "apikey.usageType.emailFree";
     // 邮箱免费密钥的产品码
     public static final String FREE_KEY_PRODUCT_CODE = "EMAIL_FREE_KEY";
-    // 邮箱免费密钥的后缀
-    public static final String EMAIL_SUFFIX_KEY = "email.applyKey.suffix";
+
+    // 邮箱免费密钥的后缀（系统配置Config-Key，不能修改）
+    public static final String SYSTEM_EMAIL_SUFFIX_KEY = "email.applyKey.suffix";
+    // 系统验证码服务是否开启
+    public static final String SYSTEM_CAPTCHA_ENABLED = "system.captcha.enabled";
 }
