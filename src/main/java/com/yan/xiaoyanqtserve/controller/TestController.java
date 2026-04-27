@@ -1,5 +1,6 @@
 package com.yan.xiaoyanqtserve.controller;
 
+import com.yan.xiaoyanqtserve.common.utils.ApiResponse;
 import com.yan.xiaoyanqtserve.config.MultiMailSenderConfig;
 import com.yan.xiaoyanqtserve.config.XiaoyanSecurityConfig;
 import com.yan.xiaoyanqtserve.entity.MailAccount;
@@ -8,6 +9,7 @@ import com.yan.xiaoyanqtserve.service.mail.MailService;
 import com.yan.xiaoyanqtserve.task.MailRecordSyncTask;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Profile;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,6 +30,7 @@ import java.util.Map;
 @Validated
 @RestController
 @RequestMapping("/api/public/test")
+@Profile({"dev", "test"})
 @RequiredArgsConstructor
 public class TestController {
     private final MailService mailService;
@@ -37,10 +40,12 @@ public class TestController {
 
     private final XiaoyanSecurityConfig config;
     @GetMapping("/config/test")
-    public XiaoyanSecurityConfig testConfig() {
-        // 应输出密钥长度（32+）
-        log.info("License Key Length: {}", config.getLicense().getKey().length());
-        return config;
+    public ApiResponse<Map<String, Object>> testConfig() {
+        return ApiResponse.success("获取配置成功", Map.of(
+                "license", config.getLicense(),
+                "bizData", config.getBizData(),
+                "credentials", config.getCredentials()
+        ));
     }
 
     @GetMapping("/sendMail")

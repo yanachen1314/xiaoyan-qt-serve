@@ -1,5 +1,7 @@
 package com.yan.xiaoyanqtserve.common.utils;
 
+import com.yan.xiaoyanqtserve.config.XiaoyanSecurityConfig;
+import jakarta.annotation.Resource;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -27,8 +29,8 @@ public class LicenseKeyGenerator {
 
     private static final String HMAC_ALGO = "HmacSHA256";
 
-    @Value("${xiaoyan.security.license.key}")
-    private String SECRET;
+    @Resource
+    private XiaoyanSecurityConfig xiaoyanSecurityConfig;
 
     /**
      * 生成Key
@@ -112,7 +114,7 @@ public class LicenseKeyGenerator {
         try {
             Mac mac = Mac.getInstance(HMAC_ALGO);
             mac.init(new SecretKeySpec(
-                    SECRET.getBytes(StandardCharsets.UTF_8),
+                    xiaoyanSecurityConfig.getLicense().getRawKeyBytes(),
                     HMAC_ALGO));
 
             byte[] hash = mac.doFinal(payload.getBytes(StandardCharsets.UTF_8));

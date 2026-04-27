@@ -1,20 +1,18 @@
-package com.yan.xiaoyanqtserve.service.mail;
+package com.yan.xiaoyanqtserve.service.captcha;
 
 import com.aliyun.tea.TeaException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 /**
- * 阿里云邮件封装服务
+ * 阿里云验证码2.0封装服务（V2版）
  * @author yanchen
  * @since 2026/4/26 22:13
  */
+@Slf4j
 @Service
-public class MailAliService {
+public class AliyunCaptchaService {
 
-    public static String getEnvProperty(String propertyName) throws Exception {
-        // TODO 请实现非明文硬编码方式获取您的AccessKey ID 和 AccessKey Secret，比如阿里云Credentials工具（参见https://help.aliyun.com/document_detail/378659.html），或其他您的系统中安全的获取方式。
-        return "null";
-    }
 
     public static void main(String[] args_) throws Exception {
         java.util.List<String> args = java.util.Arrays.asList(args_);

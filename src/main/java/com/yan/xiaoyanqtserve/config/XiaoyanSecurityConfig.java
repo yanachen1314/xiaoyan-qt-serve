@@ -81,15 +81,15 @@ public class XiaoyanSecurityConfig {
         @NotBlank
         private String key;
 
-        // 安全访问器：返回密钥的哈希值而非原始值
-        public byte[] getSecureKey() {
-            return Base64.getEncoder().encode(key.getBytes(StandardCharsets.UTF_8));
+        // 返回密钥的原始字节
+        public byte[] getRawKeyBytes() {
+            return key.getBytes(StandardCharsets.UTF_8);
         }
     }
 
     @Getter
     @Setter
-    // @ToString(exclude = {"encryptPrivateKey", "encryptPublicKey"})
+    @ToString(exclude = {"encryptPrivateKey", "encryptPublicKey"})
     public static class BizDataConfig {
         @NotBlank
         private String algorithm; // 必须为 RSA-256
@@ -119,7 +119,7 @@ public class XiaoyanSecurityConfig {
 
     @Getter
     @Setter
-    // @ToString(exclude = {"secretKey"}) // 关键：排除密钥字段
+    @ToString(exclude = {"accessKey", "secretKey"}) // 关键：排除密钥字段
     public static class CredentialsConfig {
         @NotBlank
         private String accessKey;
