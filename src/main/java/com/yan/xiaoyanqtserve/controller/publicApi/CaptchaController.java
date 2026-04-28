@@ -28,12 +28,12 @@ public class CaptchaController {
     private AliyunCaptchaService aliyunCaptchaService;
 
     /**
-     * 获取验证码加密后的sceneId
+     * 获取验证码加密后的sceneId: "f1yi7e7j"
      * @return 验证码加密后的sceneId
      */
-    @GetMapping("/getEncryptedSceneId")
-    public ApiResponse<String> getEncryptedSceneId(){
-        return ApiResponse.success(aliyunCaptchaService.getEncryptedSceneId("f1yi7e7j"));
+    @GetMapping("/getEncryptedSceneId/{sceneId}")
+    public ApiResponse<String> getEncryptedSceneId(@PathVariable String sceneId){
+        return ApiResponse.success(aliyunCaptchaService.getEncryptedSceneId(sceneId));
     }
 
     /**
