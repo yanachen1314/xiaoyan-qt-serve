@@ -28,6 +28,15 @@ public class CaptchaController {
     private AliyunCaptchaService aliyunCaptchaService;
 
     /**
+     * 获取验证码加密后的sceneId
+     * @return 验证码加密后的sceneId
+     */
+    @GetMapping("/getEncryptedSceneId")
+    public ApiResponse<String> getEncryptedSceneId(){
+        return ApiResponse.success(aliyunCaptchaService.getEncryptedSceneId("f1yi7e7j"));
+    }
+
+    /**
      * 校验验证码
      * @return 验证码数据
      */
@@ -50,7 +59,6 @@ public class CaptchaController {
                 .bizData("验证码校验成功bizData")
                 .build());
     }
-
 
     @Data
     @Builder

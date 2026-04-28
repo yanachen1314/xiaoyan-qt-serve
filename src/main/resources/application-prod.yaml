@@ -17,6 +17,7 @@ aliyun:
     endpoint: captcha.cn-shanghai.aliyuncs.com
     connect-timeout: 5000
     read-timeout: 5000
+    ekey: T72S75aYYm1+04XXvsyr7UwgAhKwnPUZ8yAobcowmmE=
 
 host:
   # 直接通过服务器本机访问：MySQL、Redis

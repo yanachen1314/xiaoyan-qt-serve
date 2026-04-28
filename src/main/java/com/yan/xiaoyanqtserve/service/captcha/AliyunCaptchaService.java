@@ -7,6 +7,7 @@ import com.aliyun.captcha20230305.models.VerifyIntelligentCaptchaResponseBody;
 import com.aliyun.tea.TeaException;
 import com.aliyun.teaopenapi.models.Config;
 import com.yan.xiaoyanqtserve.common.exception.BizException;
+import com.yan.xiaoyanqtserve.common.utils.SceneIdEncryptor;
 import com.yan.xiaoyanqtserve.service.SysConfigService;
 import jakarta.annotation.PostConstruct;
 import lombok.Data;
@@ -128,6 +129,19 @@ public class AliyunCaptchaService {
         return true;
     }
 
+    /**
+     * 获取加密后的场景ID字符串
+      * @param sceneId 场景ID
+     * @return 加密后的场景ID字符串
+     */
+    public String getEncryptedSceneId(String sceneId){
+        try {
+            return SceneIdEncryptor.encryptSceneId(sceneId, properties.getEkey(), 300);
+        } catch (Exception e) {
+            log.warn("验证码场景ID加密失败，明文 sceneId：{}", sceneId);
+            return null;
+        }
+    }
 
     /**
      * 阿里云验证码配置属性
@@ -161,5 +175,9 @@ public class AliyunCaptchaService {
          */
         private Integer readTimeout = 5000;
 
+        /**
+         * Ekey（必须）
+         */
+        private String ekey;
     }
 }
