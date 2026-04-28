@@ -6,6 +6,7 @@ import com.aliyun.captcha20230305.models.VerifyIntelligentCaptchaResponse;
 import com.aliyun.captcha20230305.models.VerifyIntelligentCaptchaResponseBody;
 import com.aliyun.tea.TeaException;
 import com.aliyun.teaopenapi.models.Config;
+import com.yan.xiaoyanqtserve.common.enums.SceneIdEnum;
 import com.yan.xiaoyanqtserve.common.exception.BizException;
 import com.yan.xiaoyanqtserve.common.utils.SceneIdEncryptor;
 import com.yan.xiaoyanqtserve.service.SysConfigService;
@@ -69,7 +70,7 @@ public class AliyunCaptchaService {
      * @param captchaVerifyParam 前端传来的验证参数
      * @return 验证结果（true=通过，false=不通过）
      */
-    public boolean verifyCaptcha(String sceneId, String captchaVerifyParam) {
+    public boolean verifyCaptcha(SceneIdEnum sceneId, String captchaVerifyParam) {
         // 服务禁用时直接通过验证
         if (!sysConfigService.getCaptchaServiceEnabled()) {
             log.debug("验证码服务已禁用，自动通过验证");
@@ -82,7 +83,7 @@ public class AliyunCaptchaService {
         }
 
         VerifyIntelligentCaptchaRequest request = new VerifyIntelligentCaptchaRequest()
-                .setSceneId(sceneId)
+                .setSceneId(sceneId.value())
                 .setCaptchaVerifyParam(captchaVerifyParam);
 
         try {
@@ -103,7 +104,7 @@ public class AliyunCaptchaService {
 
             log.info("阿里云验证码服务调用结果（Scene: {}） " +
                             "| HTTPStatusCode: {} | Success: {} | Code: {} | Message: {} | VerifyResult: {} | VerifyCode: {}",
-                    sceneId, httpStatusCode, success, code, message, verifyResult, verifyCode);
+                    sceneId.value(), httpStatusCode, success, code, message, verifyResult, verifyCode);
 
             return Boolean.TRUE.equals(verifyResult);
         } catch (TeaException e) {
@@ -131,14 +132,14 @@ public class AliyunCaptchaService {
 
     /**
      * 获取加密后的场景ID字符串
-      * @param sceneId 场景ID
+     * @param sceneId 场景ID
      * @return 加密后的场景ID字符串
      */
-    public String getEncryptedSceneId(String sceneId){
+    public String getEncryptedSceneId(SceneIdEnum sceneId) {
         try {
-            return SceneIdEncryptor.encryptSceneId(sceneId, properties.getEkey(), 300);
+            return SceneIdEncryptor.encryptSceneId(sceneId.value(), properties.getEkey(), 300);
         } catch (Exception e) {
-            log.warn("验证码场景ID加密失败，明文 sceneId：{}", sceneId);
+            log.warn("验证码场景ID加密失败，明文 sceneId：{}", sceneId.value());
             return null;
         }
     }

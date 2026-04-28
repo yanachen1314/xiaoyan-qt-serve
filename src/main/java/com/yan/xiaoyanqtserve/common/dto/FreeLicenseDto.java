@@ -17,6 +17,12 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class FreeLicenseDto {
     /**
+     * 验证码参数(阿里云验证码服务端返回的验证码参数)
+     */
+    @NotBlank(message = "验证码参数不能为空")
+    private String captchaVerifyParam;
+
+    /**
      * 申请者邮箱
      */
     @Email(message = "邮箱格式不正确")

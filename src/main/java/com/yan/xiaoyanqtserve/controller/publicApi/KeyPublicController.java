@@ -4,6 +4,7 @@ import com.yan.xiaoyanqtserve.common.Constants;
 import com.yan.xiaoyanqtserve.common.annotaions.RateLimiter;
 import com.yan.xiaoyanqtserve.common.dto.FreeLicenseDto;
 import com.yan.xiaoyanqtserve.common.dto.MailRecordDto;
+import com.yan.xiaoyanqtserve.common.enums.SceneIdEnum;
 import com.yan.xiaoyanqtserve.common.vo.FreeLicenseVo;
 import com.yan.xiaoyanqtserve.common.dto.key.KeyActiveDto;
 import com.yan.xiaoyanqtserve.common.enums.RateLimiterType;
@@ -13,14 +14,18 @@ import com.yan.xiaoyanqtserve.entity.MailFreeKeyRecord;
 import com.yan.xiaoyanqtserve.entity.KeyInfo;
 import com.yan.xiaoyanqtserve.service.MailFreeKeyRecordService;
 import com.yan.xiaoyanqtserve.service.SysConfigService;
+import com.yan.xiaoyanqtserve.service.captcha.AliyunCaptchaService;
 import com.yan.xiaoyanqtserve.service.impl.KeyInfoManagerService;
 import com.yan.xiaoyanqtserve.service.mail.MailRecordSyncService;
 import com.yan.xiaoyanqtserve.service.mail.MailService;
 import com.yan.xiaoyanqtserve.validator.EmailValidator;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import lombok.Builder;
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -42,6 +47,7 @@ public class KeyPublicController {
     private final MailFreeKeyRecordService mailFreeKeyRecordService;
     private final SysConfigService sysConfigService;
     private final MailRecordSyncService mailRecordSyncService;
+    private final AliyunCaptchaService aliyunCaptchaService;
 
     /**
      * 密钥激活接口
@@ -107,8 +113,24 @@ public class KeyPublicController {
      * @return 提示信息
      */
     @PostMapping("/freeLicense")
-    public ApiResponse<FreeLicenseVo> sendMailRoundRobin(@Valid @RequestBody FreeLicenseDto freeLicenseDto,
+    public ApiResponse<CaptchaVerifyVo> sendMailRoundRobin(@Valid @RequestBody FreeLicenseDto freeLicenseDto,
                                                          HttpServletRequest request) {
+        String captchaVerifyParam = freeLicenseDto.getCaptchaVerifyParam();
+        log.info("验证码参数: {}", captchaVerifyParam);
+        if(!StringUtils.hasText(captchaVerifyParam)){
+            return ApiResponse.fail("验证码参数不能为空", CaptchaVerifyVo.builder()
+                    .captchaResult(false)
+                    .bizResult(FreeLicenseVo.builder().build())
+                    .build());
+        }
+        boolean verifyCaptcha = aliyunCaptchaService.verifyCaptcha(SceneIdEnum.EMAIL_APPLY, captchaVerifyParam);
+        if (!verifyCaptcha){
+            return ApiResponse.fail("验证码验证失败", CaptchaVerifyVo.builder()
+                    .captchaResult(false)
+                    .bizResult(FreeLicenseVo.builder().build())
+                    .build());
+        }
+
         String email = freeLicenseDto.getEmail();
         String deviceType = request.getHeader(Constants.HEADER_DEVICE_TYPE);
         String deviceId = request.getHeader(Constants.HEADER_DEVICE_ID);
@@ -144,17 +166,36 @@ public class KeyPublicController {
                     .build());
 
             // 5. 返回结果
-            return ApiResponse.success("免费卡密发送成功，请注意查收邮件", FreeLicenseVo.builder()
-                    .email(email)
+            return ApiResponse.success("免费卡密发送成功，请注意查收邮件", CaptchaVerifyVo.builder()
+                    .captchaResult(true)
+                    .bizResult(FreeLicenseVo.builder().email(email).build())
                     .build());
+            // return ApiResponse.success("免费卡密发送成功，请注意查收邮件", FreeLicenseVo.builder()
+            //         .email(email)
+            //         .build());
         } catch (Exception e) {
             log.error("免费卡密领取失败: {}", e.getMessage(), e);
             // 如果是重复领取（并发情况下的唯一索引冲突）
             if (e.getMessage() != null && e.getMessage().contains("Duplicate")) {
-                return ApiResponse.fail("该邮箱已领取过免费卡密，请勿重复领取");
+                // return ApiResponse.fail("该邮箱已领取过免费卡密，请勿重复领取");
+                return ApiResponse.fail("该邮箱已领取过免费卡密，请勿重复领取", CaptchaVerifyVo.builder()
+                        .captchaResult(false)
+                        .bizResult(FreeLicenseVo.builder().build())
+                        .build());
             }
-            return ApiResponse.fail(e.getMessage());
+            return ApiResponse.fail(e.getMessage(), CaptchaVerifyVo.builder()
+                    .captchaResult(false)
+                    .bizResult(FreeLicenseVo.builder().build())
+                    .build());
         }
     }
 
+    @Data
+    @Builder
+    public static class CaptchaVerifyVo {
+        // 验证码结果
+        private Boolean captchaResult;
+        // 业务结果
+        private FreeLicenseVo bizResult;
+    }
 }
