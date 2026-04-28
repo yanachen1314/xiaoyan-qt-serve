@@ -131,21 +131,21 @@ public class KeyPublicController {
                     .build());
         }
 
-        String email = freeLicenseDto.getEmail();
+        String applicantEmail = freeLicenseDto.getEmail();
         String deviceType = request.getHeader(Constants.HEADER_DEVICE_TYPE);
         String deviceId = request.getHeader(Constants.HEADER_DEVICE_ID);
         String clientIp = NetUtil.getClientIpAddress(request);
         String userAgent = request.getHeader("User-Agent");
-        log.debug("申请邮箱：{}，设备类型：{}，设备ID：{}，客户端IP：{}，用户代理：{}", email, deviceType, deviceId, clientIp, userAgent);
+        log.debug("申请邮箱：{}，设备类型：{}，设备ID：{}，客户端IP：{}，用户代理：{}", applicantEmail, deviceType, deviceId, clientIp, userAgent);
         try {
             // 1. 邮箱校验
             // 邮箱账号格式校验
             List<String> emailSuffixList = sysConfigService.getEmailSuffixList();
-            if (!EmailValidator.isValidEmail(email, emailSuffixList)) {
+            if (!EmailValidator.isValidEmail(applicantEmail, emailSuffixList)) {
                 throw new IllegalArgumentException("邮箱格式不正确");
             }
             // 检查该邮箱是否已领取
-            if (mailFreeKeyRecordService.hasReceived(email)) {
+            if (mailFreeKeyRecordService.hasReceived(applicantEmail)) {
                 throw new IllegalArgumentException("该邮箱已领取过免费卡密，请勿重复领取");
             }
 
@@ -153,11 +153,11 @@ public class KeyPublicController {
             String licenseKey = managerService.getUnusedFreeKeyFromPool();
 
             // 3. 发送邮件
-            mailService.sendFreeLicenseEmail(email, licenseKey);
+            mailService.sendFreeLicenseEmail(applicantEmail, licenseKey);
 
             // 4. 异步记录领取信息
             mailRecordSyncService.saveRecordAsync(MailRecordDto.builder()
-                    .applicantEmail(email)
+                    .applicantEmail(applicantEmail)
                     .licenseKey(licenseKey)
                     .deviceType(deviceType)
                     .deviceId(deviceId)
@@ -168,11 +168,8 @@ public class KeyPublicController {
             // 5. 返回结果
             return ApiResponse.success("免费卡密发送成功，请注意查收邮件", CaptchaVerifyVo.builder()
                     .captchaResult(true)
-                    .bizResult(FreeLicenseVo.builder().email(email).build())
+                    .bizResult(FreeLicenseVo.builder().email(applicantEmail).build())
                     .build());
-            // return ApiResponse.success("免费卡密发送成功，请注意查收邮件", FreeLicenseVo.builder()
-            //         .email(email)
-            //         .build());
         } catch (Exception e) {
             log.error("免费卡密领取失败: {}", e.getMessage(), e);
             // 如果是重复领取（并发情况下的唯一索引冲突）

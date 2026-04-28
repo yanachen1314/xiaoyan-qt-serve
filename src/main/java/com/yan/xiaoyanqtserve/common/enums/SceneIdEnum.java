@@ -26,7 +26,7 @@ public enum SceneIdEnum {
      */
     public static SceneIdEnum getBySceneId(String sceneId) {
         for (SceneIdEnum sceneIdEnum : values()) {
-            if (sceneIdEnum.name().equals(sceneId.toUpperCase())) {
+            if (sceneIdEnum.value().equals(sceneId)) {
                 return sceneIdEnum;
             }
         }

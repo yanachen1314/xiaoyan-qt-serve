@@ -1,6 +1,7 @@
 package com.yan.xiaoyanqtserve;
 
 import com.yan.xiaoyanqtserve.common.enums.CaptchaType;
+import com.yan.xiaoyanqtserve.common.enums.SceneIdEnum;
 
 import java.util.Arrays;
 
@@ -11,12 +12,7 @@ import java.util.Arrays;
  */
 public class Test {
     public static void main(String[] args) {
-        System.out.println(CaptchaType.getByTypeName("SLIDER"));
-        System.out.println(CaptchaType.getByTypeName("asdfdsf"));
-        System.out.println(CaptchaType.getByTypeName("RANDOM"));
-        System.out.println(CaptchaType.getByTypeName(""));
-        System.out.println(CaptchaType.getByTypeName(null));
-        System.out.println(Arrays.toString(CaptchaType.values()));
-
+        System.out.println(SceneIdEnum.getBySceneId("f1yi7e7j"));
+        System.out.println(SceneIdEnum.getBySceneId("f1yi7e7ssdfj"));
     }
 }
