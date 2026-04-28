@@ -15,12 +15,6 @@ public class CaptchaVerifyDto {
      */
     private String captchaVerifyParam;
 
-    // 业务参数
-    private BizParam bizParam;
-
-    @Data
-    public static class BizParam {
-        // 申请人邮箱
-        private String applicantEmail;
-    }
+    // 申请人邮箱
+    private String applicantEmail;
 }

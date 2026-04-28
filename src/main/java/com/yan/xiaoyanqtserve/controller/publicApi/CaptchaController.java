@@ -10,8 +10,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
-
 
 /**
  * 验证码相关控制器
@@ -47,16 +45,14 @@ public class CaptchaController {
         if(!captchaResult){
             return ApiResponse.success(CaptchaVerifyVo.builder()
                     .captchaResult(false)
-                    .bizResult(false)
-                    .bizData(null)
+                    .bizResult(null)
                     .build());
         }
         
         // 校验正常，执行业务逻辑
         return ApiResponse.success(CaptchaVerifyVo.builder()
                 .captchaResult(true)
-                .bizResult(true)
-                .bizData("验证码校验成功bizData")
+                .bizResult("验证码校验成功bizData")
                 .build());
     }
 
@@ -66,7 +62,6 @@ public class CaptchaController {
         // 验证码结果
         private Boolean captchaResult;
         // 业务结果
-        private Boolean bizResult;
-        private Object bizData;
+        private Object bizResult;
     }
 }
