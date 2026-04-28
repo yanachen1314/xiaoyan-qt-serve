@@ -37,7 +37,8 @@ public class CaptchaController {
         return ApiResponse.success(CaptchaVerifyVo.builder()
                 .captchaResult(captchaResult)
                 .bizResult(Map.of(
-                        "status",true))
+                        "status",true,
+                        "data","验证码校验成功bizData"))
                 .build());
     }
 
