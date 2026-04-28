@@ -34,11 +34,20 @@ public class CaptchaController {
     @PostMapping("/verify")
     public ApiResponse<CaptchaVerifyVo> verifyAliyunCaptcha(@RequestBody CaptchaVerifyDto captchaVerifyDto) {
         boolean captchaResult = aliyunCaptchaService.verifyCaptcha("f1yi7e7j", captchaVerifyDto.getCaptchaVerifyParam());
+        // 验证码校验失败
+        if(!captchaResult){
+            return ApiResponse.success(CaptchaVerifyVo.builder()
+                    .captchaResult(false)
+                    .bizResult(false)
+                    .bizData(null)
+                    .build());
+        }
+        
+        // 校验正常，执行业务逻辑
         return ApiResponse.success(CaptchaVerifyVo.builder()
-                .captchaResult(captchaResult)
-                .bizResult(Map.of(
-                        "status",true,
-                        "data","验证码校验成功bizData"))
+                .captchaResult(true)
+                .bizResult(true)
+                .bizData("验证码校验成功bizData")
                 .build());
     }
 
@@ -49,6 +58,7 @@ public class CaptchaController {
         // 验证码结果
         private Boolean captchaResult;
         // 业务结果
-        private Object bizResult;
+        private Boolean bizResult;
+        private Object bizData;
     }
 }
