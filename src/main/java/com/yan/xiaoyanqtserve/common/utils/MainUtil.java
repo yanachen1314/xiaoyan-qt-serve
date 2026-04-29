@@ -38,6 +38,7 @@ public class MainUtil {
         }
         return false;
     }
+
     public static boolean isAllowedPath(List<String> allowedPatterns, String path) {
         for (String pattern : allowedPatterns) {
             if (ANT_PATH_MATCHER.match(pattern, path)) {
@@ -47,9 +48,14 @@ public class MainUtil {
         return false;
     }
 
+    /**
+     * 从请求头中提取 API 密钥
+     * @param request   HTTP 请求对象
+     * @return API 密钥，如果请求头中没有携带 API 密钥则返回 null
+     */
     @Nullable
     public static String extractApiKeyFromHeader(HttpServletRequest request) {
-        String header = NetUtil.getAuthHeader(request);
+        String header = NetUtil.getApiKey(request);
         if (StringUtils.hasText(header) && header.startsWith(HEADER_PREFIX)) {
             // 返回 header 值
             return header.substring(HEADER_PREFIX.length()).trim();
