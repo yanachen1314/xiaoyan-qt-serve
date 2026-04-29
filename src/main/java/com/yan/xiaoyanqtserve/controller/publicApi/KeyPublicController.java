@@ -133,23 +133,41 @@ public class KeyPublicController {
             // 2. 从卡密池中获取一个未使用的免费卡密
             String licenseKey = managerService.getUnusedFreeKeyFromPool();
 
-            // 3. 发送邮件并获取实际使用的发送账号
-            String systemSenderEmail = mailService.sendFreeLicenseEmail(applicantEmail, licenseKey).get();
+            // 3. 异步发送邮件并保存记录
+            mailService.sendFreeLicenseEmail(applicantEmail, licenseKey)
+                    .thenAccept(systemSenderEmail -> {
+                        // 发送成功，异步记录领取信息
+                        mailRecordSyncService.saveRecordAsync(MailRecordDto.builder()
+                                .systemSenderEmail(systemSenderEmail)
+                                .resultStatus(1)
+                                .resultMsg("发送成功")
+                                .applicantEmail(applicantEmail)
+                                .licenseKey(licenseKey)
+                                .deviceType(deviceType)
+                                .deviceId(deviceId)
+                                .clientIp(clientIp)
+                                .userAgent(userAgent)
+                                .build());
+                    })
+                    .exceptionally(ex -> {
+                        // 发送失败，记录失败信息
+                        Throwable cause = ex.getCause() != null ? ex.getCause() : ex;
+                        log.error("邮件发送失败，邮箱: {}, 原因: {}", applicantEmail, cause.getMessage(), cause);
+                        mailRecordSyncService.saveRecordAsync(MailRecordDto.builder()
+                                .systemSenderEmail("")
+                                .resultStatus(0)
+                                .resultMsg(cause.getMessage())
+                                .applicantEmail(applicantEmail)
+                                .licenseKey(licenseKey)
+                                .deviceType(deviceType)
+                                .deviceId(deviceId)
+                                .clientIp(clientIp)
+                                .userAgent(userAgent)
+                                .build());
+                        return null;
+                    });
 
-            // 4. 异步记录领取信息
-            mailRecordSyncService.saveRecordAsync(MailRecordDto.builder()
-                    .systemSenderEmail(systemSenderEmail)
-                    .resultStatus(1)
-                    .resultMsg("发送成功")
-                    .applicantEmail(applicantEmail)
-                    .licenseKey(licenseKey)
-                    .deviceType(deviceType)
-                    .deviceId(deviceId)
-                    .clientIp(clientIp)
-                    .userAgent(userAgent)
-                    .build());
-
-            // 5. 返回结果
+            // 4. 立即返回结果，不等待邮件发送完成
             return ApiResponse.success("免费卡密发送成功，请注意查收邮件", CaptchaVerifyVo
                     .buildSuccess(FreeLicenseVo.builder().email(applicantEmail).build())
             );
