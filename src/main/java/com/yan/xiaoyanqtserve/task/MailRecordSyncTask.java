@@ -109,6 +109,7 @@ public class MailRecordSyncTask {
     /**
      * 补充免费密钥池
      * 使用keyInfoManagerService.generateKey()方法生成200个免费密钥并添加到Redis池中
+     * todo: 不创建数据库记录，只生成卡密的密钥值保存在redis中，当使用时再创建数据库记录
      */
     private void replenishFreeKeyPool() {
         try {

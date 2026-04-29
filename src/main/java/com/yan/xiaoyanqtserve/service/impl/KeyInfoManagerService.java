@@ -26,7 +26,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * 请求处理服务
+ * APIKEY请求处理服务
  * @author yanchen
  * @since 2026/2/3 18:18
  */
@@ -410,7 +410,7 @@ public class KeyInfoManagerService {
         
         String freeKeyValue = freeKeyValueObj.toString();
 
-        // 通过密钥值更新密钥信息（已售出）
+        // todo: 开始真正创建ApiKey的数据库记录
         try {
             keyInfoService.updateKeyInfoSelledByValue(freeKeyValue, true);
         } catch (Exception e) {

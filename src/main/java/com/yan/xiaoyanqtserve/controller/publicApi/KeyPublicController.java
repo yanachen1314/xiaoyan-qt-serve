@@ -133,12 +133,12 @@ public class KeyPublicController {
             // 2. 从卡密池中获取一个未使用的免费卡密
             String licenseKey = managerService.getUnusedFreeKeyFromPool();
 
-            // 3. 发送邮件
-            mailService.sendFreeLicenseEmail(applicantEmail, licenseKey);
+            // 3. 发送邮件并获取实际使用的发送账号
+            String systemSenderEmail = mailService.sendFreeLicenseEmail(applicantEmail, licenseKey).get();
 
             // 4. 异步记录领取信息
             mailRecordSyncService.saveRecordAsync(MailRecordDto.builder()
-                    .systemSenderEmail("")
+                    .systemSenderEmail(systemSenderEmail)
                     .resultStatus(1)
                     .resultMsg("发送成功")
                     .applicantEmail(applicantEmail)

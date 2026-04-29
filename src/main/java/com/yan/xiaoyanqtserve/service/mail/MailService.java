@@ -99,11 +99,11 @@ public class MailService {
      * 免费卡密邮件模板
      * @param to 收件人
      * @param license 卡密
+     * @return CompletableFuture，包含实际使用的发送账号邮箱地址
      */
-    public void sendFreeLicenseEmail(String to, String license) {
+    public CompletableFuture<String> sendFreeLicenseEmail(String to, String license) {
         String htmlContent = templateService.generateFreeLicenseTemplate(to,license);
-       CompletableFuture<String> future = sendHtmlMailWithAccount(null, to, "【小烟改写工具】免费卡密赠送", htmlContent);
-       
+        return sendHtmlMailWithAccount(null, to, "【小烟改写工具】免费卡密赠送", htmlContent);
     }
 
     /**
