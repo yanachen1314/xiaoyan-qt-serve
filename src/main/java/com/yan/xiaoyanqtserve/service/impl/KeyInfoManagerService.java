@@ -425,8 +425,12 @@ public class KeyInfoManagerService {
                 log.warn("产品类型不存在，无法生成密钥：{}", Constants.FREE_KEY_PRODUCT_CODE);
                 throw new BizException("产品类型不存在！");
             }
-
-            keyInfoService.save(buildKeyInfo(freeKeyValue, 1L, generateKeyDto, productType));
+            generateKeyDto.setProductTypeId(productType.getId().intValue());
+            KeyInfo keyInfo = buildKeyInfo(freeKeyValue, 1L, generateKeyDto, productType);
+            // 设置已售出
+            keyInfo.setSelled((byte) 1);
+            // 保存密钥信息
+            keyInfoService.save(keyInfo);
         } catch (Exception e) {
             log.error("【分发免费密钥】保存密钥信息失败，密钥值: {}", freeKeyValue);
             throw new BizException("保存卡密信息失败！");

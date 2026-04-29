@@ -7,6 +7,7 @@ import com.yan.xiaoyanqtserve.common.dto.key.GenerateKeyDto;
 import com.yan.xiaoyanqtserve.common.enums.BizStatus;
 import com.yan.xiaoyanqtserve.common.exception.BizException;
 import com.yan.xiaoyanqtserve.common.utils.LicenseKeyGenerator;
+import com.yan.xiaoyanqtserve.entity.KeyInfo;
 import com.yan.xiaoyanqtserve.entity.ProductType;
 import com.yan.xiaoyanqtserve.entity.SysConfig;
 import com.yan.xiaoyanqtserve.service.KeyInfoService;
@@ -53,8 +54,10 @@ class XiaoyanQtServeApplicationTests {
                 log.warn("产品类型不存在，无法生成密钥：{}", Constants.FREE_KEY_PRODUCT_CODE);
                 throw new BizException("产品类型不存在！");
             }
-
-            keyInfoService.save(keyInfoManagerService.buildKeyInfo(freeKeyValue, 1L, generateKeyDto, productType));
+            generateKeyDto.setProductTypeId(productType.getId().intValue());
+            KeyInfo keyInfo = keyInfoManagerService.buildKeyInfo(freeKeyValue, 1L, generateKeyDto, productType);
+            keyInfo.setSelled((byte) 1);
+            keyInfoService.save(keyInfo);
         } catch (Exception e) {
             log.error("【分发免费密钥】保存密钥信息失败，密钥值: {}", freeKeyValue);
             throw new BizException(BizStatus.ERROR, "保存卡密信息失败！",e);
