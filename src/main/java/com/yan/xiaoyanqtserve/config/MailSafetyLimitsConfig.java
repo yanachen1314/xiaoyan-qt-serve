@@ -20,6 +20,8 @@ public class MailSafetyLimitsConfig {
      */
     private Integer dailyTotalMax = 100;
 
+
+
     /**
      * 单邮箱每天上限
      */
