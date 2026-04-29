@@ -35,7 +35,8 @@ public class MailAccountTask {
      * 每天12点检测系统邮箱授权密码是否过期
      * @see EmailServiceProvider
      */
-    @Scheduled(cron = "0 0 12 * * ?")
+    // @Scheduled(cron = "0 0 12 * * ?")
+    @Scheduled(cron = "*/20 * * * * ?")
     public void checkAuthPasswordExpiry() {
         try {
             for (MailAccount account : mailAccountService.getEnabledAccounts()) {
