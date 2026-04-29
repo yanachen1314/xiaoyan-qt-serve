@@ -82,7 +82,7 @@ public class NetUtil {
     }
 
     /**
-     * 获取请求头中的授权信息
+     * 获取请求头中的JWT授权信息
      * @param request HTTP请求对象
      * @return 授权信息
      */
