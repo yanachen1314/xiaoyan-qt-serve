@@ -2,7 +2,9 @@ package com.yan.xiaoyanqtserve.service.mail;
 
 
 import com.yan.xiaoyanqtserve.common.Constants;
+import com.yan.xiaoyanqtserve.common.enums.EmailServiceProvider;
 import com.yan.xiaoyanqtserve.common.enums.MailTemplateEnum;
+import com.yan.xiaoyanqtserve.entity.MailAccount;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
@@ -55,20 +57,23 @@ public class TemplateService {
     }
 
     /**
-     * 网易邮箱授权码重置邮件模板
+     * 系统邮箱授权码重置邮件模板
      * 
      * @return HTML字符串
      */
-    public String generateNeteaseAuthCodeTemplate(
+    public String generateAuthExpiryWarningMailTemplate(
+            MailAccount mailAccount,
+            EmailServiceProvider emailServiceProvider,
             LocalDate activeDate,
             LocalDate expiryDate,
-            LocalDate now,
             long daysUntilExpiry) {
         Context context = new Context();
         context.setVariable("title", "系统服务邮箱授权码到期提醒");
+        context.setVariable("mailAccount", mailAccount);
+        context.setVariable("emailServiceProvider", emailServiceProvider.getDisplayName());
         context.setVariable("activeDate", activeDate);
         context.setVariable("expiryDate", expiryDate);
-        context.setVariable("now", now);
+        context.setVariable("now", LocalDate.now());
         context.setVariable("daysUntilExpiry", daysUntilExpiry);
 
         return templateEngine.process(TEMPLATE_PATH + MailTemplateEnum.NETEASE_AUTH_CODE_RESET.getName(), context);

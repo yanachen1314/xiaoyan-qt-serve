@@ -27,7 +27,7 @@ public enum EmailServiceProvider {
      */
     TENCENT("腾讯邮箱", 
             Arrays.asList("qq.com", "foxmail.com", "vip.qq.com", "exmail.qq.com"),
-            30, ChronoUnit.DAYS),
+            Integer.MAX_VALUE, ChronoUnit.DAYS),
     
     /**
      * 新浪邮箱系列
@@ -136,9 +136,11 @@ public enum EmailServiceProvider {
     public boolean matchesDomain(String domain) {
         if (domain == null) return false;
         domain = domain.toLowerCase();
-        
-        return domains.stream().anyMatch(d -> domain.equals(d) || 
-                (d.startsWith("*") && domain.endsWith(d.substring(1)))))
+
+        String finalDomain = domain;
+        return domains.stream().anyMatch(d -> finalDomain.equals(d) ||
+                (d.startsWith("*") && finalDomain.endsWith(d.substring(1)))
+        );
     }
 
     /**

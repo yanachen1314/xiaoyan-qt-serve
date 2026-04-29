@@ -1,5 +1,6 @@
 package com.yan.xiaoyanqtserve.service.mail;
 
+import com.yan.xiaoyanqtserve.common.enums.EmailServiceProvider;
 import com.yan.xiaoyanqtserve.common.exception.BizException;
 import com.yan.xiaoyanqtserve.config.MultiMailSenderConfig;
 import com.yan.xiaoyanqtserve.entity.MailAccount;
@@ -61,16 +62,16 @@ public class MailService {
 
     /**
      * 系统服务邮箱授权码到期提醒
+     * @param mailAccount 邮箱账号
+     * @param emailServiceProvider 邮箱服务商
      * @param activeDate 授权码启用时间
      * @param expiryDate 授权码到期时间
-     * @param now 当前时间
      * @param daysUntilExpiry 授权码到期时间与当前时间之间的天数,剩余天数
      */
-    public void sendNeteaseAuthCodeMail(LocalDate activeDate,
-                                        LocalDate expiryDate,
-                                        LocalDate now,
-                                        long daysUntilExpiry) {
-        String htmlContent = templateService.generateNeteaseAuthCodeTemplate(activeDate, expiryDate, now, daysUntilExpiry);
+    public void sendAuthExpiryWarningMail(MailAccount mailAccount, EmailServiceProvider emailServiceProvider,
+                                          LocalDate activeDate, LocalDate expiryDate, long daysUntilExpiry) {
+        String htmlContent = templateService.generateAuthExpiryWarningMailTemplate(
+                mailAccount, emailServiceProvider, activeDate, expiryDate, daysUntilExpiry);
         sendHtmlMail(null, "2742015729@qq.com", "系统服务邮箱授权码到期提醒", htmlContent);
     }
 

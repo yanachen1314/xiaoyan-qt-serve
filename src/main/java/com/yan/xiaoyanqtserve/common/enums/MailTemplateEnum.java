@@ -21,8 +21,8 @@ public enum MailTemplateEnum {
     // 免费授权码邮件通知模板
     FREE_LICENSE("FreeLicense"),
 
-    // 网易邮箱授权码重置邮件通知模板
-    NETEASE_AUTH_CODE_RESET("NeteaseAuthCodeReset");
+    // 系统邮箱授权码重置邮件通知模板
+    NETEASE_AUTH_CODE_RESET("EmailAuthExpiryWarning");
 
     private final String name;
 
