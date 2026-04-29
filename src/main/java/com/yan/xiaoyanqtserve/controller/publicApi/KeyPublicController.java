@@ -126,9 +126,9 @@ public class KeyPublicController {
                 throw new IllegalArgumentException("邮箱格式不正确");
             }
             // 检查该邮箱是否已领取
-            // if (mailFreeKeyRecordService.hasReceived(applicantEmail)) {
-            //     throw new IllegalArgumentException("该邮箱已领取过免费卡密，请勿重复领取");
-            // }
+            if (mailFreeKeyRecordService.hasReceived(applicantEmail)) {
+                throw new IllegalArgumentException("该邮箱已领取过免费卡密，请勿重复领取");
+            }
 
             // 2. 从卡密池中获取一个未使用的免费卡密
             String licenseKey = managerService.getUnusedFreeKeyFromPool();

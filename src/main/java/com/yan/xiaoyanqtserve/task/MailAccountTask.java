@@ -1,10 +1,11 @@
 package com.yan.xiaoyanqtserve.task;
 
 import com.yan.xiaoyanqtserve.config.MultiMailSenderConfig;
+import com.yan.xiaoyanqtserve.entity.MailAccount;
+import com.yan.xiaoyanqtserve.service.mail.MailAccountService;
 import com.yan.xiaoyanqtserve.service.mail.MailService;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -24,6 +25,9 @@ public class MailAccountTask {
     private MailService mailService;
 
     @Resource
+    private MailAccountService mailAccountService;
+
+    @Resource
     private MultiMailSenderConfig multiMailSenderConfig;
 
     /**
@@ -32,6 +36,10 @@ public class MailAccountTask {
     @Scheduled(cron = "0 0 12 * * ?")
     public void MailPwdReset() {
         try {
+            for (MailAccount enabledAccount : mailAccountService.getEnabledAccounts()) {
+                log.debug("检查授权码过期时间: {}", enabledAccount.getEmailAddress());
+            }
+
             // 授权密码启用时间
             LocalDate activeDate = LocalDate.parse("2023-04-01");
             // 过期时间（180天后）

@@ -1,6 +1,5 @@
 package com.yan.xiaoyanqtserve.validator;
 
-
 import java.util.List;
 
 public class EmailValidator {

@@ -15,6 +15,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * 邮件发送服务（多账号轮询版）
@@ -101,7 +102,8 @@ public class MailService {
      */
     public void sendFreeLicenseEmail(String to, String license) {
         String htmlContent = templateService.generateFreeLicenseTemplate(to,license);
-        sendHtmlMail(null, to, "【小烟改写工具】免费卡密赠送", htmlContent);
+       CompletableFuture<String> future = sendHtmlMailWithAccount(null, to, "【小烟改写工具】免费卡密赠送", htmlContent);
+       
     }
 
     /**
@@ -152,7 +154,70 @@ public class MailService {
                     if (retrySender != null && !mailAccountService.isAccountOverLimit(account, today)) {
                         try {
                             sendMailInternal(retrySender, account.getEmailAddress(), to, subject, htmlContent, today);
-                            return; // 发送成功
+                            return;
+                        } catch (Exception retryEx) {
+                            mailAccountService.recordFailure(account.getEmailAddress(), today);
+                            log.warn("重试邮箱 {} 发送失败: {}", account.getEmailAddress(), retryEx.getMessage());
+                        }
+                    }
+                }
+            }
+            
+            throw new BizException("所有可用邮箱账号发送失败");
+        }
+    }
+
+    /**
+     * 通用的发送HTML邮件方法（支持多账号轮询，返回实际使用的发送账号）
+     * @param from 邮件发送者，如果为null则使用轮询策略选择发送账号
+     * @param to 收件人
+     * @param subject 邮件主题
+     * @param htmlContent html格式的邮件内容
+     * @return CompletableFuture，包含实际使用的发送账号邮箱地址
+     */
+    @Async("mailTaskExecutor")
+    public CompletableFuture<String> sendHtmlMailWithAccount(String from, String to, String subject, String htmlContent) {
+        LocalDate today = LocalDate.now();
+        
+        // 如果指定了from，尝试使用指定的发送者
+        if (from != null) {
+            JavaMailSender sender = multiMailSenderConfig.getMailSender(from);
+            if (sender == null) {
+                throw new BizException("指定的发送邮箱不可用: " + from);
+            }
+            sendMailInternal(sender, from, to, subject, htmlContent, today);
+            return CompletableFuture.completedFuture(from);
+        }
+        
+
+        MailAccount selectedAccount = mailAccountService.selectAccountByRoundRobin();
+        String selectedEmail = selectedAccount.getEmailAddress();
+        JavaMailSender sender = multiMailSenderConfig.getMailSender(selectedEmail);
+        
+        if (sender == null) {
+            throw new BizException("选中的发送邮箱不可用: " + selectedEmail);
+        }
+        
+        try {
+            sendMailInternal(sender, selectedEmail, to, subject, htmlContent, today);
+            return CompletableFuture.completedFuture(selectedEmail);
+        } catch (BizException e) {
+            // 发送失败，标记当前账号并尝试其他账号
+            mailAccountService.recordFailure(selectedEmail, today);
+
+            // 使用轮询策略选择发送账号，失败时尝试其他可用账号
+            List<MailAccount> availableAccounts = mailAccountService.getAvailableAccounts();
+            if (availableAccounts.isEmpty()) {
+                throw new BizException("没有可用的邮箱账号");
+            }
+            // 尝试其他可用账号
+            for (MailAccount account : availableAccounts) {
+                if (!account.getEmailAddress().equals(selectedEmail)) {
+                    JavaMailSender retrySender = multiMailSenderConfig.getMailSender(account.getEmailAddress());
+                    if (retrySender != null && !mailAccountService.isAccountOverLimit(account, today)) {
+                        try {
+                            sendMailInternal(retrySender, account.getEmailAddress(), to, subject, htmlContent, today);
+                            return CompletableFuture.completedFuture(account.getEmailAddress());
                         } catch (Exception retryEx) {
                             mailAccountService.recordFailure(account.getEmailAddress(), today);
                             log.warn("重试邮箱 {} 发送失败: {}", account.getEmailAddress(), retryEx.getMessage());
