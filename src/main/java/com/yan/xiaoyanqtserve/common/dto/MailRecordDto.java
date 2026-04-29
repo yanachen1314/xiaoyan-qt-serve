@@ -26,7 +26,7 @@ public class MailRecordDto {
      */
     private Integer resultStatus;
     /**
-     * 发送结果信息（成功或者失败的原因）
+     * 发送结果信息（成功信息或者失败的原因）
      */
     private String resultMsg;
 

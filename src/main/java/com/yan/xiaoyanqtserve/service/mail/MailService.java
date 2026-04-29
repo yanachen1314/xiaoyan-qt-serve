@@ -125,12 +125,7 @@ public class MailService {
             return;
         }
         
-        // 使用轮询策略选择发送账号，失败时尝试其他可用账号
-        List<MailAccount> availableAccounts = mailAccountService.getAvailableAccounts();
-        if (availableAccounts.isEmpty()) {
-            throw new BizException("没有可用的邮箱账号");
-        }
-        
+
         MailAccount selectedAccount = mailAccountService.selectAccountByRoundRobin();
         String selectedEmail = selectedAccount.getEmailAddress();
         JavaMailSender sender = multiMailSenderConfig.getMailSender(selectedEmail);
@@ -144,7 +139,12 @@ public class MailService {
         } catch (BizException e) {
             // 发送失败，标记当前账号并尝试其他账号
             mailAccountService.recordFailure(selectedEmail, today);
-            
+
+            // 使用轮询策略选择发送账号，失败时尝试其他可用账号
+            List<MailAccount> availableAccounts = mailAccountService.getAvailableAccounts();
+            if (availableAccounts.isEmpty()) {
+                throw new BizException("没有可用的邮箱账号");
+            }
             // 尝试其他可用账号
             for (MailAccount account : availableAccounts) {
                 if (!account.getEmailAddress().equals(selectedEmail)) {

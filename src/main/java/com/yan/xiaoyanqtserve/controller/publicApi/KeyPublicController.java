@@ -112,22 +112,6 @@ public class KeyPublicController {
     @VerifyCaptcha(sceneId = SceneIdEnum.EMAIL_APPLY)
     public ApiResponse<CaptchaVerifyVo> sendMailRoundRobin(@Valid @RequestBody FreeLicenseDto freeLicenseDto,
                                                            HttpServletRequest request) {
-        // String captchaVerifyParam = freeLicenseDto.getCaptchaVerifyParam();
-        // log.info("验证码参数: {}", captchaVerifyParam);
-        // if(!StringUtils.hasText(captchaVerifyParam)){
-        //     return ApiResponse.fail("验证码参数不能为空", CaptchaVerifyVo.builder()
-        //             .captchaResult(false)
-        //             .bizResult(FreeLicenseVo.builder().build())
-        //             .build());
-        // }
-        // boolean verifyCaptcha = aliyunCaptchaService.verifyCaptcha(SceneIdEnum.EMAIL_APPLY, captchaVerifyParam);
-        // if (!verifyCaptcha){
-        //     return ApiResponse.fail("验证码验证失败", CaptchaVerifyVo.builder()
-        //             .captchaResult(false)
-        //             .bizResult(FreeLicenseVo.builder().build())
-        //             .build());
-        // }
-
         String applicantEmail = freeLicenseDto.getEmail();
         String deviceType = request.getHeader(Constants.HEADER_DEVICE_TYPE);
         String deviceId = request.getHeader(Constants.HEADER_DEVICE_ID);
@@ -142,9 +126,9 @@ public class KeyPublicController {
                 throw new IllegalArgumentException("邮箱格式不正确");
             }
             // 检查该邮箱是否已领取
-            if (mailFreeKeyRecordService.hasReceived(applicantEmail)) {
-                throw new IllegalArgumentException("该邮箱已领取过免费卡密，请勿重复领取");
-            }
+            // if (mailFreeKeyRecordService.hasReceived(applicantEmail)) {
+            //     throw new IllegalArgumentException("该邮箱已领取过免费卡密，请勿重复领取");
+            // }
 
             // 2. 从卡密池中获取一个未使用的免费卡密
             String licenseKey = managerService.getUnusedFreeKeyFromPool();
@@ -154,6 +138,9 @@ public class KeyPublicController {
 
             // 4. 异步记录领取信息
             mailRecordSyncService.saveRecordAsync(MailRecordDto.builder()
+                    .systemSenderEmail("")
+                    .resultStatus(1)
+                    .resultMsg("发送成功")
                     .applicantEmail(applicantEmail)
                     .licenseKey(licenseKey)
                     .deviceType(deviceType)

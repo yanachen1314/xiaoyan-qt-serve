@@ -31,6 +31,7 @@ public class MailRecordSyncService {
      */
     @Async("loggingExecutor")
     public void saveRecordAsync(MailRecordDto mailRecordDto) {
+        log.info("邮件发送记录和免费卡密记录同步保存开始 : {}", mailRecordDto);
         try {
             // 保存系统邮件发送记录
             mailSendRecordService.save(MailSendRecord.builder()

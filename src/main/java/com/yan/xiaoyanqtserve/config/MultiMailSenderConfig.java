@@ -107,21 +107,4 @@ public class MultiMailSenderConfig implements ApplicationRunner {
         return mailSenderMap.get(emailAddress);
     }
 
-    /**
-     * 获取所有可用的邮箱地址列表
-     * 
-     * @return 邮箱地址列表
-     */
-    public List<String> getAllEmailAddresses() {
-        return mailSenderMap.keySet().stream().toList();
-    }
-
-    /**
-     * 获取邮件发送器Map（只读）
-     * 
-     * @return 邮件发送器Map
-     */
-    public Map<String, JavaMailSender> getMailSenderMap() {
-        return Map.copyOf(mailSenderMap);
-    }
 }
