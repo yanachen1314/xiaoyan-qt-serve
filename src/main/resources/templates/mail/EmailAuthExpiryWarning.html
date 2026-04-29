@@ -287,7 +287,7 @@
 
     <!-- 底部 -->
     <div class="footer">
-        <p>© <span th:text="${#dates.year(#dates.createNow())}">2026</span> 云舷科技有限公司. 保留所有权利.</p>
+        <p>© <span th:text="${#dates.year(#dates.createNow())}">2026</span> 小烟改写工具. 保留所有权利.</p>
         <p th:if="${daysUntilExpiry <= 0}">[紧急] 授权密码已过期，请尽快处理</p>
         <p th:if="${daysUntilExpiry > 0 && daysUntilExpiry <= 7}">[重要] 授权密码将在 <span th:text="${daysUntilExpiry}"></span> 天内过期</p>
     </div>
