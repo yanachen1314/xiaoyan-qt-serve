@@ -410,11 +410,24 @@ public class KeyInfoManagerService {
         
         String freeKeyValue = freeKeyValueObj.toString();
 
-        // todo: 开始真正创建ApiKey的数据库记录
+        // 开始真正创建ApiKey的数据库记录
         try {
-            keyInfoService.updateKeyInfoSelledByValue(freeKeyValue, true);
+            // 构建密钥生成参数
+            GenerateKeyDto generateKeyDto = new GenerateKeyDto();
+            generateKeyDto.setKeyNumber(200);
+            generateKeyDto.setUsageType(Constants.FREE_KEY_USAGE_TYPE);
+            generateKeyDto.setRemark("系统自动生成-免费密钥");
+
+            ProductType productType = productTypeService.getByProductCode(Constants.FREE_KEY_PRODUCT_CODE);
+            if(productType == null){
+                log.warn("产品类型不存在，无法生成密钥：{}", Constants.FREE_KEY_PRODUCT_CODE);
+                throw new BizException("产品类型不存在！");
+            }
+
+            keyInfoService.save(buildKeyInfo(freeKeyValue, 1L, generateKeyDto, productType));
         } catch (Exception e) {
-            log.error("【分发免费密钥】更新密钥信息失败，密钥值: {}", freeKeyValue);
+            log.error("【分发免费密钥】保存密钥信息失败，密钥值: {}", freeKeyValue);
+            throw new BizException("保存卡密信息失败！");
         }
 
         // 增加今日发放计数

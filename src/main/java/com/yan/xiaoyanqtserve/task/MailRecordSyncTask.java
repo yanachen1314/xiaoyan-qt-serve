@@ -3,6 +3,7 @@ package com.yan.xiaoyanqtserve.task;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.yan.xiaoyanqtserve.common.Constants;
 import com.yan.xiaoyanqtserve.common.dto.key.GenerateKeyDto;
+import com.yan.xiaoyanqtserve.common.utils.LicenseKeyGenerator;
 import com.yan.xiaoyanqtserve.common.utils.RedisUtil;
 import com.yan.xiaoyanqtserve.config.MailSafetyLimitsConfig;
 import com.yan.xiaoyanqtserve.entity.MailAccount;
@@ -11,6 +12,7 @@ import com.yan.xiaoyanqtserve.mapper.MailAccountMapper;
 import com.yan.xiaoyanqtserve.service.ProductTypeService;
 import com.yan.xiaoyanqtserve.service.impl.KeyInfoManagerService;
 import jakarta.annotation.Resource;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -27,22 +29,15 @@ import java.util.List;
  */
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class MailRecordSyncTask {
 
-    @Resource
-    private RedisUtil redisUtil;
-
-    @Resource
-    private MailAccountMapper mailAccountMapper;
-
-    @Resource
-    private KeyInfoManagerService keyInfoManagerService;
-
-    @Resource
-    private ProductTypeService productTypeService;
-
-    @Resource
-    private MailSafetyLimitsConfig mailSafetyLimitsConfig;
+    private final RedisUtil redisUtil;
+    private final MailAccountMapper mailAccountMapper;
+    private final KeyInfoManagerService keyInfoManagerService;
+    private final ProductTypeService productTypeService;
+    private final MailSafetyLimitsConfig mailSafetyLimitsConfig;
+    private final LicenseKeyGenerator licenseKeyGenerator;
 
     /**
      * 每天00:10执行，同步昨天的发送统计数据到数据库
@@ -107,37 +102,24 @@ public class MailRecordSyncTask {
     }
 
     /**
-     * 补充免费密钥池
-     * 使用keyInfoManagerService.generateKey()方法生成200个免费密钥并添加到Redis池中
-     * todo: 不创建数据库记录，只生成卡密的密钥值保存在redis中，当使用时再创建数据库记录
+     * 补充免费密钥池，生成200个免费密钥并添加到Redis池中
+     * <br>
+     * 不创建数据库记录，只生成卡密的密钥值保存在redis中，当使用时再创建数据库记录
      */
     private void replenishFreeKeyPool() {
         try {
-            // 构建密钥生成参数
-            GenerateKeyDto generateKeyDto = new GenerateKeyDto();
-            generateKeyDto.setKeyNumber(200);
-            generateKeyDto.setUsageType(Constants.FREE_KEY_USAGE_TYPE);
-            generateKeyDto.setRemark("系统自动生成-免费密钥");
+            // 生成200个密钥值
+            List<String> keyList = licenseKeyGenerator.generateKey(200);
 
-            ProductType productType = productTypeService.getByProductCode(Constants.FREE_KEY_PRODUCT_CODE);
-            if(productType == null){
-                log.warn("产品类型不存在，无法生成密钥：{}", Constants.FREE_KEY_PRODUCT_CODE);
-                return;
-            }
-            generateKeyDto.setProductTypeId(productType.getId().intValue());
-
-            // 调用密钥生成服务（系统定时任务使用系统用户ID 1）
-            List<String> generatedKeys = keyInfoManagerService.generateKey(generateKeyDto, 1L);
-            
-            if (generatedKeys == null || generatedKeys.isEmpty()) {
+            if (keyList == null || keyList.isEmpty()) {
                 log.warn("密钥生成失败，未生成任何密钥");
                 return;
             }
             
-            log.info("成功生成 {} 个免费密钥", generatedKeys.size());
+            log.info("成功生成 {} 个免费密钥", keyList.size());
             
-            // 直接将密钥值批量添加到Redis池中（generateKey返回的就是密钥值列表）
-            Object[] keyValues = generatedKeys.toArray();
+            // 直接将密钥值批量添加到Redis池中
+            Object[] keyValues = keyList.toArray();
             Long addedCount = redisUtil.sAdd(Constants.FREE_KEY_POOL, keyValues);
             
             log.info("成功补充 {} 个免费密钥到池中", addedCount);
