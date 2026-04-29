@@ -64,7 +64,9 @@ public enum BizStatus {
 
     SERVICE_UNAVAILABLE(2001, "系统维护中"),
     CLIENT_UPDATE_REQUIRED(2002, "强制更新版本"),
-    CLIENT_NON_VERSION(2003, "无客户端版本号");
+    CLIENT_NON_VERSION(2003, "无客户端版本号"),
+
+    ALI_CAPTCHA_VERIFY_FAIL(4000, "阿里验证码验证失败");
 
 
     BizStatus(int code, String msg) {

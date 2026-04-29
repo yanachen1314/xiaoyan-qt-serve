@@ -37,6 +37,7 @@ public class Constants {
     public static final String HEADER_CLIENT_VERSION_NAME = "X-Client-Version";
     public static final String HEADER_DEVICE_TYPE = "X-Device";
     public static final String HEADER_DEVICE_ID = "X-Device-Id";
+    public static final String HEADER_CAPTCHA_VERIFY_PARAMS = "X-Captcha-Verify-Params";
     public static final String HEADER_AUTH_NAME = "Authorization";
     // 定义Header前缀
     public static final String HEADER_PREFIX = "Bearer ";

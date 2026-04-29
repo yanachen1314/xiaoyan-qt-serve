@@ -2,7 +2,6 @@ package com.yan.xiaoyanqtserve.common.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -17,12 +16,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class FreeLicenseDto {
-    /**
-     * 验证码参数(阿里云验证码服务端返回的验证码参数)
-     */
-    @NotBlank(message = "验证码参数不能为空")
-    @Size(max = 300, message = "验证码参数长度不能超过300字符")
-    private String captchaVerifyParam;
 
     /**
      * 申请者邮箱
