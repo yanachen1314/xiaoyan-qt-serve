@@ -2,7 +2,7 @@ package com.yan.xiaoyanqtserve.interceptor;
 
 import com.yan.xiaoyanqtserve.common.Constants;
 import com.yan.xiaoyanqtserve.common.enums.RequestType;
-import com.yan.xiaoyanqtserve.common.utils.MainUtil;
+import com.yan.xiaoyanqtserve.common.utils.NetUtil;
 import com.yan.xiaoyanqtserve.common.utils.SecurityContextUtil;
 import com.yan.xiaoyanqtserve.entity.KeyInfo;
 import com.yan.xiaoyanqtserve.entity.RequestLog;
@@ -20,7 +20,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import static com.yan.xiaoyanqtserve.common.utils.NetUtil.getClientIpAddress;
 
 @Component
 @Slf4j
@@ -44,7 +43,7 @@ public class RequestLoggingInterceptor implements HandlerInterceptor {
         logEntry.setRequestId(requestId);
         logEntry.setRequester(getCurrentUserInfo(request));
         logEntry.setRequestUrl(request.getRequestURI());
-        logEntry.setClientIp(getClientIpAddress(request));
+        logEntry.setClientIp(NetUtil.getClientIpAddress(request));
         logEntry.setRequestType(determineRequestType(request));
         logEntry.setRequestTime(LocalDateTime.now());
         request.setAttribute(Constants.ATTRIBUTE_LOG_ENTITY, logEntry);
@@ -105,7 +104,7 @@ public class RequestLoggingInterceptor implements HandlerInterceptor {
             }
         }
         // 匿名用户（公开接口）
-        String apiKey = MainUtil.extractApiKeyFromHeader(request);
+        String apiKey = NetUtil.extractApiKeyFromHeader(request);
         if (apiKey != null) return  "匿名用户："+apiKey;
         return "匿名用户";
     }

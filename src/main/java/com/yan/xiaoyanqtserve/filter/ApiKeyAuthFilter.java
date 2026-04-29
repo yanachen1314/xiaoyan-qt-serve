@@ -3,6 +3,7 @@ package com.yan.xiaoyanqtserve.filter;
 import com.yan.xiaoyanqtserve.common.dto.key.ValidationResult;
 import com.yan.xiaoyanqtserve.common.enums.BizStatus;
 import com.yan.xiaoyanqtserve.common.enums.Role;
+import com.yan.xiaoyanqtserve.common.utils.NetUtil;
 import com.yan.xiaoyanqtserve.common.utils.RedisUtil;
 import com.yan.xiaoyanqtserve.entity.KeyInfo;
 import com.yan.xiaoyanqtserve.service.impl.KeyInfoManagerService;
@@ -25,7 +26,6 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
-import static com.yan.xiaoyanqtserve.common.utils.MainUtil.extractApiKeyFromHeader;
 
 @Slf4j
 @Component
@@ -52,7 +52,7 @@ public class ApiKeyAuthFilter extends OncePerRequestFilter {
             return;
         }
         // 1. 从请求头中提取 API Key
-        String apiKey = extractApiKeyFromHeader(request);
+        String apiKey = NetUtil.extractApiKeyFromHeader(request);
 
         // 2. 如果没有 API Key，继续执行后续过滤器链
         if (!StringUtils.hasText(apiKey)) {

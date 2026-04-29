@@ -1,17 +1,13 @@
 package com.yan.xiaoyanqtserve.common.utils;
 
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintValidatorContext;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
-import org.springframework.lang.Nullable;
 import org.springframework.util.AntPathMatcher;
-import org.springframework.util.StringUtils;
 
 import java.util.*;
 
-import static com.yan.xiaoyanqtserve.common.Constants.HEADER_PREFIX;
 
 /**
  * 项目通用工具类
@@ -48,20 +44,6 @@ public class MainUtil {
         return false;
     }
 
-    /**
-     * 从请求头中提取 API 密钥
-     * @param request   HTTP 请求对象
-     * @return API 密钥，如果请求头中没有携带 API 密钥则返回 null
-     */
-    @Nullable
-    public static String extractApiKeyFromHeader(HttpServletRequest request) {
-        String header = NetUtil.getApiKey(request);
-        if (StringUtils.hasText(header) && header.startsWith(HEADER_PREFIX)) {
-            // 返回 header 值
-            return header.substring(HEADER_PREFIX.length()).trim();
-        }
-        return null;
-    }
 
 
     /**
