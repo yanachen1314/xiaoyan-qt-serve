@@ -72,6 +72,28 @@ public class MailRecordSyncTask {
     }
 
     /**
+     * 获取Redis中的计数值
+     *
+     * @param prefix       Redis Key前缀
+     * @param emailAddress 邮箱地址
+     * @param date         日期
+     * @return 计数值
+     */
+    private long getCount(String prefix, String emailAddress, LocalDate date) {
+        String key = prefix + date.toString() + ":" + emailAddress;
+        Object countObj = redisUtil.get(key);
+        if (countObj == null) {
+            return 0;
+        }
+        try {
+            return Long.parseLong(countObj.toString());
+        } catch (NumberFormatException e) {
+            log.warn("解析计数值失败: {}", countObj);
+            return 0;
+        }
+    }
+
+    /**
      * 每天00:00:10执行，重置每日免费密钥发放计数并补充密钥池
      */
     @Scheduled(cron = "0 0 0 * * ?")
@@ -89,7 +111,7 @@ public class MailRecordSyncTask {
         if (currentPoolSize == null) {
             currentPoolSize = 0L;
         }
-        
+        // 获取每日发送上限
         Integer dailyTotalMax = mailSafetyLimitsConfig.getDailyTotalMax();
         if (currentPoolSize < dailyTotalMax) {
             log.info("密钥池剩余数量: {}，小于日发送上限: {}，开始补充200个免费密钥", currentPoolSize, dailyTotalMax);
@@ -128,27 +150,4 @@ public class MailRecordSyncTask {
             throw new RuntimeException("补充免费密钥池失败", e);
         }
     }
-
-    /**
-     * 获取Redis中的计数值
-     * 
-     * @param prefix       Redis Key前缀
-     * @param emailAddress 邮箱地址
-     * @param date         日期
-     * @return 计数值
-     */
-    private long getCount(String prefix, String emailAddress, LocalDate date) {
-        String key = prefix + date.toString() + ":" + emailAddress;
-        Object countObj = redisUtil.get(key);
-        if (countObj == null) {
-            return 0;
-        }
-        try {
-            return Long.parseLong(countObj.toString());
-        } catch (NumberFormatException e) {
-            log.warn("解析计数值失败: {}", countObj);
-            return 0;
-        }
-    }
-
 }

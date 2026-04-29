@@ -14,6 +14,7 @@ import com.yan.xiaoyanqtserve.common.exception.BizException;
 import com.yan.xiaoyanqtserve.entity.ProductType;
 import com.yan.xiaoyanqtserve.service.KeyInfoService;
 import com.yan.xiaoyanqtserve.service.ProductTypeService;
+import com.yan.xiaoyanqtserve.service.mail.MailAccountService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -40,8 +41,9 @@ public class KeyInfoManagerService {
     private final ProductTypeService productTypeService;
     private final RedisUtil redisUtil;
 
+    private final MailAccountService mailAccountService;
+
     private final RedisLockUtil redisLockUtil;
-    private final MailSafetyLimitsConfig mailSafetyLimitsConfig;
 
 
     /**
@@ -397,7 +399,7 @@ public class KeyInfoManagerService {
      */
     public String getUnusedFreeKeyFromPool() {
         // 判断今日是否已经发出指定数量的免费密钥
-        if(isTodayFreeKeyLimitReached()) {
+        if(mailAccountService.isTodayFreeKeyLimitReached()) {
             throw new BizException("今日免费密钥已发完了，明天早点来哦！");
         }
 
@@ -438,20 +440,5 @@ public class KeyInfoManagerService {
         return freeKeyValue;
     }
 
-    /**
-     * 判断今日免费密钥发放是否已达上限
-     * @return true 表示已达上限，false 表示未达上限
-     */
-    private boolean isTodayFreeKeyLimitReached() {
-        String today = LocalDate.now().toString();
-        String countKey = Constants.FREE_KEY_DAILY_COUNT + today;
-        
-        Object countObj = redisUtil.get(countKey);
-        if (countObj == null) {
-            return false;
-        }
-        
-        long todayCount = Long.parseLong(countObj.toString());
-        return todayCount >= mailSafetyLimitsConfig.getDailyTotalMax();
-    }
+
 }

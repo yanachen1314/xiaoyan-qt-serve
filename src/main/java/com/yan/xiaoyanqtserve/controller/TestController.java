@@ -89,8 +89,8 @@ public class TestController {
             stats.put("priority", account.getPriority());
             
             long sendCount = mailAccountService.getSendCount(account.getEmailAddress(), today);
-            long successCount = mailAccountService.getSuccessCount(account.getEmailAddress(), today);
-            long failCount = mailAccountService.getFailCount(account.getEmailAddress(), today);
+            long successCount = mailAccountService.getSendSuccessCount(account.getEmailAddress(), today);
+            long failCount = mailAccountService.getSendFailCount(account.getEmailAddress(), today);
             
             stats.put("todaySendCount", sendCount);
             stats.put("todaySuccessCount", successCount);

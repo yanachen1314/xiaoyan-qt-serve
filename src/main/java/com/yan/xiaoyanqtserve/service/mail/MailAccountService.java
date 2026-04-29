@@ -3,6 +3,7 @@ package com.yan.xiaoyanqtserve.service.mail;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.yan.xiaoyanqtserve.common.Constants;
 import com.yan.xiaoyanqtserve.common.exception.BizException;
+import com.yan.xiaoyanqtserve.config.MailSafetyLimitsConfig;
 import com.yan.xiaoyanqtserve.entity.MailAccount;
 import com.yan.xiaoyanqtserve.mapper.MailAccountMapper;
 import com.yan.xiaoyanqtserve.common.utils.RedisUtil;
@@ -26,9 +27,10 @@ public class MailAccountService {
 
     @Resource
     private MailAccountMapper mailAccountMapper;
-
     @Resource
     private RedisUtil redisUtil;
+    @Resource
+    private MailSafetyLimitsConfig mailSafetyLimitsConfig;
 
     /**
      * 获取所有启用的邮箱账号
@@ -57,41 +59,6 @@ public class MailAccountService {
     }
 
     /**
-     * 检查账号是否达到每日发送上限
-     * 
-     * @param account 邮箱账号
-     * @param date    日期
-     * @return true-已达上限, false-未达上限
-     */
-    public boolean isAccountOverLimit(MailAccount account, LocalDate date) {
-        String countKey = Constants.MAIL_SEND_COUNT_PREFIX + date.toString() + ":" + account.getEmailAddress();
-        Object countObj = redisUtil.get(countKey);
-        
-        if (countObj == null) {
-            return false;
-        }
-        
-        long currentCount = parseCount(countObj);
-        return currentCount >= account.getDailyLimit();
-    }
-
-    /**
-     * 获取账号当天的发送数量
-     * 
-     * @param emailAddress 邮箱地址
-     * @param date         日期
-     * @return 发送数量
-     */
-    public long getSendCount(String emailAddress, LocalDate date) {
-        String countKey = Constants.MAIL_SEND_COUNT_PREFIX + date.toString() + ":" + emailAddress;
-        Object countObj = redisUtil.get(countKey);
-        if (countObj == null) {
-            return 0;
-        }
-        return parseCount(countObj);
-    }
-
-    /**
      * 使用轮询策略选择一个可用的邮箱账号
      * 
      * @return 选中的邮箱账号
@@ -113,6 +80,42 @@ public class MailAccountService {
         int accountIndex = (int) (index % availableAccounts.size());
         return availableAccounts.get(accountIndex);
     }
+
+    /**
+     * 判断今日免费密钥发放是否已达上限
+     * @return true 表示已达上限，false 表示未达上限
+     */
+    public boolean isTodayFreeKeyLimitReached() {
+        String today = LocalDate.now().toString();
+        String countKey = Constants.FREE_KEY_DAILY_COUNT + today;
+
+        Object countObj = redisUtil.get(countKey);
+        if (countObj == null) {
+            return false;
+        }
+
+        long todayCount = Long.parseLong(countObj.toString());
+        return todayCount >= mailSafetyLimitsConfig.getDailyTotalMax();
+    }
+    /**
+     * 检查账号是否达到每日发送上限
+     *
+     * @param account 邮箱账号
+     * @param date    日期
+     * @return true-已达上限, false-未达上限
+     */
+    public boolean isAccountOverLimit(MailAccount account, LocalDate date) {
+        String countKey = Constants.MAIL_SEND_COUNT_PREFIX + date.toString() + ":" + account.getEmailAddress();
+        Object countObj = redisUtil.get(countKey);
+
+        if (countObj == null) {
+            return false;
+        }
+
+        long currentCount = parseCount(countObj);
+        return currentCount >= account.getDailyLimit();
+    }
+
 
     /**
      * 记录发送成功统计到Redis
@@ -143,13 +146,29 @@ public class MailAccountService {
     }
 
     /**
+     * 获取账号当天的发送数量
+     *
+     * @param emailAddress 邮箱地址
+     * @param date         日期
+     * @return 发送数量
+     */
+    public long getSendCount(String emailAddress, LocalDate date) {
+        String countKey = Constants.MAIL_SEND_COUNT_PREFIX + date.toString() + ":" + emailAddress;
+        Object countObj = redisUtil.get(countKey);
+        if (countObj == null) {
+            return 0;
+        }
+        return parseCount(countObj);
+    }
+
+    /**
      * 获取账号当天的成功发送数量
      * 
      * @param emailAddress 邮箱地址
      * @param date         日期
      * @return 成功发送数量
      */
-    public long getSuccessCount(String emailAddress, LocalDate date) {
+    public long getSendSuccessCount(String emailAddress, LocalDate date) {
         String successKey = Constants.MAIL_SEND_SUCCESS_PREFIX + date.toString() + ":" + emailAddress;
         Object countObj = redisUtil.get(successKey);
         if (countObj == null) {
@@ -165,7 +184,7 @@ public class MailAccountService {
      * @param date         日期
      * @return 失败发送数量
      */
-    public long getFailCount(String emailAddress, LocalDate date) {
+    public long getSendFailCount(String emailAddress, LocalDate date) {
         String failKey = Constants.MAIL_SEND_FAIL_PREFIX + date.toString() + ":" + emailAddress;
         Object countObj = redisUtil.get(failKey);
         if (countObj == null) {
