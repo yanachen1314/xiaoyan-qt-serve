@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
@@ -36,9 +37,10 @@ public class MailRecordSyncService {
             // 保存系统邮件发送记录
             mailSendRecordService.save(MailSendRecord.builder()
                     .systemSenderEmail(mailRecordDto.getSystemSenderEmail())
+                    .applicantEmail(mailRecordDto.getApplicantEmail())
+                    .sendDate(LocalDate.now())
                     .resultStatus(mailRecordDto.getResultStatus())
                     .resultMsg(mailRecordDto.getResultMsg())
-                    .applicantEmail(mailRecordDto.getApplicantEmail())
                     .createdTime(LocalDateTime.now())
                     .build()
             );
