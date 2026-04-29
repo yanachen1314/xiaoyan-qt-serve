@@ -327,7 +327,7 @@ public class KeyInfoManagerService {
      * @param productType 产品类型
      * @return 密钥信息
      */
-    private KeyInfo buildKeyInfo(String key, Long operator, GenerateKeyDto generateKeyDto, ProductType productType) {
+    public KeyInfo buildKeyInfo(String key, Long operator, GenerateKeyDto generateKeyDto, ProductType productType) {
         KeyInfo keyInfo = new KeyInfo();
 
         keyInfo.setKeyValue(key);

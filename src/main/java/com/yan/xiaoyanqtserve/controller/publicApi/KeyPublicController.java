@@ -117,7 +117,8 @@ public class KeyPublicController {
         String deviceId = NetUtil.getClientDeviceId(request);
         String clientIp = NetUtil.getClientIpAddress(request);
         String userAgent = request.getHeader("User-Agent");
-        log.debug("申请邮箱：{}，设备类型：{}，设备ID：{}，客户端IP：{}，用户代理：{}", applicantEmail, deviceType, deviceId, clientIp, userAgent);
+        log.debug("申请邮箱：{}，设备类型：{}，设备ID：{}，客户端IP：{}，用户代理：{}",
+                applicantEmail, deviceType, deviceId, clientIp, userAgent);
         try {
             // 1. 邮箱校验
             // 邮箱账号格式校验

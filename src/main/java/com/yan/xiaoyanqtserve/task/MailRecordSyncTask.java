@@ -94,7 +94,7 @@ public class MailRecordSyncTask {
     }
 
     /**
-     * 每天00:00:10执行，重置每日免费密钥发放计数并补充密钥池
+     * 每天00:00执行，重置每日免费密钥发放计数并补充密钥池
      */
     @Scheduled(cron = "0 0 0 * * ?")
     public void resetDailyFreeKeyCountAndReplenishPool() {
