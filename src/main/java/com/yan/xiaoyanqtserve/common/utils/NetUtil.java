@@ -1,6 +1,8 @@
 package com.yan.xiaoyanqtserve.common.utils;
 
+import com.yan.xiaoyanqtserve.common.Constants;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.lang.Nullable;
 
 /**
  * 网络工具类
@@ -19,5 +21,65 @@ public class NetUtil {
             return xRealIp;
         }
         return request.getRemoteAddr();
+    }
+
+    /**
+     * 获取客户端设备ID/设备指纹
+     * @param request HTTP请求对象
+     * @return 客户端设备ID/设备指纹
+     */
+    @Nullable
+    public static String getClientDeviceId(HttpServletRequest request) {
+        return request.getHeader(Constants.HEADER_DEVICE_ID);
+    }
+
+    /**
+     * 获取客户端类型
+     * @param request HTTP请求对象
+     * @return 客户端类型，例如 web、app
+     */
+    @Nullable
+    public static String getClientDeviceType(HttpServletRequest request) {
+        return request.getHeader(Constants.HEADER_DEVICE_TYPE);
+    }
+
+    /**
+     * 获取客户端的版本号
+     * @param request HTTP请求对象
+     * @return 客户端（win）的版本号，例如 1.0.0 / V1.0.0
+     */
+    @Nullable
+    public static String getClientVersion(HttpServletRequest request) {
+        return request.getHeader(Constants.HEADER_CLIENT_VERSION_NAME);
+    }
+
+    /**
+     * 获取客户端请求的API密钥
+     * @param request HTTP请求对象
+     * @return 客户端请求的API密钥
+     */
+    @Nullable
+    public static String getApiKey(HttpServletRequest request) {
+        return request.getHeader(Constants.HEADER_KEY_NAME);
+    }
+
+    /**
+     * 获取请求时的验证码校验参数
+     * @param request HTTP请求对象
+     * @return 验证码校验参数
+     */
+    @Nullable
+    public static String getCaptchaVerifyParams(HttpServletRequest request) {
+        return request.getHeader(Constants.HEADER_CAPTCHA_VERIFY_PARAMS);
+    }
+
+    /**
+     * 获取请求头中的授权信息
+     * @param request HTTP请求对象
+     * @return 授权信息
+     */
+    @Nullable
+    public static String getAuthHeader(HttpServletRequest request) {
+        return request.getHeader(Constants.HEADER_AUTH_NAME);
     }
 }

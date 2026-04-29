@@ -1,5 +1,6 @@
 package com.yan.xiaoyanqtserve.filter;
 
+import com.yan.xiaoyanqtserve.common.utils.NetUtil;
 import com.yan.xiaoyanqtserve.security.AdminUserDetailsService;
 import com.yan.xiaoyanqtserve.common.utils.JwtUtil;
 import jakarta.annotation.Resource;
@@ -17,7 +18,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
-import static com.yan.xiaoyanqtserve.common.Constants.HEADER_AUTH_NAME;
 import static com.yan.xiaoyanqtserve.common.Constants.HEADER_PREFIX;
 
 @Slf4j
@@ -39,7 +39,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         // 如果是 /admin/** 路径，才尝试处理 JWT
         if (requestURI.startsWith("/api/admin/")) {
-            final String header = request.getHeader(HEADER_AUTH_NAME);
+            final String header = NetUtil.getAuthHeader(request);
             String username = null;
             String jwtToken = null;
 

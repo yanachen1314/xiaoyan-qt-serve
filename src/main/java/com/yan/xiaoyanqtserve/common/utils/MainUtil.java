@@ -11,7 +11,6 @@ import org.springframework.util.StringUtils;
 
 import java.util.*;
 
-import static com.yan.xiaoyanqtserve.common.Constants.HEADER_KEY_NAME;
 import static com.yan.xiaoyanqtserve.common.Constants.HEADER_PREFIX;
 
 /**
@@ -50,7 +49,7 @@ public class MainUtil {
 
     @Nullable
     public static String extractApiKeyFromHeader(HttpServletRequest request) {
-        String header = request.getHeader(HEADER_KEY_NAME);
+        String header = NetUtil.getAuthHeader(request);
         if (StringUtils.hasText(header) && header.startsWith(HEADER_PREFIX)) {
             // 返回 header 值
             return header.substring(HEADER_PREFIX.length()).trim();

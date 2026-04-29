@@ -6,6 +6,16 @@ package com.yan.xiaoyanqtserve.common.enums;
  * @since 2026/3/10 21:15
  */
 public enum RateLimiterType {
+    /**
+     * IP限流
+     */
     IP,
-    API_KEY
+    /**
+     * API_KEY限流
+     */
+    API_KEY,
+    /**
+     * 设备ID/设备指纹限流
+     */
+    DEVICE_ID
 }

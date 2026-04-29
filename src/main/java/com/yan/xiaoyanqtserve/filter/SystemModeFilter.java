@@ -4,6 +4,7 @@ import com.yan.xiaoyanqtserve.common.Constants;
 import com.yan.xiaoyanqtserve.common.dto.MaintenancePeriod;
 import com.yan.xiaoyanqtserve.common.enums.BizStatus;
 import com.yan.xiaoyanqtserve.common.utils.MainUtil;
+import com.yan.xiaoyanqtserve.common.utils.NetUtil;
 import com.yan.xiaoyanqtserve.common.utils.SecurityResponseUtil;
 import com.yan.xiaoyanqtserve.common.vo.VersionCheckVo;
 import com.yan.xiaoyanqtserve.service.SysConfigService;
@@ -50,7 +51,7 @@ public class SystemModeFilter implements Filter {
         // （1）客户端维护状态的心跳检测接口
         // （2）WEB 端所有接口
         if(!isMaintenanceRequest(requestURI) && !isWebRequest(httpRequest)){
-            String clientVersion = httpRequest.getHeader(Constants.HEADER_CLIENT_VERSION_NAME);
+            String clientVersion = NetUtil.getClientVersion(httpRequest);
             if (!StringUtils.hasText(clientVersion)) {
                 securityResponseUtil.writeError(httpResponse,
                         HttpStatus.OK.value(),
@@ -100,8 +101,8 @@ public class SystemModeFilter implements Filter {
 
     // 判断是否为WEB请求
     private boolean isWebRequest(HttpServletRequest httpRequest){
-        String deviceType = httpRequest.getHeader(Constants.HEADER_DEVICE_TYPE);
-        String deviceId = httpRequest.getHeader(Constants.HEADER_DEVICE_ID);
+        String deviceType = NetUtil.getClientDeviceType(httpRequest);
+        String deviceId = NetUtil.getClientDeviceId(httpRequest);
         return "WEB".equalsIgnoreCase(deviceType) && StringUtils.hasText(deviceId);
     }
 

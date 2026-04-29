@@ -1,6 +1,5 @@
 package com.yan.xiaoyanqtserve.controller.publicApi;
 
-import com.yan.xiaoyanqtserve.common.Constants;
 import com.yan.xiaoyanqtserve.common.annotaions.RateLimiter;
 import com.yan.xiaoyanqtserve.common.annotaions.VerifyCaptcha;
 import com.yan.xiaoyanqtserve.common.dto.CaptchaVerifyVo;
@@ -109,12 +108,13 @@ public class KeyPublicController {
      * @return 提示信息
      */
     @PostMapping("/freeLicense")
+    @RateLimiter(key = "freeLicense", time = 30, count = 1, limitBy = RateLimiterType.DEVICE_ID)
     @VerifyCaptcha(sceneId = SceneIdEnum.EMAIL_APPLY)
     public ApiResponse<CaptchaVerifyVo> sendMailRoundRobin(@Valid @RequestBody FreeLicenseDto freeLicenseDto,
                                                            HttpServletRequest request) {
         String applicantEmail = freeLicenseDto.getEmail();
-        String deviceType = request.getHeader(Constants.HEADER_DEVICE_TYPE);
-        String deviceId = request.getHeader(Constants.HEADER_DEVICE_ID);
+        String deviceType = NetUtil.getClientDeviceType(request);
+        String deviceId = NetUtil.getClientDeviceId(request);
         String clientIp = NetUtil.getClientIpAddress(request);
         String userAgent = request.getHeader("User-Agent");
         log.debug("申请邮箱：{}，设备类型：{}，设备ID：{}，客户端IP：{}，用户代理：{}", applicantEmail, deviceType, deviceId, clientIp, userAgent);
