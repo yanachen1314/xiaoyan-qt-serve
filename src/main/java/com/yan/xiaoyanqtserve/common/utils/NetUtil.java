@@ -27,6 +27,17 @@ public class NetUtil {
     }
 
     /**
+     * 获取用户代理信息
+     * @param request HTTP请求对象
+     * @return 用户代理信息
+     */
+    @Nullable
+    public static String getUserAgent(HttpServletRequest request) {
+        return request.getHeader("User-Agent");
+    }
+
+
+    /**
      * 获取客户端设备ID/设备指纹
      * @param request HTTP请求对象
      * @return 客户端设备ID/设备指纹

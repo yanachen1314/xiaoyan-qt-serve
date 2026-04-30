@@ -19,7 +19,7 @@ import java.time.LocalDateTime;
  * <p>
  * 邮件发送统计表
  * </p>
- * todo: 删除
+ * todo: 删除该表
  * @author 烟尘
  * @since 2026-04-25
  */

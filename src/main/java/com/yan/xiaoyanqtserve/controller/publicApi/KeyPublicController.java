@@ -124,7 +124,7 @@ public class KeyPublicController {
         String deviceType = NetUtil.getClientDeviceType(request);
         String deviceId = NetUtil.getClientDeviceId(request);
         String clientIp = NetUtil.getClientIpAddress(request);
-        String userAgent = request.getHeader("User-Agent");
+        String userAgent = NetUtil.getUserAgent(request);
         log.debug("申请邮箱：{}，设备类型：{}，设备ID：{}，客户端IP：{}，用户代理：{}",
                 applicantEmail, deviceType, deviceId, clientIp, userAgent);
         try {
@@ -213,7 +213,7 @@ public class KeyPublicController {
         String deviceType = NetUtil.getClientDeviceType(request);
         String deviceId = NetUtil.getClientDeviceId(request);
         String clientIp = NetUtil.getClientIpAddress(request);
-        String userAgent = request.getHeader("User-Agent");
+        String userAgent = NetUtil.getUserAgent(request);
         log.debug("申请邮箱验证：{}，设备类型：{}，设备ID：{}，客户端IP：{}，用户代理：{}",
                 applicantEmail, deviceType, deviceId, clientIp, userAgent);
         try {
@@ -225,7 +225,10 @@ public class KeyPublicController {
             
             // 2. 检查邮箱是否已验证或已领取
             if (mailApplyRecordService.hasVerified(applicantEmail)) {
-                throw new IllegalArgumentException("该邮箱已验证或已领取过免费卡密，请勿重复申请");
+                throw new IllegalArgumentException("该邮箱已验证，请勿重复申请");
+            }
+            if (mailApplyRecordService.hasSentKey(applicantEmail)) {
+                throw new IllegalArgumentException("卡密已发送，请注意查收邮件");
             }
             
             // 3. 检查邮箱是否已申请但未验证

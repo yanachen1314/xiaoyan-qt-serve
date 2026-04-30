@@ -26,19 +26,6 @@ public class MailApplyRecordServiceImpl extends ServiceImpl<MailApplyRecordMappe
     private MailApplyRecordMapper mailApplyRecordMapper;
 
     /**
-     * 检查邮箱是否已领取过免费卡密
-     *
-     * @param email 邮箱地址
-     * @return true-已领取，false-未领取
-     */
-    @Override
-    public boolean hasReceived(String email) {
-        LambdaQueryWrapper<MailApplyRecord> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(MailApplyRecord::getApplicantEmail, email);
-        return mailApplyRecordMapper.selectCount(queryWrapper) > 0;
-    }
-
-    /**
      * 记录领取信息
      * <p>利用数据库唯一索引 uk_email 防止重复领取，捕获 DuplicateKeyException</p>
      *
@@ -52,6 +39,20 @@ public class MailApplyRecordServiceImpl extends ServiceImpl<MailApplyRecordMappe
     }
 
     /**
+     * 检查邮箱是否已领取过免费卡密
+     *
+     * @param email 邮箱地址
+     * @return true-已领取，false-未领取
+     */
+    @Override
+    public boolean hasReceived(String email) {
+        LambdaQueryWrapper<MailApplyRecord> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(MailApplyRecord::getApplicantEmail, email);
+        return mailApplyRecordMapper.selectCount(queryWrapper) > 0;
+    }
+
+
+    /**
      * 检查邮箱是否已验证或已发送卡密
      *
      * @param email 邮箱地址
@@ -61,7 +62,21 @@ public class MailApplyRecordServiceImpl extends ServiceImpl<MailApplyRecordMappe
     public boolean hasVerified(String email) {
         LambdaQueryWrapper<MailApplyRecord> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(MailApplyRecord::getApplicantEmail, email)
-                    .in(MailApplyRecord::getApplyStatus, 1, 2);
+                    .eq(MailApplyRecord::getApplyStatus, 1);
+        return mailApplyRecordMapper.selectCount(queryWrapper) > 0;
+    }
+
+    /**
+     * 检查邮箱是否已发送卡密
+     *
+     * @param email 邮箱地址
+     * @return true-已发送卡密，false-未发送卡密
+     */
+    @Override
+    public boolean hasSentKey(String email) {
+        LambdaQueryWrapper<MailApplyRecord> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(MailApplyRecord::getApplicantEmail, email)
+                .eq(MailApplyRecord::getApplyStatus, 2);
         return mailApplyRecordMapper.selectCount(queryWrapper) > 0;
     }
 

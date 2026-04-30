@@ -12,14 +12,6 @@ import org.springframework.dao.DuplicateKeyException;
 public interface MailApplyRecordService extends IService<MailApplyRecord> {
 
     /**
-     * 检查邮箱是否已领取过免费卡密
-     *
-     * @param email 邮箱地址
-     * @return true-已领取，false-未领取
-     */
-    boolean hasReceived(String email);
-
-    /**
      * 记录领取信息
      * <p>利用数据库唯一索引 uk_email 防止重复领取，捕获 DuplicateKeyException</p>
      *
@@ -29,12 +21,28 @@ public interface MailApplyRecordService extends IService<MailApplyRecord> {
     void recordLicense(MailApplyRecord record);
 
     /**
-     * 检查邮箱是否已验证或已发送卡密
+     * 检查邮箱是否已领取过免费卡密
      *
      * @param email 邮箱地址
-     * @return true-已验证或已发送卡密，false-未验证
+     * @return true-已领取，false-未领取
+     */
+    boolean hasReceived(String email);
+
+    /**
+     * 检查邮箱是否已验证
+     *
+     * @param email 邮箱地址
+     * @return true-已验证，false-未验证
      */
     boolean hasVerified(String email);
+
+    /**
+     * 检查邮箱是否已发送卡密
+     *
+     * @param email 邮箱地址
+     * @return true-已发送卡密，false-未发送卡密
+     */
+    boolean hasSentKey(String email);
 
     /**
      * 根据token查询验证记录
