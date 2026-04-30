@@ -1,12 +1,13 @@
 package com.yan.xiaoyanqtserve.service.impl.mail;
 
 import com.yan.xiaoyanqtserve.common.Constants;
+import com.yan.xiaoyanqtserve.common.dto.MailRecordDto;
 import com.yan.xiaoyanqtserve.common.enums.EmailServiceProvider;
 import com.yan.xiaoyanqtserve.common.exception.BizException;
 import com.yan.xiaoyanqtserve.config.MultiMailSenderConfig;
 import com.yan.xiaoyanqtserve.entity.MailAccount;
-import jakarta.annotation.Resource;
 import jakarta.mail.internet.MimeMessage;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -25,16 +26,13 @@ import java.util.concurrent.CompletableFuture;
  */
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class MailPushService {
 
-    @Resource
-    private MultiMailSenderConfig multiMailSenderConfig;
-
-    @Resource
-    private MailAccountManagerService mailAccountManagerService;
-
-    @Resource
-    private TemplateService templateService;
+    private final TemplateService templateService;
+    private final MultiMailSenderConfig multiMailSenderConfig;
+    private final MailAccountManagerService mailAccountManagerService;
+    private final MailApplyManagerService mailApplyManagerService;
 
     /**
      * 发送验证码邮件

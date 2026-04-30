@@ -33,8 +33,10 @@ public class MailApplyRecordServiceImpl extends ServiceImpl<MailApplyRecordMappe
      * @throws DuplicateKeyException 如果该邮箱已领取过
      */
     @Override
-    public void recordLicense(MailApplyRecord record) {
+    public Long recordLicense(MailApplyRecord record) {
         mailApplyRecordMapper.insert(record);
+        // 插入后：MyBatisPlus 会自动将生成的ID回填到实体对象中
+        return record.getId();
     }
 
     /**

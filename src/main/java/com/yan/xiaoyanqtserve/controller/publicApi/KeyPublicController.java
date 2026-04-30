@@ -207,7 +207,7 @@ public class KeyPublicController {
      * @return 提示信息
      */
     @PostMapping("/applyEmailVerify")
-    @RateLimiter(key = "applyEmailVerify", time = 60, count = 1, limitBy = RateLimiterType.IP)
+    @RateLimiter(key = "applyEmailVerify", time = 30, count = 1, limitBy = RateLimiterType.DEVICE_ID)
     public ApiResponse<EmailVerifyVo> applyEmailVerify(@Valid @RequestBody EmailApplyDto emailApplyDto,
                                                         HttpServletRequest request) {
         String applicantEmail = emailApplyDto.getEmail();
@@ -260,9 +260,9 @@ public class KeyPublicController {
                     .clientIp(clientIp)
                     .userAgent(userAgent)
                     .build();
-            mailApplyRecordService.save(record);
-            
-            // 7. 异步发送验证邮件
+            Long applyRecordId = mailApplyManagerService.saveApplyRecord(record);
+
+            // 7. 异步发送验证邮件 todo:记录发送日志
             mailPushService.sendEmailVerifyLink(applicantEmail, verifyUrl)
                     .thenAccept(systemSenderEmail -> {
                         log.debug("验证邮件发送成功，邮箱: {}, 发送账号: {}", applicantEmail, systemSenderEmail);

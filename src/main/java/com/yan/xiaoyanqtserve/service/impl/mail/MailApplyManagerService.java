@@ -2,17 +2,21 @@ package com.yan.xiaoyanqtserve.service.impl.mail;
 
 import cn.hutool.core.util.IdUtil;
 import com.yan.xiaoyanqtserve.common.dto.MailRecordDto;
+import com.yan.xiaoyanqtserve.common.enums.ApplyStatus;
 import com.yan.xiaoyanqtserve.entity.MailApplyRecord;
 import com.yan.xiaoyanqtserve.entity.MailSendRecord;
 import com.yan.xiaoyanqtserve.service.MailApplyRecordService;
 import com.yan.xiaoyanqtserve.service.MailSendRecordService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
+import java.security.SecureRandom;
 import java.time.LocalDateTime;
+import java.util.Base64;
 
 /**
  * 系统邮件发送记录管理服务
@@ -32,11 +36,24 @@ public class MailApplyManagerService {
      * @return 验证token字符串
      */
     public String generateVerifyToken() {
-        return IdUtil.fastSimpleUUID();
+        // 生成更安全的token
+        byte[] randomBytes = new byte[64];
+        new SecureRandom().nextBytes(randomBytes);
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(randomBytes);
     }
 
-    public void saveRecord(MailRecordDto mailRecordDto) {
+    public void saveSendRecordAsync(String systemSenderEmail, String sendToEmail, String status, String resultMsg) {
 
+    }
+
+    /**
+     * 保存邮件申领记录
+     * @param record 邮件申领记录
+     * @return 保存后的记录ID
+     * @throws DuplicateKeyException 如果该邮箱已领取过
+     */
+    public Long saveApplyRecord(MailApplyRecord record) {
+        return mailApplyRecordService.recordLicense(record);
     }
 
 
