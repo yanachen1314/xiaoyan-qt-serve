@@ -22,7 +22,10 @@ public enum MailTemplateEnum {
     FREE_LICENSE("FreeLicense"),
 
     // 系统邮箱授权码重置邮件通知模板
-    NETEASE_AUTH_CODE_RESET("EmailAuthExpiryWarning");
+    NETEASE_AUTH_CODE_RESET("EmailAuthExpiryWarning"),
+
+    // 邮箱验证链接邮件通知模板
+    EMAIL_VERIFY_LINK("EmailVerifyLink");
 
     private final String name;
 

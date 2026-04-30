@@ -130,4 +130,24 @@ public class TemplateService {
 
         return templateEngine.process(TEMPLATE_PATH + MailTemplateEnum.FREE_LICENSE.getName(), context);
     }
+
+    /**
+     * 生成邮箱验证链接邮件模板
+     *
+     * @param to 收件人
+     * @param verifyUrl 验证链接URL
+     * @param expireTime 验证链接有效期（分钟）
+     * @return HTML字符串
+     */
+    public String generateEmailVerifyLinkTemplate(String to, String verifyUrl, String expireTime) {
+        Context context = new Context();
+        context.setVariable("title", "邮箱验证");
+        context.setVariable("to", to);
+        context.setVariable("verifyUrl", verifyUrl);
+        context.setVariable("expireTime", expireTime);
+        context.setVariable("website", Constants.WEB_DOMAIN);
+        context.setVariable("shopUrl", Constants.SHOP_URL);
+
+        return templateEngine.process(TEMPLATE_PATH + MailTemplateEnum.EMAIL_VERIFY_LINK.getName(), context);
+    }
 }

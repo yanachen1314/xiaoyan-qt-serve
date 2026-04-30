@@ -102,4 +102,10 @@ public class Constants {
     public static final String SYSTEM_EMAIL_SUFFIX_KEY = "email.applyKey.suffix";
     // 系统验证码服务是否开启
     public static final String SYSTEM_CAPTCHA_ENABLED = "system.captcha.enabled";
+    
+    // 邮箱验证相关常量
+    // 验证链接有效期（分钟）
+    public static final int EMAIL_VERIFY_EXPIRE_MINUTES = 30;
+    // 验证链接基础URL（需要在配置中设置或使用默认值）
+    public static final String EMAIL_VERIFY_BASE_URL = WEB_DOMAIN + "/api/public/verifyEmail";
 }

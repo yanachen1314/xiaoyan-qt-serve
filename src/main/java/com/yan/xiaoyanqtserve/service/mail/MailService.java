@@ -108,6 +108,17 @@ public class MailService {
     }
 
     /**
+     * 邮箱验证链接邮件模板
+     * @param to 收件人
+     * @param verifyUrl 验证链接URL
+     * @return CompletableFuture，包含实际使用的发送账号邮箱地址
+     */
+    public CompletableFuture<String> sendEmailVerifyLink(String to, String verifyUrl) {
+        String htmlContent = templateService.generateEmailVerifyLinkTemplate(to, verifyUrl, "30");
+        return sendHtmlMailWithAccount(null, to, "【小烟改写工具】邮箱验证", htmlContent);
+    }
+
+    /**
      * 通用的发送HTML邮件方法（支持多账号轮询）
      * @param from 邮件发送者，如果为null则使用轮询策略选择发送账号
      * @param to 收件人

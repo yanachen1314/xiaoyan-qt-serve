@@ -99,7 +99,10 @@ DROP TABLE IF EXISTS `mail_free_key_record`;
 CREATE TABLE `mail_free_key_record`  (
   `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键ID',
   `email` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '领取邮箱',
-  `license_key` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '领取的卡密',
+  `verify_token` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '邮箱验证token',
+  `status` tinyint NOT NULL DEFAULT 0 COMMENT '状态: 0-未验证, 1-已验证, 2-已发送卡密',
+  `expire_time` datetime NULL DEFAULT NULL COMMENT '验证链接过期时间',
+  `license_key` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '领取的卡密（验证通过后分配）',
   `device_type` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '设备类型（web：网页端，app：win APP端）',
   `device_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '设备ID/设备指纹',
   `client_ip` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '领取时的客户端IP地址（支持IPv4/IPv6）',
@@ -107,9 +110,11 @@ CREATE TABLE `mail_free_key_record`  (
   `created_time` datetime NULL DEFAULT CURRENT_TIMESTAMP COMMENT '领取时间',
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `uk_email`(`email` ASC) USING BTREE COMMENT '一个邮箱只能领取一次',
+  UNIQUE INDEX `uk_verify_token`(`verify_token` ASC) USING BTREE COMMENT '验证token唯一索引',
   INDEX `idx_created_time`(`created_time` ASC) USING BTREE,
-  INDEX `idx_device_id`(`device_id` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 17 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '免费领取卡密记录表' ROW_FORMAT = Dynamic;
+  INDEX `idx_device_id`(`device_id` ASC) USING BTREE,
+  INDEX `idx_status`(`status` ASC) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '免费领取卡密记录表（邮箱验证版）' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for mail_send_record
