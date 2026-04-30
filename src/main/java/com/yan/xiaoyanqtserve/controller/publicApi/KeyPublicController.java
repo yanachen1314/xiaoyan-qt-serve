@@ -47,7 +47,7 @@ import java.util.List;
 @RequestMapping("/api/public")
 @RequiredArgsConstructor
 public class KeyPublicController {
-    private final KeyInfoManagerService managerService;
+    private final KeyInfoManagerService keyinfoManagerService;
     private final MailPushService mailPushService;
     private final MailApplyRecordService mailApplyRecordService;
     private final SysConfigService sysConfigService;
@@ -70,7 +70,7 @@ public class KeyPublicController {
             return ApiResponse.fail("API密钥不能为空");
         }
         // 调用 KeyInfoService 的 activateKey 方法激活密钥
-        KeyInfo keyInfo = managerService.activateKey(keyActiveDto, apiKeyFromHeader);
+        KeyInfo keyInfo = keyinfoManagerService.activateKey(keyActiveDto, apiKeyFromHeader);
 
         // 激活成功
         Integer totalUses = keyInfo.getTotalUses();
@@ -141,7 +141,7 @@ public class KeyPublicController {
             }
 
             // 2. 从卡密池中获取一个未使用的免费卡密
-            String licenseKey = managerService.getUnusedFreeKeyFromPool();
+            String licenseKey = keyinfoManagerService.getUnusedFreeKeyFromPool();
 
             // 3. 异步发送邮件并保存记录
             mailPushService.sendFreeLicenseEmail(applicantEmail, licenseKey)
@@ -322,7 +322,7 @@ public class KeyPublicController {
             mailApplyRecordService.updateStatus(record.getId(), ApplyStatus.HAS_VERIFIED);
             
             // 5. 从卡密池获取卡密
-            String licenseKey = managerService.getUnusedFreeKeyFromPool();
+            String licenseKey = keyinfoManagerService.getUnusedFreeKeyFromPool();
             
             // 6. 更新记录的卡密字段
             MailApplyRecord updateRecord = new MailApplyRecord();
