@@ -1,7 +1,5 @@
 package com.yan.xiaoyanqtserve;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.yan.xiaoyanqtserve.common.Constants;
 import com.yan.xiaoyanqtserve.common.dto.key.GenerateKeyDto;
 import com.yan.xiaoyanqtserve.common.enums.BizStatus;
@@ -9,11 +7,10 @@ import com.yan.xiaoyanqtserve.common.exception.BizException;
 import com.yan.xiaoyanqtserve.common.utils.LicenseKeyGenerator;
 import com.yan.xiaoyanqtserve.entity.KeyInfo;
 import com.yan.xiaoyanqtserve.entity.ProductType;
-import com.yan.xiaoyanqtserve.entity.SysConfig;
 import com.yan.xiaoyanqtserve.service.KeyInfoService;
 import com.yan.xiaoyanqtserve.service.ProductTypeService;
 import com.yan.xiaoyanqtserve.service.SysConfigService;
-import com.yan.xiaoyanqtserve.service.impl.KeyInfoManagerService;
+import com.yan.xiaoyanqtserve.service.impl.apikey.KeyInfoManagerService;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;

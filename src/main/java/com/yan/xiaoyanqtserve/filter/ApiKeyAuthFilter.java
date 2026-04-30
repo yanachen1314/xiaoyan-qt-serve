@@ -6,7 +6,7 @@ import com.yan.xiaoyanqtserve.common.enums.Role;
 import com.yan.xiaoyanqtserve.common.utils.NetUtil;
 import com.yan.xiaoyanqtserve.common.utils.RedisUtil;
 import com.yan.xiaoyanqtserve.entity.KeyInfo;
-import com.yan.xiaoyanqtserve.service.impl.KeyInfoManagerService;
+import com.yan.xiaoyanqtserve.service.impl.apikey.KeyInfoManagerService;
 import com.yan.xiaoyanqtserve.common.utils.SecurityResponseUtil;
 import jakarta.annotation.Resource;
 import jakarta.servlet.FilterChain;

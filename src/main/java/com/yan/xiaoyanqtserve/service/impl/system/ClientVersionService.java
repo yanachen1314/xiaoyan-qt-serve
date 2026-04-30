@@ -1,4 +1,4 @@
-package com.yan.xiaoyanqtserve.service.impl;
+package com.yan.xiaoyanqtserve.service.impl.system;
 
 import com.yan.xiaoyanqtserve.common.Constants;
 import com.yan.xiaoyanqtserve.common.utils.RedisUtil;

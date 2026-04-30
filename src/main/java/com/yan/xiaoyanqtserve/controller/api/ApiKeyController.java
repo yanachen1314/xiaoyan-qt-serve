@@ -11,7 +11,7 @@ import com.yan.xiaoyanqtserve.common.utils.SecurityContextUtil;
 import com.yan.xiaoyanqtserve.entity.KeyInfo;
 import com.yan.xiaoyanqtserve.common.utils.ApiResponse;
 import com.yan.xiaoyanqtserve.entity.RequestLog;
-import com.yan.xiaoyanqtserve.service.impl.ApiKeyInfoService;
+import com.yan.xiaoyanqtserve.service.impl.apikey.ApiKeyInfoService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

@@ -1,4 +1,4 @@
-package com.yan.xiaoyanqtserve.service.impl;
+package com.yan.xiaoyanqtserve.service.impl.apikey;
 
 import com.yan.xiaoyanqtserve.common.Constants;
 import com.yan.xiaoyanqtserve.common.dto.key.GenerateKeyDto;

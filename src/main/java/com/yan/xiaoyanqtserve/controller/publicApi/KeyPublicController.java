@@ -19,7 +19,7 @@ import com.yan.xiaoyanqtserve.entity.KeyInfo;
 import com.yan.xiaoyanqtserve.entity.MailApplyRecord;
 import com.yan.xiaoyanqtserve.service.MailApplyRecordService;
 import com.yan.xiaoyanqtserve.service.SysConfigService;
-import com.yan.xiaoyanqtserve.service.impl.KeyInfoManagerService;
+import com.yan.xiaoyanqtserve.service.impl.apikey.KeyInfoManagerService;
 import com.yan.xiaoyanqtserve.service.impl.mail.MailApplyManagerService;
 import com.yan.xiaoyanqtserve.service.impl.mail.MailPushService;
 import com.yan.xiaoyanqtserve.validator.EmailValidator;
