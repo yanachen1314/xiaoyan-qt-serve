@@ -1,9 +1,9 @@
 package com.yan.xiaoyanqtserve.service.mail;
 
 import com.yan.xiaoyanqtserve.common.dto.MailRecordDto;
-import com.yan.xiaoyanqtserve.entity.MailFreeKeyRecord;
+import com.yan.xiaoyanqtserve.entity.MailApplyRecord;
 import com.yan.xiaoyanqtserve.entity.MailSendRecord;
-import com.yan.xiaoyanqtserve.service.MailFreeKeyRecordService;
+import com.yan.xiaoyanqtserve.service.MailApplyRecordService;
 import com.yan.xiaoyanqtserve.service.MailSendRecordService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,7 +24,7 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 public class MailRecordSyncService {
     private final MailSendRecordService mailSendRecordService;
-    private final MailFreeKeyRecordService mailFreeKeyRecordService;
+    private final MailApplyRecordService mailApplyRecordService;
 
 
     /**
@@ -46,9 +46,9 @@ public class MailRecordSyncService {
             );
 
             // 保存邮件申领记录
-            mailFreeKeyRecordService.recordLicense(MailFreeKeyRecord.builder()
-                    .email(mailRecordDto.getApplicantEmail())
-                    .licenseKey(mailRecordDto.getLicenseKey())
+            mailApplyRecordService.recordLicense(MailApplyRecord.builder()
+                    .applicantEmail(mailRecordDto.getApplicantEmail())
+                    .applyApiKey(mailRecordDto.getLicenseKey())
                     .deviceType(mailRecordDto.getDeviceType())
                     .deviceId(mailRecordDto.getDeviceId())
                     .clientIp(mailRecordDto.getClientIp())

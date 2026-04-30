@@ -5,14 +5,14 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
  * <p>
- * 邮件发送统计表 前端控制器
+ * 免费领取卡密记录 前端控制器
  * </p>
  *
  * @author 烟尘
  * @since 2026-04-24
  */
 @RestController
-@RequestMapping("/mailSendRecord")
-public class MailSendRecordController {
+@RequestMapping("/mailApplyRecord")
+public class MailApplyRecordController {
 
 }

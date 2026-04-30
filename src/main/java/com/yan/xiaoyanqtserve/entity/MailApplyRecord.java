@@ -22,11 +22,11 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @ToString
-@TableName("mail_free_key_record")
+@TableName("mail_apply_record")
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class MailFreeKeyRecord implements Serializable {
+public class MailApplyRecord implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 1L;
@@ -40,14 +40,44 @@ public class MailFreeKeyRecord implements Serializable {
     /**
      * 领取邮箱
      */
-    @TableField("email")
-    private String email;
+    @TableField("applicant_email")
+    private String applicantEmail;
 
     /**
-     * 领取的卡密
+     * 邮箱验证token
      */
-    @TableField("license_key")
-    private String licenseKey;
+    @TableField("verify_token")
+    private String verifyToken;
+
+    /**
+     * 验证链接过期时间
+     */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    @TableField("verify_expire_time")
+    private LocalDateTime verifyExpireTime;
+
+    /**
+     * 状态: 0-未验证, 1-已验证, 2-已发送卡密
+     */
+    @TableField("apply_status")
+    private Integer applyStatus;
+
+    /**
+     * 领取的卡密（验证通过后分配）
+     */
+    @TableField("apply_api_key")
+    private String applyApiKey;
+
+    /**
+     * 系统发送者邮箱
+     */
+    @TableField("system_sender_email")
+    private String systemSenderEmail;
+    /**
+     * 系统发送结果（成功：200，失败：以“;”分隔原因）
+     */
+    @TableField("system_send_result")
+    private String systemSendResult;
 
     /**
      * 设备类型（web：网页端，app：win APP端）

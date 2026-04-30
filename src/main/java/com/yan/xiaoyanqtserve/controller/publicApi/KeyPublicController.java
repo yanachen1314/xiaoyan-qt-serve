@@ -3,16 +3,20 @@ package com.yan.xiaoyanqtserve.controller.publicApi;
 import com.yan.xiaoyanqtserve.common.annotaions.RateLimiter;
 import com.yan.xiaoyanqtserve.common.annotaions.VerifyCaptcha;
 import com.yan.xiaoyanqtserve.common.dto.CaptchaVerifyVo;
+import com.yan.xiaoyanqtserve.common.dto.EmailApplyDto;
 import com.yan.xiaoyanqtserve.common.dto.FreeLicenseDto;
 import com.yan.xiaoyanqtserve.common.dto.MailRecordDto;
 import com.yan.xiaoyanqtserve.common.enums.SceneIdEnum;
+import com.yan.xiaoyanqtserve.common.vo.EmailVerifyVo;
 import com.yan.xiaoyanqtserve.common.vo.FreeLicenseVo;
 import com.yan.xiaoyanqtserve.common.dto.key.KeyActiveDto;
 import com.yan.xiaoyanqtserve.common.enums.RateLimiterType;
 import com.yan.xiaoyanqtserve.common.utils.*;
 import com.yan.xiaoyanqtserve.common.vo.KeyActiveVo;
+import com.yan.xiaoyanqtserve.common.Constants;
 import com.yan.xiaoyanqtserve.entity.KeyInfo;
-import com.yan.xiaoyanqtserve.service.MailFreeKeyRecordService;
+import com.yan.xiaoyanqtserve.entity.MailApplyRecord;
+import com.yan.xiaoyanqtserve.service.MailApplyRecordService;
 import com.yan.xiaoyanqtserve.service.SysConfigService;
 import com.yan.xiaoyanqtserve.service.impl.KeyInfoManagerService;
 import com.yan.xiaoyanqtserve.service.mail.MailRecordSyncService;
@@ -22,9 +26,13 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 /**
@@ -40,7 +48,7 @@ import java.util.List;
 public class KeyPublicController {
     private final KeyInfoManagerService managerService;
     private final MailService mailService;
-    private final MailFreeKeyRecordService mailFreeKeyRecordService;
+    private final MailApplyRecordService mailApplyRecordService;
     private final SysConfigService sysConfigService;
     private final MailRecordSyncService mailRecordSyncService;
 
@@ -127,7 +135,7 @@ public class KeyPublicController {
                 throw new IllegalArgumentException("邮箱格式不正确");
             }
             // 检查该邮箱是否已领取
-            if (mailFreeKeyRecordService.hasReceived(applicantEmail)) {
+            if (mailApplyRecordService.hasReceived(applicantEmail)) {
                 throw new IllegalArgumentException("该邮箱已领取过免费卡密，请勿重复领取");
             }
 
@@ -186,6 +194,271 @@ public class KeyPublicController {
                     CaptchaVerifyVo.buildFail(FreeLicenseVo.builder().build())
             );
         }
+    }
+
+    /**
+     * 申请邮箱验证接口
+     * <p>
+     * 用户提交邮箱，服务器发送验证链接到邮箱
+     * 一个邮箱只能申请一次验证
+     * </p>
+     * @param emailApplyDto 包含收件人邮箱
+     * @return 提示信息
+     */
+    @PostMapping("/applyEmailVerify")
+    @RateLimiter(key = "applyEmailVerify", time = 60, count = 1, limitBy = RateLimiterType.IP)
+    public ApiResponse<EmailVerifyVo> applyEmailVerify(@Valid @RequestBody EmailApplyDto emailApplyDto,
+                                                        HttpServletRequest request) {
+        String applicantEmail = emailApplyDto.getEmail();
+        String deviceType = NetUtil.getClientDeviceType(request);
+        String deviceId = NetUtil.getClientDeviceId(request);
+        String clientIp = NetUtil.getClientIpAddress(request);
+        String userAgent = request.getHeader("User-Agent");
+        log.debug("申请邮箱验证：{}，设备类型：{}，设备ID：{}，客户端IP：{}，用户代理：{}",
+                applicantEmail, deviceType, deviceId, clientIp, userAgent);
+        try {
+            // 1. 邮箱校验
+            List<String> emailSuffixList = sysConfigService.getEmailSuffixList();
+            if (!EmailValidator.isValidEmail(applicantEmail, emailSuffixList)) {
+                throw new IllegalArgumentException("邮箱格式不正确");
+            }
+            
+            // 2. 检查邮箱是否已验证或已领取
+            if (mailApplyRecordService.hasVerified(applicantEmail)) {
+                throw new IllegalArgumentException("该邮箱已验证或已领取过免费卡密，请勿重复申请");
+            }
+            
+            // 3. 检查邮箱是否已申请但未验证
+            if (mailApplyRecordService.hasPendingVerification(applicantEmail)) {
+                return ApiResponse.success("验证邮件已发送，请检查邮箱并在30分钟内完成验证",
+                        EmailVerifyVo.builder()
+                                .email(applicantEmail)
+                                .message("验证邮件已发送，请检查邮箱并在30分钟内完成验证")
+                                .build()
+                );
+            }
+            
+            // 4. 生成验证token和过期时间
+            String verifyToken = mailApplyRecordService.generateVerifyToken();
+            LocalDateTime expireTime = LocalDateTime.now().plusMinutes(Constants.EMAIL_VERIFY_EXPIRE_MINUTES);
+            
+            // 5. 构建验证链接URL
+            String verifyUrl = Constants.EMAIL_VERIFY_BASE_URL + "?token=" + verifyToken;
+            
+            // 6. 保存验证记录（status=0）
+            MailApplyRecord record = MailApplyRecord.builder()
+                    .applicantEmail(applicantEmail)
+                    .verifyToken(verifyToken)
+                    .applyStatus(0)
+                    .verifyExpireTime(expireTime)
+                    .deviceType(deviceType)
+                    .deviceId(deviceId)
+                    .clientIp(clientIp)
+                    .userAgent(userAgent)
+                    .build();
+            mailApplyRecordService.save(record);
+            
+            // 7. 异步发送验证邮件
+            mailService.sendEmailVerifyLink(applicantEmail, verifyUrl)
+                    .thenAccept(systemSenderEmail -> {
+                        log.debug("验证邮件发送成功，邮箱: {}, 发送账号: {}", applicantEmail, systemSenderEmail);
+                    })
+                    .exceptionally(ex -> {
+                        Throwable cause = ex.getCause() != null ? ex.getCause() : ex;
+                        log.error("验证邮件发送失败，邮箱: {}, 原因: {}", applicantEmail, cause.getMessage(), cause);
+                        return null;
+                    });
+            
+            // 8. 立即返回成功提示
+            return ApiResponse.success("验证邮件已发送，请检查邮箱并在30分钟内完成验证",
+                    EmailVerifyVo.builder()
+                            .email(applicantEmail)
+                            .message("验证邮件已发送，请检查邮箱并在30分钟内完成验证")
+                            .build()
+            );
+        } catch (Exception e) {
+            log.error("邮箱验证申请失败: {}", e.getMessage(), e);
+            return ApiResponse.fail(e.getMessage(),
+                    EmailVerifyVo.builder()
+                            .email(applicantEmail)
+                            .build()
+            );
+        }
+    }
+
+    /**
+     * 验证邮箱链接接口
+     * <p>
+     * 用户点击邮件中的验证链接，服务器验证token后发送卡密邮件
+     * </p>
+     * @param token 验证token
+     * @return HTML页面显示验证结果
+     */
+    @GetMapping(value = "/verifyEmail", produces = MediaType.TEXT_HTML_VALUE)
+    public ResponseEntity<String> verifyEmail(@RequestParam("token") String token) {
+        log.debug("邮箱验证请求，token: {}", token);
+        try {
+            // 1. 根据token查询验证记录
+            MailApplyRecord record = mailApplyRecordService.getByToken(token);
+            if (record == null) {
+                return ResponseEntity.ok(buildErrorHtmlPage("验证链接无效", "该验证链接不存在或已被使用，请重新申请。"));
+            }
+            
+            // 2. 验证是否已过期
+            if (record.getVerifyExpireTime().isBefore(LocalDateTime.now())) {
+                return ResponseEntity.ok(buildErrorHtmlPage("验证链接已过期", "该验证链接已过期，请重新申请。"));
+            }
+            
+            // 3. 验证状态是否为0（未验证）
+            if (record.getApplyStatus() != 0) {
+                return ResponseEntity.ok(buildErrorHtmlPage("验证链接已使用", "该验证链接已被使用，请勿重复点击。"));
+            }
+            
+            // 4. 更新状态为1（已验证）
+            mailApplyRecordService.updateStatus(record.getId(), 1);
+            
+            // 5. 从卡密池获取卡密
+            String licenseKey = managerService.getUnusedFreeKeyFromPool();
+            
+            // 6. 更新记录的卡密字段
+            MailApplyRecord updateRecord = new MailApplyRecord();
+            updateRecord.setId(record.getId());
+            updateRecord.setApplyApiKey(licenseKey);
+            updateRecord.setApplyStatus(2);
+            mailApplyRecordService.updateById(updateRecord);
+            
+            // 7. 异步发送卡密邮件
+            String applicantEmail = record.getApplicantEmail();
+            mailService.sendFreeLicenseEmail(applicantEmail, licenseKey)
+                    .thenAccept(systemSenderEmail -> {
+                        log.debug("卡密邮件发送成功，邮箱: {}, 发送账号: {}", applicantEmail, systemSenderEmail);
+                        // 异步记录发送信息
+                        mailRecordSyncService.saveRecordAsync(MailRecordDto.builder()
+                                .systemSenderEmail(systemSenderEmail)
+                                .resultStatus(1)
+                                .resultMsg("发送成功")
+                                .applicantEmail(applicantEmail)
+                                .licenseKey(licenseKey)
+                                .deviceType(record.getDeviceType())
+                                .deviceId(record.getDeviceId())
+                                .clientIp(record.getClientIp())
+                                .userAgent(record.getUserAgent())
+                                .build());
+                    })
+                    .exceptionally(ex -> {
+                        Throwable cause = ex.getCause() != null ? ex.getCause() : ex;
+                        log.error("卡密邮件发送失败，邮箱: {}, 原因: {}", applicantEmail, cause.getMessage(), cause);
+                        mailRecordSyncService.saveRecordAsync(MailRecordDto.builder()
+                                .systemSenderEmail("")
+                                .resultStatus(0)
+                                .resultMsg(cause.getMessage())
+                                .applicantEmail(applicantEmail)
+                                .licenseKey(licenseKey)
+                                .deviceType(record.getDeviceType())
+                                .deviceId(record.getDeviceId())
+                                .clientIp(record.getClientIp())
+                                .userAgent(record.getUserAgent())
+                                .build());
+                        return null;
+                    });
+            
+            // 8. 返回验证成功HTML页面
+            return ResponseEntity.ok(buildSuccessHtmlPage(applicantEmail));
+        } catch (Exception e) {
+            log.error("邮箱验证失败: {}", e.getMessage(), e);
+            return ResponseEntity.ok(buildErrorHtmlPage("验证失败", "验证过程中发生错误，请稍后重试。"));
+        }
+    }
+    
+    /**
+     * 构建验证成功HTML页面
+     * @param email 收件人邮箱
+     * @return HTML字符串
+     */
+    private String buildSuccessHtmlPage(String email) {
+        String currentTime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        return """
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>验证成功 - 小烟改写工具</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, 'Microsoft YaHei', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .container { background: white; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); padding: 50px; max-width: 500px; width: 100%; text-align: center; }
+        .icon { font-size: 80px; color: #4CAF50; margin-bottom: 20px; }
+        h1 { color: #333; font-size: 28px; margin-bottom: 15px; }
+        p { color: #666; font-size: 16px; line-height: 1.6; margin-bottom: 15px; }
+        .email { background: #f5f5f5; padding: 15px; border-radius: 8px; font-weight: bold; color: #333; margin: 20px 0; }
+        .tip { background: #e3f2fd; padding: 15px; border-radius: 8px; color: #1976d2; margin-top: 20px; font-size: 14px; }
+        .footer { margin-top: 30px; color: #999; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="icon">✓</div>
+        <h1>验证成功！</h1>
+        <p>恭喜您，邮箱验证已成功完成。</p>
+        <div class="email">卡密已发送到：%s</div>
+        <p>请检查您的邮箱收件箱，卡密已自动发送。</p>
+        <div class="tip">
+            <strong>提示：</strong>如果未收到邮件，请检查垃圾邮件文件夹，或稍后重新申请。
+        </div>
+        <div class="footer">
+            <p>验证时间：%s</p>
+            <p>© 2025 小烟改写工具. 保留所有权利.</p>
+        </div>
+    </div>
+</body>
+</html>
+""".formatted(email, currentTime);
+    }
+
+    /**
+     * 构建验证失败HTML页面
+     * @param title 错误标题
+     * @param message 错误信息
+     * @return HTML字符串
+     */
+    private String buildErrorHtmlPage(String title, String message) {
+        String currentTime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        return """
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>验证失败 - 小烟改写工具</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, 'Microsoft YaHei', sans-serif; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .container { background: white; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); padding: 50px; max-width: 500px; width: 100%; text-align: center; }
+        .icon { font-size: 80px; color: #f44336; margin-bottom: 20px; }
+        h1 { color: #333; font-size: 28px; margin-bottom: 15px; }
+        p { color: #666; font-size: 16px; line-height: 1.6; margin-bottom: 15px; }
+        .error-box { background: #ffebee; padding: 20px; border-radius: 8px; color: #c62828; margin: 20px 0; }
+        .button { display: inline-block; background: #409EFF; color: white; padding: 12px 30px; border-radius: 25px; text-decoration: none; margin-top: 20px; font-weight: bold; }
+        .button:hover { background: #3a8ee6; }
+        .footer { margin-top: 30px; color: #999; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="icon">✗</div>
+        <h1>%s</h1>
+        <div class="error-box">%s</div>
+        <p>如有问题，请访问我们的官方网站重新申请。</p>
+        <a href="%s" class="button">前往官网</a>
+        <div class="footer">
+            <p>错误时间：%s</p>
+            <p>© 2025 小烟改写工具. 保留所有权利.</p>
+        </div>
+    </div>
+</body>
+</html>
+""".formatted(title, message, Constants.WEB_DOMAIN, currentTime);
     }
 
 }
