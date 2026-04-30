@@ -2,16 +2,11 @@ package com.yan.xiaoyanqtserve.task;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.yan.xiaoyanqtserve.common.Constants;
-import com.yan.xiaoyanqtserve.common.dto.key.GenerateKeyDto;
 import com.yan.xiaoyanqtserve.common.utils.LicenseKeyGenerator;
 import com.yan.xiaoyanqtserve.common.utils.RedisUtil;
 import com.yan.xiaoyanqtserve.config.MailSafetyLimitsConfig;
 import com.yan.xiaoyanqtserve.entity.MailAccount;
-import com.yan.xiaoyanqtserve.entity.ProductType;
 import com.yan.xiaoyanqtserve.mapper.MailAccountMapper;
-import com.yan.xiaoyanqtserve.service.ProductTypeService;
-import com.yan.xiaoyanqtserve.service.impl.KeyInfoManagerService;
-import jakarta.annotation.Resource;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -34,8 +29,6 @@ public class MailRecordSyncTask {
 
     private final RedisUtil redisUtil;
     private final MailAccountMapper mailAccountMapper;
-    private final KeyInfoManagerService keyInfoManagerService;
-    private final ProductTypeService productTypeService;
     private final MailSafetyLimitsConfig mailSafetyLimitsConfig;
     private final LicenseKeyGenerator licenseKeyGenerator;
 

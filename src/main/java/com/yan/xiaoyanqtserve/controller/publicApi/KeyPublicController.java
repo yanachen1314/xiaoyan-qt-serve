@@ -108,7 +108,7 @@ public class KeyPublicController {
      * @return 提示信息
      */
     @PostMapping("/freeLicense")
-    @RateLimiter(key = "freeLicense", time = 30, count = 1, limitBy = RateLimiterType.DEVICE_ID)
+    @RateLimiter(key = "freeLicense", time = 60, count = 1, limitBy = RateLimiterType.DEVICE_ID)
     @VerifyCaptcha(sceneId = SceneIdEnum.EMAIL_APPLY)
     public ApiResponse<CaptchaVerifyVo> sendMailRoundRobin(@Valid @RequestBody FreeLicenseDto freeLicenseDto,
                                                            HttpServletRequest request) {
