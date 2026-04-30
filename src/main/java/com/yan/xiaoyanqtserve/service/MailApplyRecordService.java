@@ -1,6 +1,7 @@
 package com.yan.xiaoyanqtserve.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.yan.xiaoyanqtserve.common.enums.ApplyStatus;
 import com.yan.xiaoyanqtserve.entity.MailApplyRecord;
 import org.springframework.dao.DuplicateKeyException;
 
@@ -58,14 +59,8 @@ public interface MailApplyRecordService extends IService<MailApplyRecord> {
      * @param id 记录ID
      * @param status 新状态
      */
-    void updateStatus(Long id, Integer status);
+    void updateStatus(Long id, ApplyStatus status);
 
-    /**
-     * 生成验证token
-     *
-     * @return 验证token字符串
-     */
-    String generateVerifyToken();
 
     /**
      * 检查邮箱是否已申请但未验证（status=0）且未过期

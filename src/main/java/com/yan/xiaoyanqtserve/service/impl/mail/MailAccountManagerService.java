@@ -1,4 +1,4 @@
-package com.yan.xiaoyanqtserve.service.mail;
+package com.yan.xiaoyanqtserve.service.impl.mail;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.yan.xiaoyanqtserve.common.Constants;

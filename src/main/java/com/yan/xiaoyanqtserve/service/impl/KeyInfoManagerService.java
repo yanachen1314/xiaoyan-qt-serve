@@ -13,7 +13,7 @@ import com.yan.xiaoyanqtserve.common.exception.BizException;
 import com.yan.xiaoyanqtserve.entity.ProductType;
 import com.yan.xiaoyanqtserve.service.KeyInfoService;
 import com.yan.xiaoyanqtserve.service.ProductTypeService;
-import com.yan.xiaoyanqtserve.service.mail.MailAccountManagerService;
+import com.yan.xiaoyanqtserve.service.impl.mail.MailAccountManagerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

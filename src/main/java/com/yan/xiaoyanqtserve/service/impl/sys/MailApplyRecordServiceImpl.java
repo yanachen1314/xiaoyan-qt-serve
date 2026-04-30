@@ -1,8 +1,8 @@
 package com.yan.xiaoyanqtserve.service.impl.sys;
 
-import cn.hutool.core.util.IdUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.yan.xiaoyanqtserve.common.enums.ApplyStatus;
 import com.yan.xiaoyanqtserve.entity.MailApplyRecord;
 import com.yan.xiaoyanqtserve.mapper.MailApplyRecordMapper;
 import com.yan.xiaoyanqtserve.service.MailApplyRecordService;
@@ -34,7 +34,6 @@ public class MailApplyRecordServiceImpl extends ServiceImpl<MailApplyRecordMappe
      */
     @Override
     public void recordLicense(MailApplyRecord record) {
-        record.setCreatedTime(LocalDateTime.now());
         mailApplyRecordMapper.insert(record);
     }
 
@@ -100,23 +99,13 @@ public class MailApplyRecordServiceImpl extends ServiceImpl<MailApplyRecordMappe
      * @param status 新状态
      */
     @Override
-    public void updateStatus(Long id, Integer status) {
+    public void updateStatus(Long id, ApplyStatus status) {
         MailApplyRecord record = new MailApplyRecord();
         record.setId(id);
-        record.setApplyStatus(status);
+        record.setApplyStatus(status.getCode());
         mailApplyRecordMapper.updateById(record);
     }
 
-    /**
-     * 生成验证token
-     * 使用UUID生成32位唯一token
-     *
-     * @return 验证token字符串
-     */
-    @Override
-    public String generateVerifyToken() {
-        return IdUtil.fastSimpleUUID();
-    }
 
     /**
      * 检查邮箱是否已申请但未验证（status=0）且未过期

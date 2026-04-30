@@ -1,4 +1,4 @@
-package com.yan.xiaoyanqtserve.service.captcha;
+package com.yan.xiaoyanqtserve.service.impl.captcha;
 
 import com.aliyun.captcha20230305.Client;
 import com.aliyun.captcha20230305.models.VerifyIntelligentCaptchaRequest;

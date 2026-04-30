@@ -1,5 +1,6 @@
-package com.yan.xiaoyanqtserve.service.mail;
+package com.yan.xiaoyanqtserve.service.impl.mail;
 
+import com.yan.xiaoyanqtserve.common.Constants;
 import com.yan.xiaoyanqtserve.common.enums.EmailServiceProvider;
 import com.yan.xiaoyanqtserve.common.exception.BizException;
 import com.yan.xiaoyanqtserve.config.MultiMailSenderConfig;
@@ -114,7 +115,7 @@ public class MailPushService {
      * @return CompletableFuture，包含实际使用的发送账号邮箱地址
      */
     public CompletableFuture<String> sendEmailVerifyLink(String to, String verifyUrl) {
-        String htmlContent = templateService.generateEmailVerifyLinkTemplate(to, verifyUrl, "30");
+        String htmlContent = templateService.generateEmailVerifyLinkTemplate(to, verifyUrl, String.valueOf(Constants.EMAIL_VERIFY_EXPIRE_MINUTES));
         return sendHtmlMailWithAccount(null, to, "【小烟改写工具】邮箱验证", htmlContent);
     }
 
@@ -237,8 +238,8 @@ public class MailPushService {
                     }
                 }
             }
-            
-            throw new BizException("所有可用邮箱账号发送失败");
+            log.warn("所有可用邮箱账号发送失败！！！");
+            throw new BizException("卡密邮件发送异常，请联系客服处理！");
         }
     }
 

@@ -1,5 +1,6 @@
-package com.yan.xiaoyanqtserve.service.mail;
+package com.yan.xiaoyanqtserve.service.impl.mail;
 
+import cn.hutool.core.util.IdUtil;
 import com.yan.xiaoyanqtserve.common.dto.MailRecordDto;
 import com.yan.xiaoyanqtserve.entity.MailApplyRecord;
 import com.yan.xiaoyanqtserve.entity.MailSendRecord;
@@ -25,6 +26,19 @@ public class MailApplyManagerService {
     private final MailSendRecordService mailSendRecordService;
     private final MailApplyRecordService mailApplyRecordService;
 
+    /**
+     * 生成验证token
+     *
+     * @return 验证token字符串
+     */
+    public String generateVerifyToken() {
+        return IdUtil.fastSimpleUUID();
+    }
+
+    public void saveRecord(MailRecordDto mailRecordDto) {
+
+    }
+
 
     /**
      * 同步保存邮件发送记录和免费卡密记录
@@ -36,9 +50,8 @@ public class MailApplyManagerService {
             // 保存系统邮件发送记录
             mailSendRecordService.save(MailSendRecord.builder()
                     .systemSenderEmail(mailRecordDto.getSystemSenderEmail())
-                    .applicantEmail(mailRecordDto.getApplicantEmail())
-                    .sendDate(LocalDate.now())
-                    .resultStatus(mailRecordDto.getResultStatus())
+                    .sendToEmail(mailRecordDto.getApplicantEmail())
+                    .status(mailRecordDto.getResultStatus())
                     .resultMsg(mailRecordDto.getResultMsg())
                     .createdTime(LocalDateTime.now())
                     .build()

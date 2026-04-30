@@ -2,7 +2,7 @@ package com.yan.xiaoyanqtserve.controller.publicApi;
 
 import com.yan.xiaoyanqtserve.common.enums.SceneIdEnum;
 import com.yan.xiaoyanqtserve.common.utils.ApiResponse;
-import com.yan.xiaoyanqtserve.service.captcha.AliyunCaptchaService;
+import com.yan.xiaoyanqtserve.service.impl.captcha.AliyunCaptchaService;
 import jakarta.annotation.Resource;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

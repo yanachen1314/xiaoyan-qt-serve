@@ -60,7 +60,7 @@ public class MailApplyRecord implements Serializable {
      * 状态: 0-未验证, 1-已验证, 2-已发送卡密
      */
     @TableField("apply_status")
-    private Integer applyStatus;
+    private Byte applyStatus;
 
     /**
      * 领取的卡密（验证通过后分配）

@@ -6,6 +6,7 @@ import com.yan.xiaoyanqtserve.common.dto.CaptchaVerifyVo;
 import com.yan.xiaoyanqtserve.common.dto.EmailApplyDto;
 import com.yan.xiaoyanqtserve.common.dto.FreeLicenseDto;
 import com.yan.xiaoyanqtserve.common.dto.MailRecordDto;
+import com.yan.xiaoyanqtserve.common.enums.ApplyStatus;
 import com.yan.xiaoyanqtserve.common.enums.SceneIdEnum;
 import com.yan.xiaoyanqtserve.common.vo.EmailVerifyVo;
 import com.yan.xiaoyanqtserve.common.vo.FreeLicenseVo;
@@ -19,8 +20,8 @@ import com.yan.xiaoyanqtserve.entity.MailApplyRecord;
 import com.yan.xiaoyanqtserve.service.MailApplyRecordService;
 import com.yan.xiaoyanqtserve.service.SysConfigService;
 import com.yan.xiaoyanqtserve.service.impl.KeyInfoManagerService;
-import com.yan.xiaoyanqtserve.service.mail.MailApplyManagerService;
-import com.yan.xiaoyanqtserve.service.mail.MailPushService;
+import com.yan.xiaoyanqtserve.service.impl.mail.MailApplyManagerService;
+import com.yan.xiaoyanqtserve.service.impl.mail.MailPushService;
 import com.yan.xiaoyanqtserve.validator.EmailValidator;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -242,7 +243,7 @@ public class KeyPublicController {
             }
             
             // 4. 生成验证token和过期时间
-            String verifyToken = mailApplyRecordService.generateVerifyToken();
+            String verifyToken = mailApplyManagerService.generateVerifyToken();
             LocalDateTime expireTime = LocalDateTime.now().plusMinutes(Constants.EMAIL_VERIFY_EXPIRE_MINUTES);
             
             // 5. 构建验证链接URL
@@ -252,7 +253,7 @@ public class KeyPublicController {
             MailApplyRecord record = MailApplyRecord.builder()
                     .applicantEmail(applicantEmail)
                     .verifyToken(verifyToken)
-                    .applyStatus(0)
+                    .applyStatus(ApplyStatus.NOT_VERIFIED.getCode())
                     .verifyExpireTime(expireTime)
                     .deviceType(deviceType)
                     .deviceId(deviceId)
@@ -318,7 +319,7 @@ public class KeyPublicController {
             }
             
             // 4. 更新状态为1（已验证）
-            mailApplyRecordService.updateStatus(record.getId(), 1);
+            mailApplyRecordService.updateStatus(record.getId(), ApplyStatus.HAS_VERIFIED);
             
             // 5. 从卡密池获取卡密
             String licenseKey = managerService.getUnusedFreeKeyFromPool();
@@ -327,7 +328,7 @@ public class KeyPublicController {
             MailApplyRecord updateRecord = new MailApplyRecord();
             updateRecord.setId(record.getId());
             updateRecord.setApplyApiKey(licenseKey);
-            updateRecord.setApplyStatus(2);
+            updateRecord.setApplyStatus((byte) 2);
             mailApplyRecordService.updateById(updateRecord);
             
             // 7. 异步发送卡密邮件

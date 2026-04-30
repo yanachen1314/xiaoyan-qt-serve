@@ -12,14 +12,12 @@ import lombok.ToString;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
  * <p>
  * 邮件发送统计表
  * </p>
- * todo: 删除该表
  * @author 烟尘
  * @since 2026-04-25
  */
@@ -46,22 +44,16 @@ public class MailSendRecord implements Serializable {
     private String systemSenderEmail;
 
     /**
-     * 申请者邮箱
+     * 接收邮箱
      */
-    @TableField("applicant_email")
-    private String applicantEmail;
-
-    /**
-     * 发送日期
-     */
-    @TableField("send_date")
-    private LocalDate sendDate;
+    @TableField("send_to_email")
+    private String sendToEmail;
 
     /**
      * 结果状态，0：失败，1：成功
      */
-    @TableField("result_status")
-    private Integer resultStatus;
+    @TableField("status")
+    private Integer status;
 
     /**
      * 结果信息
@@ -75,4 +67,17 @@ public class MailSendRecord implements Serializable {
     @TableField("created_time")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private LocalDateTime createdTime;
+
+
+    /**
+     * 目标类型
+     */
+    @TableField("target_type")
+    private Integer targetType;
+
+    /**
+     * 目标记录ID
+     */
+    @TableField("target_id")
+    private Integer targetId;
 }
