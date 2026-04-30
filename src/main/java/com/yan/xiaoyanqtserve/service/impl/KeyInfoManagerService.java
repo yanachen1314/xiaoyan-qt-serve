@@ -8,13 +8,12 @@ import com.yan.xiaoyanqtserve.common.enums.BizStatus;
 import com.yan.xiaoyanqtserve.common.utils.LicenseKeyGenerator;
 import com.yan.xiaoyanqtserve.common.utils.RedisLockUtil;
 import com.yan.xiaoyanqtserve.common.utils.RedisUtil;
-import com.yan.xiaoyanqtserve.config.MailSafetyLimitsConfig;
 import com.yan.xiaoyanqtserve.entity.KeyInfo;
 import com.yan.xiaoyanqtserve.common.exception.BizException;
 import com.yan.xiaoyanqtserve.entity.ProductType;
 import com.yan.xiaoyanqtserve.service.KeyInfoService;
 import com.yan.xiaoyanqtserve.service.ProductTypeService;
-import com.yan.xiaoyanqtserve.service.mail.MailAccountService;
+import com.yan.xiaoyanqtserve.service.mail.MailAccountManagerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -41,7 +40,7 @@ public class KeyInfoManagerService {
     private final ProductTypeService productTypeService;
     private final RedisUtil redisUtil;
 
-    private final MailAccountService mailAccountService;
+    private final MailAccountManagerService mailAccountManagerService;
 
     private final RedisLockUtil redisLockUtil;
 
@@ -399,7 +398,7 @@ public class KeyInfoManagerService {
      */
     public String getUnusedFreeKeyFromPool() {
         // 判断今日是否已经发出指定数量的免费密钥
-        if(mailAccountService.isTodayFreeKeyLimitReached()) {
+        if(mailAccountManagerService.isTodayFreeKeyLimitReached()) {
             throw new BizException("今日免费密钥已发完了，明天早点来哦！");
         }
 

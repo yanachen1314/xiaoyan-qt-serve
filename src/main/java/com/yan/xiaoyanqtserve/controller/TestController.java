@@ -5,7 +5,7 @@ import com.yan.xiaoyanqtserve.config.MultiMailSenderConfig;
 import com.yan.xiaoyanqtserve.config.XiaoyanSecurityConfig;
 import com.yan.xiaoyanqtserve.entity.MailAccount;
 import com.yan.xiaoyanqtserve.service.SysConfigService;
-import com.yan.xiaoyanqtserve.service.mail.MailAccountService;
+import com.yan.xiaoyanqtserve.service.mail.MailAccountManagerService;
 import com.yan.xiaoyanqtserve.service.mail.MailService;
 import com.yan.xiaoyanqtserve.task.MailRecordSyncTask;
 import lombok.RequiredArgsConstructor;
@@ -35,7 +35,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class TestController {
     private final MailService mailService;
-    private final MailAccountService mailAccountService;
+    private final MailAccountManagerService mailAccountManagerService;
     private final MultiMailSenderConfig multiMailSenderConfig;
     private final MailRecordSyncTask mailRecordSyncTask;
     private final SysConfigService sysConfigService;
@@ -71,8 +71,8 @@ public class TestController {
 
     @GetMapping("/mailAccounts")
     public Map<String, Object> getMailAccounts() {
-        List<MailAccount> accounts = mailAccountService.getEnabledAccounts();
-        List<MailAccount> availableAccounts = mailAccountService.getAvailableAccounts();
+        List<MailAccount> accounts = mailAccountManagerService.getEnabledAccounts();
+        List<MailAccount> availableAccounts = mailAccountManagerService.getAvailableAccounts();
         LocalDate today = LocalDate.now();
         
         Map<String, Object> result = new HashMap<>();
@@ -88,14 +88,14 @@ public class TestController {
             stats.put("status", account.getStatus());
             stats.put("priority", account.getPriority());
             
-            long sendCount = mailAccountService.getSendCount(account.getEmailAddress(), today);
-            long successCount = mailAccountService.getSendSuccessCount(account.getEmailAddress(), today);
-            long failCount = mailAccountService.getSendFailCount(account.getEmailAddress(), today);
+            long sendCount = mailAccountManagerService.getSendCount(account.getEmailAddress(), today);
+            long successCount = mailAccountManagerService.getSendSuccessCount(account.getEmailAddress(), today);
+            long failCount = mailAccountManagerService.getSendFailCount(account.getEmailAddress(), today);
             
             stats.put("todaySendCount", sendCount);
             stats.put("todaySuccessCount", successCount);
             stats.put("todayFailCount", failCount);
-            stats.put("isOverLimit", mailAccountService.isAccountOverLimit(account, today));
+            stats.put("isOverLimit", mailAccountManagerService.isAccountOverLimit(account, today));
             
             accountStats.put(account.getEmailAddress(), stats);
         }

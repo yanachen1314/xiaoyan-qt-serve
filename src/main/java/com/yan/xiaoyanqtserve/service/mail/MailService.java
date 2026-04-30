@@ -30,7 +30,7 @@ public class MailService {
     private MultiMailSenderConfig multiMailSenderConfig;
 
     @Resource
-    private MailAccountService mailAccountService;
+    private MailAccountManagerService mailAccountManagerService;
 
     @Resource
     private TemplateService templateService;
@@ -140,7 +140,7 @@ public class MailService {
         }
         
 
-        MailAccount selectedAccount = mailAccountService.selectAccountByRoundRobin();
+        MailAccount selectedAccount = mailAccountManagerService.selectAccountByRoundRobin();
         String selectedEmail = selectedAccount.getEmailAddress();
         JavaMailSender sender = multiMailSenderConfig.getMailSender(selectedEmail);
         
@@ -152,10 +152,10 @@ public class MailService {
             sendMailInternal(sender, selectedEmail, to, subject, htmlContent, today);
         } catch (BizException e) {
             // 发送失败，标记当前账号并尝试其他账号
-            mailAccountService.recordFailure(selectedEmail, today);
+            mailAccountManagerService.recordFailure(selectedEmail, today);
 
             // 使用轮询策略选择发送账号，失败时尝试其他可用账号
-            List<MailAccount> availableAccounts = mailAccountService.getAvailableAccounts();
+            List<MailAccount> availableAccounts = mailAccountManagerService.getAvailableAccounts();
             if (availableAccounts.isEmpty()) {
                 throw new BizException("没有可用的邮箱账号");
             }
@@ -163,12 +163,12 @@ public class MailService {
             for (MailAccount account : availableAccounts) {
                 if (!account.getEmailAddress().equals(selectedEmail)) {
                     JavaMailSender retrySender = multiMailSenderConfig.getMailSender(account.getEmailAddress());
-                    if (retrySender != null && !mailAccountService.isAccountOverLimit(account, today)) {
+                    if (retrySender != null && !mailAccountManagerService.isAccountOverLimit(account, today)) {
                         try {
                             sendMailInternal(retrySender, account.getEmailAddress(), to, subject, htmlContent, today);
                             return;
                         } catch (Exception retryEx) {
-                            mailAccountService.recordFailure(account.getEmailAddress(), today);
+                            mailAccountManagerService.recordFailure(account.getEmailAddress(), today);
                             log.warn("重试邮箱 {} 发送失败: {}", account.getEmailAddress(), retryEx.getMessage());
                         }
                     }
@@ -202,7 +202,7 @@ public class MailService {
         }
         
 
-        MailAccount selectedAccount = mailAccountService.selectAccountByRoundRobin();
+        MailAccount selectedAccount = mailAccountManagerService.selectAccountByRoundRobin();
         String selectedEmail = selectedAccount.getEmailAddress();
         JavaMailSender sender = multiMailSenderConfig.getMailSender(selectedEmail);
         
@@ -215,10 +215,10 @@ public class MailService {
             return CompletableFuture.completedFuture(selectedEmail);
         } catch (BizException e) {
             // 发送失败，标记当前账号并尝试其他账号
-            mailAccountService.recordFailure(selectedEmail, today);
+            mailAccountManagerService.recordFailure(selectedEmail, today);
 
             // 使用轮询策略选择发送账号，失败时尝试其他可用账号
-            List<MailAccount> availableAccounts = mailAccountService.getAvailableAccounts();
+            List<MailAccount> availableAccounts = mailAccountManagerService.getAvailableAccounts();
             if (availableAccounts.isEmpty()) {
                 throw new BizException("没有可用的邮箱账号");
             }
@@ -226,12 +226,12 @@ public class MailService {
             for (MailAccount account : availableAccounts) {
                 if (!account.getEmailAddress().equals(selectedEmail)) {
                     JavaMailSender retrySender = multiMailSenderConfig.getMailSender(account.getEmailAddress());
-                    if (retrySender != null && !mailAccountService.isAccountOverLimit(account, today)) {
+                    if (retrySender != null && !mailAccountManagerService.isAccountOverLimit(account, today)) {
                         try {
                             sendMailInternal(retrySender, account.getEmailAddress(), to, subject, htmlContent, today);
                             return CompletableFuture.completedFuture(account.getEmailAddress());
                         } catch (Exception retryEx) {
-                            mailAccountService.recordFailure(account.getEmailAddress(), today);
+                            mailAccountManagerService.recordFailure(account.getEmailAddress(), today);
                             log.warn("重试邮箱 {} 发送失败: {}", account.getEmailAddress(), retryEx.getMessage());
                         }
                     }
@@ -263,7 +263,7 @@ public class MailService {
             sender.send(message);
             
             // 记录发送成功统计
-            mailAccountService.recordSuccess(from, today);
+            mailAccountManagerService.recordSuccess(from, today);
             log.debug("邮件发送成功: {} -> {}", from, to);
         } catch (Exception e) {
             log.error("发送邮件异常: {}", e.getMessage());

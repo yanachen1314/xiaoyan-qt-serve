@@ -3,7 +3,7 @@ package com.yan.xiaoyanqtserve.task;
 import com.yan.xiaoyanqtserve.common.enums.EmailServiceProvider;
 import com.yan.xiaoyanqtserve.config.MultiMailSenderConfig;
 import com.yan.xiaoyanqtserve.entity.MailAccount;
-import com.yan.xiaoyanqtserve.service.mail.MailAccountService;
+import com.yan.xiaoyanqtserve.service.mail.MailAccountManagerService;
 import com.yan.xiaoyanqtserve.service.mail.MailService;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
@@ -26,7 +26,7 @@ public class MailAccountTask {
     private MailService mailService;
 
     @Resource
-    private MailAccountService mailAccountService;
+    private MailAccountManagerService mailAccountManagerService;
 
     @Resource
     private MultiMailSenderConfig multiMailSenderConfig;
@@ -38,7 +38,7 @@ public class MailAccountTask {
     @Scheduled(cron = "0 0 12 * * ?")
     public void checkAuthPasswordExpiry() {
         try {
-            for (MailAccount account : mailAccountService.getEnabledAccounts()) {
+            for (MailAccount account : mailAccountManagerService.getEnabledAccounts()) {
                 String emailAddress = account.getEmailAddress();
                 EmailServiceProvider provider = EmailServiceProvider.fromEmailAddress(emailAddress);
 
