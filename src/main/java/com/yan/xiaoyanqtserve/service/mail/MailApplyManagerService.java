@@ -14,15 +14,14 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
- * 系统邮件发送免费卡密记录 和 申请免费卡密记录 同步更新服务
- * 描述：该服务是异步任务服务
+ * 系统邮件发送记录管理服务
  * @author yanchen
  * @since 2026/4/24 21:11
  */
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class MailRecordSyncService {
+public class MailApplyManagerService {
     private final MailSendRecordService mailSendRecordService;
     private final MailApplyRecordService mailApplyRecordService;
 

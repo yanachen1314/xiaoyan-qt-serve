@@ -19,8 +19,8 @@ import com.yan.xiaoyanqtserve.entity.MailApplyRecord;
 import com.yan.xiaoyanqtserve.service.MailApplyRecordService;
 import com.yan.xiaoyanqtserve.service.SysConfigService;
 import com.yan.xiaoyanqtserve.service.impl.KeyInfoManagerService;
-import com.yan.xiaoyanqtserve.service.mail.MailRecordSyncService;
-import com.yan.xiaoyanqtserve.service.mail.MailService;
+import com.yan.xiaoyanqtserve.service.mail.MailApplyManagerService;
+import com.yan.xiaoyanqtserve.service.mail.MailPushService;
 import com.yan.xiaoyanqtserve.validator.EmailValidator;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -47,10 +47,10 @@ import java.util.List;
 @RequiredArgsConstructor
 public class KeyPublicController {
     private final KeyInfoManagerService managerService;
-    private final MailService mailService;
+    private final MailPushService mailPushService;
     private final MailApplyRecordService mailApplyRecordService;
     private final SysConfigService sysConfigService;
-    private final MailRecordSyncService mailRecordSyncService;
+    private final MailApplyManagerService mailApplyManagerService;
 
     /**
      * 密钥激活接口
@@ -143,10 +143,10 @@ public class KeyPublicController {
             String licenseKey = managerService.getUnusedFreeKeyFromPool();
 
             // 3. 异步发送邮件并保存记录
-            mailService.sendFreeLicenseEmail(applicantEmail, licenseKey)
+            mailPushService.sendFreeLicenseEmail(applicantEmail, licenseKey)
                     .thenAccept(systemSenderEmail -> {
                         // 发送成功，异步记录领取信息
-                        mailRecordSyncService.saveRecordAsync(MailRecordDto.builder()
+                        mailApplyManagerService.saveRecordAsync(MailRecordDto.builder()
                                 .systemSenderEmail(systemSenderEmail)
                                 .resultStatus(1)
                                 .resultMsg("发送成功")
@@ -162,7 +162,7 @@ public class KeyPublicController {
                         // 发送失败，记录失败信息
                         Throwable cause = ex.getCause() != null ? ex.getCause() : ex;
                         log.error("邮件发送失败，邮箱: {}, 原因: {}", applicantEmail, cause.getMessage(), cause);
-                        mailRecordSyncService.saveRecordAsync(MailRecordDto.builder()
+                        mailApplyManagerService.saveRecordAsync(MailRecordDto.builder()
                                 .systemSenderEmail("")
                                 .resultStatus(0)
                                 .resultMsg(cause.getMessage())
@@ -262,7 +262,7 @@ public class KeyPublicController {
             mailApplyRecordService.save(record);
             
             // 7. 异步发送验证邮件
-            mailService.sendEmailVerifyLink(applicantEmail, verifyUrl)
+            mailPushService.sendEmailVerifyLink(applicantEmail, verifyUrl)
                     .thenAccept(systemSenderEmail -> {
                         log.debug("验证邮件发送成功，邮箱: {}, 发送账号: {}", applicantEmail, systemSenderEmail);
                     })
@@ -332,11 +332,11 @@ public class KeyPublicController {
             
             // 7. 异步发送卡密邮件
             String applicantEmail = record.getApplicantEmail();
-            mailService.sendFreeLicenseEmail(applicantEmail, licenseKey)
+            mailPushService.sendFreeLicenseEmail(applicantEmail, licenseKey)
                     .thenAccept(systemSenderEmail -> {
                         log.debug("卡密邮件发送成功，邮箱: {}, 发送账号: {}", applicantEmail, systemSenderEmail);
                         // 异步记录发送信息
-                        mailRecordSyncService.saveRecordAsync(MailRecordDto.builder()
+                        mailApplyManagerService.saveRecordAsync(MailRecordDto.builder()
                                 .systemSenderEmail(systemSenderEmail)
                                 .resultStatus(1)
                                 .resultMsg("发送成功")
@@ -351,7 +351,7 @@ public class KeyPublicController {
                     .exceptionally(ex -> {
                         Throwable cause = ex.getCause() != null ? ex.getCause() : ex;
                         log.error("卡密邮件发送失败，邮箱: {}, 原因: {}", applicantEmail, cause.getMessage(), cause);
-                        mailRecordSyncService.saveRecordAsync(MailRecordDto.builder()
+                        mailApplyManagerService.saveRecordAsync(MailRecordDto.builder()
                                 .systemSenderEmail("")
                                 .resultStatus(0)
                                 .resultMsg(cause.getMessage())

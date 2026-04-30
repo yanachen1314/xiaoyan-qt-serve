@@ -19,12 +19,12 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * 邮件发送服务（多账号轮询版）
+ * 邮件推送服务（多账号轮询版）
  * @author yanchen
  */
 @Slf4j
 @Service
-public class MailService {
+public class MailPushService {
 
     @Resource
     private MultiMailSenderConfig multiMailSenderConfig;

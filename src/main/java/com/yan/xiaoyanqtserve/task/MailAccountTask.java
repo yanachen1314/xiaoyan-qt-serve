@@ -4,7 +4,7 @@ import com.yan.xiaoyanqtserve.common.enums.EmailServiceProvider;
 import com.yan.xiaoyanqtserve.config.MultiMailSenderConfig;
 import com.yan.xiaoyanqtserve.entity.MailAccount;
 import com.yan.xiaoyanqtserve.service.mail.MailAccountManagerService;
-import com.yan.xiaoyanqtserve.service.mail.MailService;
+import com.yan.xiaoyanqtserve.service.mail.MailPushService;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -23,7 +23,7 @@ import java.time.temporal.ChronoUnit;
 public class MailAccountTask {
 
     @Resource
-    private MailService mailService;
+    private MailPushService mailPushService;
 
     @Resource
     private MailAccountManagerService mailAccountManagerService;
@@ -61,7 +61,7 @@ public class MailAccountTask {
 
                     // 使用服务商特定的提醒阈值
                     if (daysUntilExpiry <= provider.getExpiryWarningThreshold()) {
-                        mailService.sendAuthExpiryWarningMail(
+                        mailPushService.sendAuthExpiryWarningMail(
                                 account, provider, activeDate, expiryDate, daysUntilExpiry);
                     }
                 }
