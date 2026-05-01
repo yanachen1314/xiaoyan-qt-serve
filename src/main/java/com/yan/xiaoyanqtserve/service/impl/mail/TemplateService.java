@@ -11,6 +11,7 @@ import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Map;
 
 /**
@@ -149,5 +150,37 @@ public class TemplateService {
         context.setVariable("shopUrl", Constants.SHOP_URL);
 
         return templateEngine.process(TEMPLATE_PATH + MailTemplateEnum.EMAIL_VERIFY_LINK.getName(), context);
+    }
+
+    /**
+     * 生成邮箱验证结果-成功页面模板
+     *
+     * @param email 验证成功的邮箱地址
+     * @return HTML字符串
+     */
+    public String generateVerifyEmailSuccessPage(String email) {
+        Context context = new Context();
+        context.setVariable("title", "验证成功 - 小烟改写工具");
+        context.setVariable("email", email);
+        context.setVariable("verifyTime", LocalDateTime.now().toString());
+
+        return templateEngine.process(TEMPLATE_PATH + MailTemplateEnum.VERIFY_EMAIL_SUCCESS.getName(), context);
+    }
+
+    /**
+     * 生成邮箱验证结果-失败页面模板
+     *
+     * @param title   错误标题
+     * @param message 错误详情
+     * @return HTML字符串
+     */
+    public String generateVerifyEmailFailurePage(String title, String message) {
+        Context context = new Context();
+        context.setVariable("title", title);
+        context.setVariable("message", message);
+        context.setVariable("websiteUrl", Constants.WEB_DOMAIN);
+        context.setVariable("errorTime", LocalDateTime.now().toString());
+
+        return templateEngine.process(TEMPLATE_PATH + MailTemplateEnum.VERIFY_EMAIL_FAILURE.getName(), context);
     }
 }

@@ -25,7 +25,13 @@ public enum MailTemplateEnum {
     NETEASE_AUTH_CODE_RESET("EmailAuthExpiryWarning"),
 
     // 邮箱验证链接邮件通知模板
-    EMAIL_VERIFY_LINK("EmailVerifyLink");
+    EMAIL_VERIFY_LINK("EmailVerifyLink"),
+
+    // 邮箱验证结果-成功页面模板
+    VERIFY_EMAIL_SUCCESS("VerifyEmailSuccess"),
+
+    // 邮箱验证结果-失败页面模板
+    VERIFY_EMAIL_FAILURE("VerifyEmailFailure");
 
     private final String name;
 

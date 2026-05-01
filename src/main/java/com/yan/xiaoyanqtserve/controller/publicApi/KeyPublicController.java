@@ -5,7 +5,6 @@ import com.yan.xiaoyanqtserve.common.annotaions.VerifyCaptcha;
 import com.yan.xiaoyanqtserve.common.dto.CaptchaVerifyVo;
 import com.yan.xiaoyanqtserve.common.dto.EmailApplyDto;
 import com.yan.xiaoyanqtserve.common.dto.FreeLicenseDto;
-import com.yan.xiaoyanqtserve.common.dto.MailRecordDto;
 import com.yan.xiaoyanqtserve.common.enums.ApplyStatus;
 import com.yan.xiaoyanqtserve.common.enums.SceneIdEnum;
 import com.yan.xiaoyanqtserve.common.vo.EmailVerifyVo;
@@ -22,6 +21,7 @@ import com.yan.xiaoyanqtserve.service.SysConfigService;
 import com.yan.xiaoyanqtserve.service.impl.apikey.KeyInfoManagerService;
 import com.yan.xiaoyanqtserve.service.impl.mail.MailApplyManagerService;
 import com.yan.xiaoyanqtserve.service.impl.mail.MailPushService;
+import com.yan.xiaoyanqtserve.service.impl.mail.TemplateService;
 import com.yan.xiaoyanqtserve.validator.EmailValidator;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -33,7 +33,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 /**
@@ -52,6 +51,7 @@ public class KeyPublicController {
     private final MailApplyRecordService mailApplyRecordService;
     private final SysConfigService sysConfigService;
     private final MailApplyManagerService mailApplyManagerService;
+    private final TemplateService templateService;
 
     /**
      * 密钥激活接口
@@ -306,17 +306,17 @@ public class KeyPublicController {
             // 1. 根据token查询验证记录
             MailApplyRecord record = mailApplyRecordService.getByToken(token);
             if (record == null) {
-                return ResponseEntity.ok(buildErrorHtmlPage("验证链接无效", "该验证链接不存在或已被使用，请重新申请。"));
+                return ResponseEntity.ok(renderVerifyEmailFailurePage("验证链接无效", "该验证链接不存在或已被使用，请重新申请。"));
             }
 
             // 2. 验证是否已过期
             if (record.getVerifyExpireTime().isBefore(LocalDateTime.now())) {
-                return ResponseEntity.ok(buildErrorHtmlPage("验证链接已过期", "该验证链接已过期，请重新申请。"));
+                return ResponseEntity.ok(renderVerifyEmailFailurePage("验证链接已过期", "该验证链接已过期，请重新申请。"));
             }
 
             // 3. 验证状态是否为0（未验证）
             if (record.getApplyStatus() != 0) {
-                return ResponseEntity.ok(buildErrorHtmlPage("验证链接已使用", "该验证链接已被使用，请勿重复点击。"));
+                return ResponseEntity.ok(renderVerifyEmailFailurePage("验证链接已使用", "该验证链接已被使用，请勿重复点击。"));
             }
 
             // 4. 更新状态为1（已验证）
@@ -339,106 +339,34 @@ public class KeyPublicController {
                 log.debug("卡密邮件发送成功，邮箱: {}, 发送账号: {}", applicantEmail, systemSenderEmail);
             } catch (Exception mailEx) {
                 log.error("卡密邮件发送失败，邮箱: {}, 原因: {}", applicantEmail, mailEx.getMessage(), mailEx);
-                return ResponseEntity.ok(buildErrorHtmlPage("邮件发送失败", "卡密邮件发送失败，请联系客服处理。"));
+                return ResponseEntity.ok(renderVerifyEmailFailurePage("邮件发送失败", "卡密邮件发送失败，请联系客服处理。"));
             }
 
             // 8. 返回验证成功HTML页面
-            return ResponseEntity.ok(buildSuccessHtmlPage(applicantEmail));
+            return ResponseEntity.ok(renderVerifyEmailSuccessPage(applicantEmail));
         } catch (Exception e) {
             log.error("邮箱验证失败: {}", e.getMessage(), e);
-            return ResponseEntity.ok(buildErrorHtmlPage("验证失败", "验证过程中发生错误，请稍后重试。"));
+            return ResponseEntity.ok(renderVerifyEmailFailurePage("验证失败", "验证过程中发生错误，请稍后重试。"));
         }
     }
 
     /**
-     * 构建验证成功HTML页面
-     * @param email 收件人邮箱
-     * @return HTML字符串
+     * 渲染邮箱验证成功页面
+     * @param email 验证成功的邮箱地址
+     * @return HTML页面内容
      */
-    private String buildSuccessHtmlPage(String email) {
-        String currentTime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-        return """
-                <!DOCTYPE html>
-                <html lang="zh-CN">
-                <head>
-                    <meta charset="UTF-8">
-                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                    <title>验证成功 - 小烟改写工具</title>
-                    <style>
-                        * { margin: 0; padding: 0; box-sizing: border-box; }
-                        body { font-family: Arial, 'Microsoft YaHei', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
-                        .container { background: white; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); padding: 50px; max-width: 500px; width: 100%; text-align: center; }
-                        .icon { font-size: 80px; color: #4CAF50; margin-bottom: 20px; }
-                        h1 { color: #333; font-size: 28px; margin-bottom: 15px; }
-                        p { color: #666; font-size: 16px; line-height: 1.6; margin-bottom: 15px; }
-                        .email { background: #f5f5f5; padding: 15px; border-radius: 8px; font-weight: bold; color: #333; margin: 20px 0; }
-                        .tip { background: #e3f2fd; padding: 15px; border-radius: 8px; color: #1976d2; margin-top: 20px; font-size: 14px; }
-                        .footer { margin-top: 30px; color: #999; font-size: 12px; }
-                    </style>
-                </head>
-                <body>
-                    <div class="container">
-                        <div class="icon">✓</div>
-                        <h1>验证成功！</h1>
-                        <p>恭喜您，邮箱验证已成功完成。</p>
-                        <div class="email">卡密已发送到：%s</div>
-                        <p>请检查您的邮箱收件箱，卡密已自动发送。</p>
-                        <div class="tip">
-                            <strong>提示：</strong>如果未收到邮件，请检查垃圾邮件文件夹，或稍后重新申请。
-                        </div>
-                        <div class="footer">
-                            <p>验证时间：%s</p>
-                            <p>© 2025 小烟改写工具. 保留所有权利.</p>
-                        </div>
-                    </div>
-                </body>
-                </html>
-                """.formatted(email, currentTime);
+    private String renderVerifyEmailSuccessPage(String email) {
+        return templateService.generateVerifyEmailSuccessPage(email);
     }
 
     /**
-     * 构建验证失败HTML页面
+     * 渲染邮箱验证失败页面
      * @param title 错误标题
-     * @param message 错误信息
-     * @return HTML字符串
+     * @param message 错误详情
+     * @return HTML页面内容
      */
-    private String buildErrorHtmlPage(String title, String message) {
-        String currentTime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-        return """
-                <!DOCTYPE html>
-                <html lang="zh-CN">
-                <head>
-                    <meta charset="UTF-8">
-                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                    <title>验证失败 - 小烟改写工具</title>
-                    <style>
-                        * { margin: 0; padding: 0; box-sizing: border-box; }
-                        body { font-family: Arial, 'Microsoft YaHei', sans-serif; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
-                        .container { background: white; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); padding: 50px; max-width: 500px; width: 100%; text-align: center; }
-                        .icon { font-size: 80px; color: #f44336; margin-bottom: 20px; }
-                        h1 { color: #333; font-size: 28px; margin-bottom: 15px; }
-                        p { color: #666; font-size: 16px; line-height: 1.6; margin-bottom: 15px; }
-                        .error-box { background: #ffebee; padding: 20px; border-radius: 8px; color: #c62828; margin: 20px 0; }
-                        .button { display: inline-block; background: #409EFF; color: white; padding: 12px 30px; border-radius: 25px; text-decoration: none; margin-top: 20px; font-weight: bold; }
-                        .button:hover { background: #3a8ee6; }
-                        .footer { margin-top: 30px; color: #999; font-size: 12px; }
-                    </style>
-                </head>
-                <body>
-                    <div class="container">
-                        <div class="icon">✗</div>
-                        <h1>%s</h1>
-                        <div class="error-box">%s</div>
-                        <p>如有问题，请访问我们的官方网站重新申请。</p>
-                        <a href="%s" class="button">前往官网</a>
-                        <div class="footer">
-                            <p>错误时间：%s</p>
-                            <p>© 2025 小烟改写工具. 保留所有权利.</p>
-                        </div>
-                    </div>
-                </body>
-                </html>
-                """.formatted(title, message, Constants.WEB_DOMAIN, currentTime);
+    private String renderVerifyEmailFailurePage(String title, String message) {
+        return templateService.generateVerifyEmailFailurePage(title, message);
     }
 
 }
