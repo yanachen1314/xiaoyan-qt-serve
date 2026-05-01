@@ -242,6 +242,118 @@ public class MailPushService {
     }
 
     /**
+     * 同步发送HTML邮件方法（支持多账号轮询）
+     * @param from 邮件发送者，如果为null则使用轮询策略选择发送账号
+     * @param to 收件人
+     * @param subject 邮件主题
+     * @param htmlContent html格式的邮件内容
+     */
+    public void sendHtmlMailSync(String from, String to, String subject, String htmlContent) {
+        LocalDate today = LocalDate.now();
+
+        if (from != null) {
+            JavaMailSender sender = multiMailSenderConfig.getMailSender(from);
+            if (sender == null) {
+                throw new BizException("指定的发送邮箱不可用: " + from);
+            }
+            sendMailInternal(sender, from, to, subject, htmlContent, today);
+            return;
+        }
+
+        MailAccount selectedAccount = mailAccountManagerService.selectAccountByRoundRobin();
+        String selectedEmail = selectedAccount.getEmailAddress();
+        JavaMailSender sender = multiMailSenderConfig.getMailSender(selectedEmail);
+
+        if (sender == null) {
+            throw new BizException("选中的发送邮箱不可用: " + selectedEmail);
+        }
+
+        try {
+            sendMailInternal(sender, selectedEmail, to, subject, htmlContent, today);
+        } catch (BizException e) {
+            mailAccountManagerService.recordFailure(selectedEmail, today);
+
+            List<MailAccount> availableAccounts = mailAccountManagerService.getAvailableAccounts();
+            if (availableAccounts.isEmpty()) {
+                throw new BizException("没有可用的邮箱账号");
+            }
+            for (MailAccount account : availableAccounts) {
+                if (!account.getEmailAddress().equals(selectedEmail)) {
+                    JavaMailSender retrySender = multiMailSenderConfig.getMailSender(account.getEmailAddress());
+                    if (retrySender != null && !mailAccountManagerService.isAccountOverLimit(account, today)) {
+                        try {
+                            sendMailInternal(retrySender, account.getEmailAddress(), to, subject, htmlContent, today);
+                            return;
+                        } catch (Exception retryEx) {
+                            mailAccountManagerService.recordFailure(account.getEmailAddress(), today);
+                            log.warn("重试邮箱 {} 发送失败: {}", account.getEmailAddress(), retryEx.getMessage());
+                        }
+                    }
+                }
+            }
+
+            throw new BizException("所有可用邮箱账号发送失败");
+        }
+    }
+
+    /**
+     * 同步发送HTML邮件方法（支持多账号轮询，返回实际使用的发送账号）
+     * @param from 邮件发送者，如果为null则使用轮询策略选择发送账号
+     * @param to 收件人
+     * @param subject 邮件主题
+     * @param htmlContent html格式的邮件内容
+     * @return 实际使用的发送账号邮箱地址
+     */
+    public String sendHtmlMailWithAccountSync(String from, String to, String subject, String htmlContent) {
+        LocalDate today = LocalDate.now();
+
+        if (from != null) {
+            JavaMailSender sender = multiMailSenderConfig.getMailSender(from);
+            if (sender == null) {
+                throw new BizException("指定的发送邮箱不可用: " + from);
+            }
+            sendMailInternal(sender, from, to, subject, htmlContent, today);
+            return from;
+        }
+
+        MailAccount selectedAccount = mailAccountManagerService.selectAccountByRoundRobin();
+        String selectedEmail = selectedAccount.getEmailAddress();
+        JavaMailSender sender = multiMailSenderConfig.getMailSender(selectedEmail);
+
+        if (sender == null) {
+            throw new BizException("选中的发送邮箱不可用: " + selectedEmail);
+        }
+
+        try {
+            sendMailInternal(sender, selectedEmail, to, subject, htmlContent, today);
+            return selectedEmail;
+        } catch (BizException e) {
+            mailAccountManagerService.recordFailure(selectedEmail, today);
+
+            List<MailAccount> availableAccounts = mailAccountManagerService.getAvailableAccounts();
+            if (availableAccounts.isEmpty()) {
+                throw new BizException("没有可用的邮箱账号");
+            }
+            for (MailAccount account : availableAccounts) {
+                if (!account.getEmailAddress().equals(selectedEmail)) {
+                    JavaMailSender retrySender = multiMailSenderConfig.getMailSender(account.getEmailAddress());
+                    if (retrySender != null && !mailAccountManagerService.isAccountOverLimit(account, today)) {
+                        try {
+                            sendMailInternal(retrySender, account.getEmailAddress(), to, subject, htmlContent, today);
+                            return account.getEmailAddress();
+                        } catch (Exception retryEx) {
+                            mailAccountManagerService.recordFailure(account.getEmailAddress(), today);
+                            log.warn("重试邮箱 {} 发送失败: {}", account.getEmailAddress(), retryEx.getMessage());
+                        }
+                    }
+                }
+            }
+            log.warn("所有可用邮箱账号发送失败！！！");
+            throw new BizException("卡密邮件发送异常，请联系客服处理！");
+        }
+    }
+
+    /**
      * 执行实际发送邮件的操作
      * 
      * @param sender JavaMailSender实例
