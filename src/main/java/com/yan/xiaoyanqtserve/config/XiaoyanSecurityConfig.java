@@ -112,6 +112,6 @@ public class XiaoyanSecurityConfig {
     @Data
     public static class VerifyLinkConfig {
         // 邮箱验证验证链接长度
-        private String length;
+        private Integer tokenLength;
     }
 }

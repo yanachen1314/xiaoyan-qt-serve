@@ -3,6 +3,7 @@ package com.yan.xiaoyanqtserve.service.impl.mail;
 import cn.hutool.core.util.IdUtil;
 import com.yan.xiaoyanqtserve.common.dto.MailRecordDto;
 import com.yan.xiaoyanqtserve.common.enums.ApplyStatus;
+import com.yan.xiaoyanqtserve.config.XiaoyanSecurityConfig;
 import com.yan.xiaoyanqtserve.entity.MailApplyRecord;
 import com.yan.xiaoyanqtserve.entity.MailSendRecord;
 import com.yan.xiaoyanqtserve.service.MailApplyRecordService;
@@ -28,6 +29,7 @@ import java.util.Base64;
 public class MailApplyManagerService {
     private final MailSendRecordService mailSendRecordService;
     private final MailApplyRecordService mailApplyRecordService;
+    private final XiaoyanSecurityConfig xiaoyanSecurityConfig;
 
     /**
      * 生成验证token
@@ -36,7 +38,7 @@ public class MailApplyManagerService {
      */
     public String generateVerifyToken() {
         // 生成更安全的token
-        byte[] randomBytes = new byte[64];
+        byte[] randomBytes = new byte[xiaoyanSecurityConfig.getVerifyLink().getTokenLength()];
         new SecureRandom().nextBytes(randomBytes);
         return Base64.getUrlEncoder().withoutPadding().encodeToString(randomBytes);
     }

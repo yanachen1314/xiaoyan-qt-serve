@@ -12,7 +12,7 @@ xiaoyan:
 
     # 邮箱验证验证链接长度
     verify-link:
-      length: ${VERIFY_LINK_LENGTH}
+      token-length: ${VERIFY_LINK_LENGTH:128}
 aliyun:
   captcha:
     access-key-id: ${CAPTCHA_AK}
