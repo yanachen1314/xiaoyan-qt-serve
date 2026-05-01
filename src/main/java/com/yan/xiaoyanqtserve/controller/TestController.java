@@ -39,14 +39,14 @@ public class TestController {
     private final MultiMailSenderConfig multiMailSenderConfig;
     private final MailRecordSyncTask mailRecordSyncTask;
     private final SysConfigService sysConfigService;
-    private final XiaoyanSecurityConfig config;
+    private final XiaoyanSecurityConfig xiaoyanSecurityConfig;
 
     @GetMapping("/config/test")
     public ApiResponse<Map<String, Object>> testConfig() {
 
         return ApiResponse.success("获取配置成功", Map.of(
-                "license", config.getLicense(),
-                "bizData", config.getBizData(),
+                "license", xiaoyanSecurityConfig.getLicense(),
+                "bizData", xiaoyanSecurityConfig.getBizData(),
                 "captchaServiceEnabled",sysConfigService.getCaptchaServiceEnabled()
         ));
     }
