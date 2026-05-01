@@ -3,8 +3,6 @@ package com.yan.xiaoyanqtserve.config;
 import jakarta.annotation.PostConstruct;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
 import lombok.ToString;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
@@ -23,13 +21,17 @@ import java.nio.charset.StandardCharsets;
 @Validated
 @Data
 public class XiaoyanSecurityConfig {
-
-    private  LicenseConfig license;
-    private  BizDataConfig bizData;
+    // 卡密加密密钥
+    private LicenseConfig license;
+    // 业务数据加密密钥
+    private BizDataConfig bizData;
+    // 验证链接配置
+    private VerifyLinkConfig verifyLink;
 
     public XiaoyanSecurityConfig() {
         this.license = new LicenseConfig();
         this.bizData = new BizDataConfig();
+        this.verifyLink = new VerifyLinkConfig();
     }
 
 
@@ -107,4 +109,9 @@ public class XiaoyanSecurityConfig {
         }
     }
 
+    @Data
+    public static class VerifyLinkConfig {
+        // 邮箱验证验证链接长度
+        private String length;
+    }
 }
