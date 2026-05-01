@@ -57,7 +57,8 @@ public class MailApplyRecord implements Serializable {
     private LocalDateTime verifyExpireTime;
 
     /**
-     * 状态: 0-未验证, 1-已验证, 2-已发送卡密
+     * 状态: 0-未验证, 1-已验证, 2-已发送卡密, 3-发送卡密失败
+     * @see com.yan.xiaoyanqtserve.common.enums.ApplyStatus
      */
     @TableField("apply_status")
     private Byte applyStatus;

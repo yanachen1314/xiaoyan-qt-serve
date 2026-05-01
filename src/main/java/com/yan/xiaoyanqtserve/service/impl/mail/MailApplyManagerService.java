@@ -15,7 +15,6 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
-import java.time.LocalDateTime;
 import java.util.Base64;
 
 /**
@@ -42,8 +41,26 @@ public class MailApplyManagerService {
         return Base64.getUrlEncoder().withoutPadding().encodeToString(randomBytes);
     }
 
-    public void saveSendRecordAsync(String systemSenderEmail, String sendToEmail, String status, String resultMsg) {
+    /**
+     * 验证链接成功，邮件发送成功处理
+     */
+    public void sendMailSuccess(Long recordId, String licenseKey){
+        MailApplyRecord updateRecord = new MailApplyRecord();
+        updateRecord.setId(recordId);
+        updateRecord.setApplyApiKey(licenseKey);
+        updateRecord.setApplyStatus(ApplyStatus.HAS_SENT.getCode());
+        mailApplyRecordService.updateById(updateRecord);
+    }
 
+    /**
+     * 邮件发送失败后的处理
+     */
+    public void sendMailFailed(Long recordId, String licenseKey){
+        MailApplyRecord updateRecord = new MailApplyRecord();
+        updateRecord.setId(recordId);
+        updateRecord.setApplyApiKey(licenseKey);
+        updateRecord.setApplyStatus(ApplyStatus.HAS_SENT_FAILED.getCode());
+        mailApplyRecordService.updateById(updateRecord);
     }
 
     /**
