@@ -147,33 +147,33 @@ public class KeyPublicController {
             mailPushService.sendFreeLicenseEmail(applicantEmail, licenseKey)
                     .thenAccept(systemSenderEmail -> {
                         // 发送成功，异步记录领取信息
-                        mailApplyManagerService.saveRecordAsync(MailRecordDto.builder()
-                                .systemSenderEmail(systemSenderEmail)
-                                .resultStatus(1)
-                                .resultMsg("发送成功")
-                                .applicantEmail(applicantEmail)
-                                .licenseKey(licenseKey)
-                                .deviceType(deviceType)
-                                .deviceId(deviceId)
-                                .clientIp(clientIp)
-                                .userAgent(userAgent)
-                                .build());
+                        // mailApplyManagerService.saveRecordAsync(MailRecordDto.builder()
+                        //         .systemSenderEmail(systemSenderEmail)
+                        //         .resultStatus(1)
+                        //         .resultMsg("发送成功")
+                        //         .applicantEmail(applicantEmail)
+                        //         .licenseKey(licenseKey)
+                        //         .deviceType(deviceType)
+                        //         .deviceId(deviceId)
+                        //         .clientIp(clientIp)
+                        //         .userAgent(userAgent)
+                        //         .build());
                     })
                     .exceptionally(ex -> {
                         // 发送失败，记录失败信息
                         Throwable cause = ex.getCause() != null ? ex.getCause() : ex;
                         log.error("邮件发送失败，邮箱: {}, 原因: {}", applicantEmail, cause.getMessage(), cause);
-                        mailApplyManagerService.saveRecordAsync(MailRecordDto.builder()
-                                .systemSenderEmail("")
-                                .resultStatus(0)
-                                .resultMsg(cause.getMessage())
-                                .applicantEmail(applicantEmail)
-                                .licenseKey(licenseKey)
-                                .deviceType(deviceType)
-                                .deviceId(deviceId)
-                                .clientIp(clientIp)
-                                .userAgent(userAgent)
-                                .build());
+                        // mailApplyManagerService.saveRecordAsync(MailRecordDto.builder()
+                        //         .systemSenderEmail("")
+                        //         .resultStatus(0)
+                        //         .resultMsg(cause.getMessage())
+                        //         .applicantEmail(applicantEmail)
+                        //         .licenseKey(licenseKey)
+                        //         .deviceType(deviceType)
+                        //         .deviceId(deviceId)
+                        //         .clientIp(clientIp)
+                        //         .userAgent(userAgent)
+                        //         .build());
                         return null;
                     });
 
@@ -337,33 +337,12 @@ public class KeyPublicController {
             mailPushService.sendFreeLicenseEmail(applicantEmail, licenseKey)
                     .thenAccept(systemSenderEmail -> {
                         log.debug("卡密邮件发送成功，邮箱: {}, 发送账号: {}", applicantEmail, systemSenderEmail);
-                        // 异步记录发送信息
-                        mailApplyManagerService.saveRecordAsync(MailRecordDto.builder()
-                                .systemSenderEmail(systemSenderEmail)
-                                .resultStatus(1)
-                                .resultMsg("发送成功")
-                                .applicantEmail(applicantEmail)
-                                .licenseKey(licenseKey)
-                                .deviceType(record.getDeviceType())
-                                .deviceId(record.getDeviceId())
-                                .clientIp(record.getClientIp())
-                                .userAgent(record.getUserAgent())
-                                .build());
+
                     })
                     .exceptionally(ex -> {
                         Throwable cause = ex.getCause() != null ? ex.getCause() : ex;
                         log.error("卡密邮件发送失败，邮箱: {}, 原因: {}", applicantEmail, cause.getMessage(), cause);
-                        mailApplyManagerService.saveRecordAsync(MailRecordDto.builder()
-                                .systemSenderEmail("")
-                                .resultStatus(0)
-                                .resultMsg(cause.getMessage())
-                                .applicantEmail(applicantEmail)
-                                .licenseKey(licenseKey)
-                                .deviceType(record.getDeviceType())
-                                .deviceId(record.getDeviceId())
-                                .clientIp(record.getClientIp())
-                                .userAgent(record.getUserAgent())
-                                .build());
+
                         return null;
                     });
 

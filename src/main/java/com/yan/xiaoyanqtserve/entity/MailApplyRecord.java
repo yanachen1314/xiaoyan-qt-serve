@@ -68,16 +68,6 @@ public class MailApplyRecord implements Serializable {
     @TableField("apply_api_key")
     private String applyApiKey;
 
-    /**
-     * 系统发送者邮箱
-     */
-    @TableField("system_sender_email")
-    private String systemSenderEmail;
-    /**
-     * 系统发送结果（成功：200，失败：以“;”分隔原因）
-     */
-    @TableField("system_send_result")
-    private String systemSendResult;
 
     /**
      * 设备类型（web：网页端，app：win APP端）

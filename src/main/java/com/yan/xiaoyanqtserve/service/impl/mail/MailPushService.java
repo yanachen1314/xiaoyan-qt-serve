@@ -118,7 +118,7 @@ public class MailPushService {
     }
 
     /**
-     * 通用的发送HTML邮件方法（支持多账号轮询）
+     * 异步发送HTML邮件方法（支持多账号轮询）
      * @param from 邮件发送者，如果为null则使用轮询策略选择发送账号
      * @param to 收件人
      * @param subject 邮件主题
@@ -179,7 +179,7 @@ public class MailPushService {
     }
 
     /**
-     * 通用的发送HTML邮件方法（支持多账号轮询，返回实际使用的发送账号）
+     * 异步发送HTML邮件方法（支持多账号轮询，返回实际使用的发送账号）
      * @param from 邮件发送者，如果为null则使用轮询策略选择发送账号
      * @param to 收件人
      * @param subject 邮件主题

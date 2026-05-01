@@ -57,9 +57,9 @@ public class MailApplyManagerService {
     }
 
 
-    /**
+ /*   *//**
      * 同步保存邮件发送记录和免费卡密记录
-     */
+     *//*
     @Async("loggingExecutor")
     public void saveRecordAsync(MailRecordDto mailRecordDto) {
         log.info("邮件发送记录和免费卡密记录同步保存开始 : {}", mailRecordDto);
@@ -87,5 +87,5 @@ public class MailApplyManagerService {
         } catch (Exception e) {
             log.error("邮件发送记录和免费卡密记录同步保存失败", e);
         }
-    }
+    }*/
 }
