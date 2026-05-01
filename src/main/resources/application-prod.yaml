@@ -10,6 +10,9 @@ xiaoyan:
       encrypt-private-key: ${ENCRYPT_PRIVATE_KEY}
       encrypt-public-key: ${ENCRYPT_PUBLIC_KEY}
 
+    # 邮箱验证验证链接长度
+    verify-link:
+      length: ${VERIFY_LINK_LENGTH}
 aliyun:
   captcha:
     access-key-id: ${CAPTCHA_AK}

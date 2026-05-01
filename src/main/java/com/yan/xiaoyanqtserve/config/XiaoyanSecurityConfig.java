@@ -2,6 +2,7 @@ package com.yan.xiaoyanqtserve.config;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.validation.constraints.NotBlank;
+import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -20,11 +21,11 @@ import java.nio.charset.StandardCharsets;
 @Configuration
 @ConfigurationProperties(prefix = "xiaoyan.security")
 @Validated
-@Getter
+@Data
 public class XiaoyanSecurityConfig {
 
-    private final LicenseConfig license;
-    private final BizDataConfig bizData;
+    private  LicenseConfig license;
+    private  BizDataConfig bizData;
 
     public XiaoyanSecurityConfig() {
         this.license = new LicenseConfig();
@@ -65,8 +66,7 @@ public class XiaoyanSecurityConfig {
     }
 
     // ================= 内部配置类 =================
-    @Getter
-    @Setter
+    @Data
     @ToString(exclude = {"key"}) // 关键：排除密钥字段
     public static class LicenseConfig {
         @NotBlank
@@ -78,8 +78,7 @@ public class XiaoyanSecurityConfig {
         }
     }
 
-    @Getter
-    @Setter
+    @Data
     @ToString(exclude = {"encryptPrivateKey", "encryptPublicKey"})
     public static class BizDataConfig {
         @NotBlank
