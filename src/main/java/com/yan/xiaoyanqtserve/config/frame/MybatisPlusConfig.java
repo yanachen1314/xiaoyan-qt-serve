@@ -1,4 +1,4 @@
-package com.yan.xiaoyanqtserve.config;
+package com.yan.xiaoyanqtserve.config.frame;
 
 import com.baomidou.mybatisplus.annotation.DbType;
 import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor;

@@ -1,9 +1,8 @@
 package com.yan.xiaoyanqtserve.service.impl.mail;
 
-
-import com.yan.xiaoyanqtserve.common.Constants;
 import com.yan.xiaoyanqtserve.common.enums.EmailServiceProvider;
 import com.yan.xiaoyanqtserve.common.enums.MailTemplateEnum;
+import com.yan.xiaoyanqtserve.config.custome.WebInfoProperties;
 import com.yan.xiaoyanqtserve.entity.MailAccount;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
@@ -25,6 +24,8 @@ public class TemplateService {
 
     @Resource
     private TemplateEngine templateEngine;
+    @Resource
+    private WebInfoProperties webInfoProperties;
 
     /**
      * 根据模板名称和参数生成HTML内容
@@ -92,7 +93,7 @@ public class TemplateService {
         context.setVariable("title", "欢迎邮件");
         context.setVariable("userName", userName);
         context.setVariable("content", content);
-        context.setVariable("website", Constants.WEB_DOMAIN);
+        context.setVariable("website", webInfoProperties.getDomain());
 
         return templateEngine.process(TEMPLATE_PATH + MailTemplateEnum.WELCOME.getName(), context);
     }
@@ -109,7 +110,7 @@ public class TemplateService {
         context.setVariable("title", "用户密码变更提醒");
         context.setVariable("userName", userName);
         context.setVariable("changeTime", changeTime);
-        context.setVariable("loginUrl", Constants.WEB_DOMAIN+"/login");
+        context.setVariable("loginUrl", webInfoProperties.getDomain()+"/login");
 
         return templateEngine.process(TEMPLATE_PATH + MailTemplateEnum.PWD_RESET.getName(), context);
     }
@@ -126,8 +127,8 @@ public class TemplateService {
         context.setVariable("title", "免费卡密");
         context.setVariable("to", to);
         context.setVariable("license", license);
-        context.setVariable("website", Constants.WEB_DOMAIN);
-        context.setVariable("shopUrl", Constants.SHOP_URL);
+        context.setVariable("website", webInfoProperties.getDomain());
+        context.setVariable("shopUrl", webInfoProperties.getLdxpUrl());
 
         return templateEngine.process(TEMPLATE_PATH + MailTemplateEnum.FREE_LICENSE.getName(), context);
     }
@@ -146,8 +147,8 @@ public class TemplateService {
         context.setVariable("to", to);
         context.setVariable("verifyUrl", verifyUrl);
         context.setVariable("expireTime", expireTime);
-        context.setVariable("website", Constants.WEB_DOMAIN);
-        context.setVariable("shopUrl", Constants.SHOP_URL);
+        context.setVariable("website", webInfoProperties.getDomain());
+        context.setVariable("shopUrl", webInfoProperties.getLdxpUrl());
 
         return templateEngine.process(TEMPLATE_PATH + MailTemplateEnum.EMAIL_VERIFY_LINK.getName(), context);
     }
@@ -178,7 +179,7 @@ public class TemplateService {
         Context context = new Context();
         context.setVariable("title", title);
         context.setVariable("message", message);
-        context.setVariable("websiteUrl", Constants.WEB_DOMAIN);
+        context.setVariable("websiteUrl", webInfoProperties.getDomain());
         context.setVariable("errorTime", LocalDateTime.now().toString());
 
         return templateEngine.process(TEMPLATE_PATH + MailTemplateEnum.VERIFY_EMAIL_FAILURE.getName(), context);

@@ -1,4 +1,4 @@
-package com.yan.xiaoyanqtserve.config;
+package com.yan.xiaoyanqtserve.config.frame;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.ObjectMapper;

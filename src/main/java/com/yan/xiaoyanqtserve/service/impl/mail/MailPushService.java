@@ -5,6 +5,7 @@ import com.yan.xiaoyanqtserve.common.dto.MailRecordDto;
 import com.yan.xiaoyanqtserve.common.enums.EmailServiceProvider;
 import com.yan.xiaoyanqtserve.common.exception.BizException;
 import com.yan.xiaoyanqtserve.config.MultiMailSenderConfig;
+import com.yan.xiaoyanqtserve.config.custome.MailProperties;
 import com.yan.xiaoyanqtserve.entity.MailAccount;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
@@ -33,6 +34,7 @@ public class MailPushService {
     private final MultiMailSenderConfig multiMailSenderConfig;
     private final MailAccountManagerService mailAccountManagerService;
     private final MailApplyManagerService mailApplyManagerService;
+    private final MailProperties mailProperties;
 
     /**
      * 发送验证码邮件
@@ -124,7 +126,8 @@ public class MailPushService {
      * @return CompletableFuture，包含实际使用的发送账号邮箱地址
      */
     public CompletableFuture<String> sendEmailVerifyLink(String to, String verifyUrl) {
-        String htmlContent = templateService.generateEmailVerifyLinkTemplate(to, verifyUrl, String.valueOf(Constants.EMAIL_VERIFY_EXPIRE_MINUTES));
+        String htmlContent = templateService.generateEmailVerifyLinkTemplate(to, verifyUrl,
+                String.valueOf(mailProperties.getVerifyLink().getExpireTime()));
         return sendHtmlMailWithAccount(null, to, "【小烟改写工具】邮箱验证", htmlContent);
     }
 

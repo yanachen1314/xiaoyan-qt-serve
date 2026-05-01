@@ -1,18 +1,13 @@
 package com.yan.xiaoyanqtserve.service.impl.mail;
 
-import cn.hutool.core.util.IdUtil;
-import com.yan.xiaoyanqtserve.common.dto.MailRecordDto;
 import com.yan.xiaoyanqtserve.common.enums.ApplyStatus;
-import com.yan.xiaoyanqtserve.config.XiaoyanSecurityConfig;
+import com.yan.xiaoyanqtserve.config.custome.MailProperties;
 import com.yan.xiaoyanqtserve.entity.MailApplyRecord;
-import com.yan.xiaoyanqtserve.entity.MailSendRecord;
 import com.yan.xiaoyanqtserve.service.MailApplyRecordService;
 import com.yan.xiaoyanqtserve.service.MailSendRecordService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
 import org.springframework.dao.DuplicateKeyException;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
@@ -29,8 +24,7 @@ import java.util.Base64;
 public class MailApplyManagerService {
     private final MailSendRecordService mailSendRecordService;
     private final MailApplyRecordService mailApplyRecordService;
-    private final XiaoyanSecurityConfig xiaoyanSecurityConfig;
-
+    private final MailProperties mailProperties;
     /**
      * 生成验证token
      *
@@ -38,7 +32,7 @@ public class MailApplyManagerService {
      */
     public String generateVerifyToken() {
         // 生成更安全的token
-        byte[] randomBytes = new byte[xiaoyanSecurityConfig.getVerifyLink().getTokenLength()];
+        byte[] randomBytes = new byte[mailProperties.getVerifyLink().getTokenLength()];
         new SecureRandom().nextBytes(randomBytes);
         return Base64.getUrlEncoder().withoutPadding().encodeToString(randomBytes);
     }

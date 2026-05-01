@@ -1,7 +1,6 @@
-package com.yan.xiaoyanqtserve.config;
+package com.yan.xiaoyanqtserve.config.frame;
 
 import cn.hutool.core.collection.ListUtil;
-import com.yan.xiaoyanqtserve.common.Constants;
 import com.yan.xiaoyanqtserve.common.enums.BizStatus;
 import com.yan.xiaoyanqtserve.common.enums.Role;
 import com.yan.xiaoyanqtserve.filter.ApiKeyAuthFilter;

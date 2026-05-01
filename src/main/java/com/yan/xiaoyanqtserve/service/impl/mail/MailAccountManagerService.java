@@ -3,7 +3,7 @@ package com.yan.xiaoyanqtserve.service.impl.mail;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.yan.xiaoyanqtserve.common.Constants;
 import com.yan.xiaoyanqtserve.common.exception.BizException;
-import com.yan.xiaoyanqtserve.config.MailSafetyLimitsConfig;
+import com.yan.xiaoyanqtserve.config.custome.MailProperties;
 import com.yan.xiaoyanqtserve.entity.MailAccount;
 import com.yan.xiaoyanqtserve.mapper.MailAccountMapper;
 import com.yan.xiaoyanqtserve.common.utils.RedisUtil;
@@ -30,7 +30,7 @@ public class MailAccountManagerService {
     @Resource
     private RedisUtil redisUtil;
     @Resource
-    private MailSafetyLimitsConfig mailSafetyLimitsConfig;
+    private MailProperties mailProperties;
 
     /**
      * 获取所有启用的邮箱账号
@@ -95,7 +95,7 @@ public class MailAccountManagerService {
         }
 
         long todayCount = Long.parseLong(countObj.toString());
-        return todayCount >= mailSafetyLimitsConfig.getDailyTotalMax();
+        return todayCount >= mailProperties.getSafetyLimits().getDailyTotalMax();
     }
     /**
      * 检查账号是否达到每日发送上限

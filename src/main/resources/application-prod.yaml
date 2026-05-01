@@ -1,5 +1,28 @@
 # ===================== 自定义配置 =======================
 xiaoyan:
+  webinfo:
+    # 网站名称
+    name: ${WEB_NAME:小烟改写工具}
+    # 网站域名
+    domain: ${WEB_DOMAIN:https://ai.xygo.cn}
+    # 商品购买地址
+    ldxp_url: ${WEB_LDXP_URL:https://pay.ldxp.cn/shop/xiaoyanai}
+  # 邮箱自定义配置
+  mail:
+    safety_limits:
+      daily_total_max: ${LIMITS_DAILY_TOTAL_MAX:100}       # 日发送上限总额
+      mail_daily_max: ${LIMITS_MAIL_DAILY_MAX:50}          # 单邮箱每天上限
+      mail_minute_rate: ${LIMITS_MAIL_MINUTE_RATE:5}       # 单邮箱每分钟 5 封
+      mail_bounce_rate: ${LIMITS_MAIL_BOUNCE_RATE:0.1}     # 单邮箱退信率 > 10% 立即禁用
+    # 邮箱验证链接
+    verify-link:
+      # 链接长度
+      token-length: ${VERIFY_LINK_LENGTH:128}
+      # 链接有效期（分钟）
+      expire_time: ${VERIFY_LINK_EXPIRE_TIME:30}
+      # 链接校验基础路径
+      base_path: ${VERIFY_LINK_BASE_PATH:/api/public/verifyEmail}
+  # 安全配置
   security:
     # 卡密加密密钥
     license:
@@ -10,17 +33,15 @@ xiaoyan:
       encrypt-private-key: ${ENCRYPT_PRIVATE_KEY}
       encrypt-public-key: ${ENCRYPT_PUBLIC_KEY}
 
-    # 邮箱验证验证链接长度
-    verify-link:
-      token-length: ${VERIFY_LINK_LENGTH:128}
+# 阿里云配置
 aliyun:
   captcha:
     access-key-id: ${CAPTCHA_AK}
     access-key-secret: ${CAPTCHA_SK}
-    endpoint: captcha.cn-shanghai.aliyuncs.com
-    connect-timeout: 5000
-    read-timeout: 5000
-    ekey: T72S75aYYm1+04XXvsyr7UwgAhKwnPUZ8yAobcowmmE=
+    endpoint: ${CAPTCHA_ENDPOINT}
+    connect-timeout: ${CAPTCHA_CONNECT_TIMEOUT}
+    read-timeout: ${CAPTCHA_READ_TIMEOUT}
+    ekey: ${CAPTCHA_EKEY}
 
 host:
   # 直接通过服务器本机访问：MySQL、Redis

@@ -1,4 +1,4 @@
-package com.yan.xiaoyanqtserve.config;
+package com.yan.xiaoyanqtserve.config.frame;
 
 import com.yan.xiaoyanqtserve.interceptor.RequestLoggingInterceptor;
 import jakarta.annotation.Resource;

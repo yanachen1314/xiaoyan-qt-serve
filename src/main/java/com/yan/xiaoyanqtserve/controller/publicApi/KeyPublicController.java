@@ -14,6 +14,8 @@ import com.yan.xiaoyanqtserve.common.enums.RateLimiterType;
 import com.yan.xiaoyanqtserve.common.utils.*;
 import com.yan.xiaoyanqtserve.common.vo.KeyActiveVo;
 import com.yan.xiaoyanqtserve.common.Constants;
+import com.yan.xiaoyanqtserve.config.custome.MailProperties;
+import com.yan.xiaoyanqtserve.config.custome.WebInfoProperties;
 import com.yan.xiaoyanqtserve.entity.KeyInfo;
 import com.yan.xiaoyanqtserve.entity.MailApplyRecord;
 import com.yan.xiaoyanqtserve.service.MailApplyRecordService;
@@ -52,6 +54,9 @@ public class KeyPublicController {
     private final SysConfigService sysConfigService;
     private final MailApplyManagerService mailApplyManagerService;
     private final TemplateService templateService;
+
+    private final MailProperties mailProperties;
+    private final WebInfoProperties webInfoProperties;
 
     /**
      * 密钥激活接口
@@ -245,10 +250,11 @@ public class KeyPublicController {
 
             // 4. 生成验证token和过期时间
             String verifyToken = mailApplyManagerService.generateVerifyToken();
-            LocalDateTime expireTime = LocalDateTime.now().plusMinutes(Constants.EMAIL_VERIFY_EXPIRE_MINUTES);
+            MailProperties.VerifyLinkConfig verifyLink = mailProperties.getVerifyLink();
+            LocalDateTime expireTime = LocalDateTime.now().plusMinutes(verifyLink.getExpireTime());
 
             // 5. 构建验证链接URL
-            String verifyUrl = Constants.WEB_DOMAIN + Constants.EMAIL_VERIFY_BASE_URL + "?token=" + verifyToken;
+            String verifyUrl = webInfoProperties.getDomain() + verifyLink.getBasePath() + "?token=" + verifyToken;
 
             // 6. 保存验证记录（status=0）
             MailApplyRecord record = MailApplyRecord.builder()

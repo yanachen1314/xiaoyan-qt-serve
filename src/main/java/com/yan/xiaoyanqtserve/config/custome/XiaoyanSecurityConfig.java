@@ -1,4 +1,4 @@
-package com.yan.xiaoyanqtserve.config;
+package com.yan.xiaoyanqtserve.config.custome;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.validation.constraints.NotBlank;
@@ -25,13 +25,11 @@ public class XiaoyanSecurityConfig {
     private LicenseConfig license;
     // 业务数据加密密钥
     private BizDataConfig bizData;
-    // 验证链接配置
-    private VerifyLinkConfig verifyLink;
+
 
     public XiaoyanSecurityConfig() {
         this.license = new LicenseConfig();
         this.bizData = new BizDataConfig();
-        this.verifyLink = new VerifyLinkConfig();
     }
 
 
@@ -109,9 +107,5 @@ public class XiaoyanSecurityConfig {
         }
     }
 
-    @Data
-    public static class VerifyLinkConfig {
-        // 邮箱验证验证链接长度
-        private Integer tokenLength;
-    }
+
 }

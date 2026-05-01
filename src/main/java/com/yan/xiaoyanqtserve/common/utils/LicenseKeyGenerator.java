@@ -1,8 +1,7 @@
 package com.yan.xiaoyanqtserve.common.utils;
 
-import com.yan.xiaoyanqtserve.config.XiaoyanSecurityConfig;
+import com.yan.xiaoyanqtserve.config.custome.XiaoyanSecurityConfig;
 import jakarta.annotation.Resource;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.Mac;

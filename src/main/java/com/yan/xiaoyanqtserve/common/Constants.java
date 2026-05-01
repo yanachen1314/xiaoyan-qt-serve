@@ -25,14 +25,6 @@ public class Constants {
     // 是否允许CORS跨域携带 Cookie
     public static final Boolean CORS_allowCredentials = true;
 
-
-    // 网站域名
-    // public static final String WEB_DOMAIN = "https://ai.xygo.cn";
-    public static final String WEB_DOMAIN = "http://s4bf59f9.natappfree.cc";
-
-    // 购买卡密外链地址
-    public static final String SHOP_URL = "https://pay.ldxp.cn/shop/xiaoyanai";
-
     // 定义Header名称常量
     public static final String HEADER_KEY_NAME = "X-API-Key";
     public static final String HEADER_CLIENT_VERSION_NAME = "X-Client-Version";
@@ -103,10 +95,5 @@ public class Constants {
     public static final String SYSTEM_EMAIL_SUFFIX_KEY = "email.applyKey.suffix";
     // 系统验证码服务是否开启
     public static final String SYSTEM_CAPTCHA_ENABLED = "system.captcha.enabled";
-    
-    // 邮箱验证相关常量
-    // 验证链接有效期（分钟）
-    public static final int EMAIL_VERIFY_EXPIRE_MINUTES = 30;
-    // 验证链接基础URL（需要在配置中设置或使用默认值）
-    public static final String EMAIL_VERIFY_BASE_URL = "/api/public/verifyEmail";
+
 }

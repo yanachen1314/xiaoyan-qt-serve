@@ -38,12 +38,6 @@ spring:
           ssl:
             enable: true
 
-    safety_limits:
-      daily_total_max: ${SAFETY_LIMITS_DAILY_TOTAL_MAX:100}       # 日发送上限总额
-      mail_daily_max: ${SAFETY_LIMITS_MAIL_DAILY_MAX:50}          # 单邮箱每天上限
-      mail_minute_rate: ${SAFETY_LIMITS_MAIL_MINUTE_RATE:5}       # 单邮箱每分钟 5 封
-      mail_bounce_rate: ${SAFETY_LIMITS_MAIL_BOUNCE_RATE:0.1}     # 单邮箱退信率 > 10% 立即禁用
-
 # ===================== mybatis-plus 配置 =======================
 mybatis-plus:
   #  configuration:

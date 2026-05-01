@@ -2,7 +2,7 @@ package com.yan.xiaoyanqtserve.controller;
 
 import com.yan.xiaoyanqtserve.common.utils.ApiResponse;
 import com.yan.xiaoyanqtserve.config.MultiMailSenderConfig;
-import com.yan.xiaoyanqtserve.config.XiaoyanSecurityConfig;
+import com.yan.xiaoyanqtserve.config.custome.XiaoyanSecurityConfig;
 import com.yan.xiaoyanqtserve.entity.MailAccount;
 import com.yan.xiaoyanqtserve.service.SysConfigService;
 import com.yan.xiaoyanqtserve.service.impl.mail.MailAccountManagerService;
