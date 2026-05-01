@@ -113,8 +113,8 @@ public class SystemModeFilter implements Filter {
                 "/api/public/auth/**",
                 // 管理员运维接口
                 "/api/admin/**",
-                // 验证码相关的接口
-                "/api/public/tac/**"
+                // 验证链接校验的接口
+                Constants.EMAIL_VERIFY_BASE_URL
         };
         return MainUtil.isAllowedPath(allowedPatterns, requestUri);
     }

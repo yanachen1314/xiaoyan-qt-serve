@@ -108,5 +108,5 @@ public class Constants {
     // 验证链接有效期（分钟）
     public static final int EMAIL_VERIFY_EXPIRE_MINUTES = 30;
     // 验证链接基础URL（需要在配置中设置或使用默认值）
-    public static final String EMAIL_VERIFY_BASE_URL = WEB_DOMAIN + "/api/public/verifyEmail";
+    public static final String EMAIL_VERIFY_BASE_URL = "/api/public/verifyEmail";
 }

@@ -210,7 +210,7 @@ public class KeyPublicController {
     @RateLimiter(key = "applyEmailVerify", time = 30, count = 1, limitBy = RateLimiterType.DEVICE_ID)
     @VerifyCaptcha(sceneId = SceneIdEnum.EMAIL_APPLY)
     public ApiResponse<EmailVerifyVo> applyEmailVerify(@Valid @RequestBody EmailApplyDto emailApplyDto,
-                                                        HttpServletRequest request) {
+                                                       HttpServletRequest request) {
         String applicantEmail = emailApplyDto.getEmail();
         String deviceType = NetUtil.getClientDeviceType(request);
         String deviceId = NetUtil.getClientDeviceId(request);
@@ -224,7 +224,7 @@ public class KeyPublicController {
             if (!EmailValidator.isValidEmail(applicantEmail, emailSuffixList)) {
                 throw new IllegalArgumentException("邮箱格式不正确");
             }
-            
+
             // 2. 检查邮箱是否已验证或已领取
             if (mailApplyRecordService.hasVerified(applicantEmail)) {
                 throw new IllegalArgumentException("该邮箱已验证，请勿重复申请");
@@ -232,7 +232,7 @@ public class KeyPublicController {
             if (mailApplyRecordService.hasSentKey(applicantEmail)) {
                 throw new IllegalArgumentException("卡密已发送，请注意查收邮件");
             }
-            
+
             // 3. 检查邮箱是否已申请但未验证
             if (mailApplyRecordService.hasPendingVerification(applicantEmail)) {
                 return ApiResponse.success("验证邮件已发送，请检查邮箱并在30分钟内完成验证",
@@ -242,14 +242,14 @@ public class KeyPublicController {
                                 .build()
                 );
             }
-            
+
             // 4. 生成验证token和过期时间
             String verifyToken = mailApplyManagerService.generateVerifyToken();
             LocalDateTime expireTime = LocalDateTime.now().plusMinutes(Constants.EMAIL_VERIFY_EXPIRE_MINUTES);
-            
+
             // 5. 构建验证链接URL
-            String verifyUrl = Constants.EMAIL_VERIFY_BASE_URL + "?token=" + verifyToken;
-            
+            String verifyUrl = Constants.WEB_DOMAIN + Constants.EMAIL_VERIFY_BASE_URL + "?token=" + verifyToken;
+
             // 6. 保存验证记录（status=0）
             MailApplyRecord record = MailApplyRecord.builder()
                     .applicantEmail(applicantEmail)
@@ -273,7 +273,7 @@ public class KeyPublicController {
                         log.error("验证邮件发送失败，邮箱: {}, 原因: {}", applicantEmail, cause.getMessage(), cause);
                         return null;
                     });
-            
+
             // 8. 立即返回成功提示
             return ApiResponse.success("验证邮件已发送，请检查邮箱并在30分钟内完成验证",
                     EmailVerifyVo.builder()
@@ -308,30 +308,30 @@ public class KeyPublicController {
             if (record == null) {
                 return ResponseEntity.ok(buildErrorHtmlPage("验证链接无效", "该验证链接不存在或已被使用，请重新申请。"));
             }
-            
+
             // 2. 验证是否已过期
             if (record.getVerifyExpireTime().isBefore(LocalDateTime.now())) {
                 return ResponseEntity.ok(buildErrorHtmlPage("验证链接已过期", "该验证链接已过期，请重新申请。"));
             }
-            
+
             // 3. 验证状态是否为0（未验证）
             if (record.getApplyStatus() != 0) {
                 return ResponseEntity.ok(buildErrorHtmlPage("验证链接已使用", "该验证链接已被使用，请勿重复点击。"));
             }
-            
+
             // 4. 更新状态为1（已验证）
             mailApplyRecordService.updateStatus(record.getId(), ApplyStatus.HAS_VERIFIED);
-            
+
             // 5. 从卡密池获取卡密
             String licenseKey = keyinfoManagerService.getUnusedFreeKeyFromPool();
-            
+
             // 6. 更新记录的卡密字段
             MailApplyRecord updateRecord = new MailApplyRecord();
             updateRecord.setId(record.getId());
             updateRecord.setApplyApiKey(licenseKey);
             updateRecord.setApplyStatus((byte) 2);
             mailApplyRecordService.updateById(updateRecord);
-            
+
             // 7. 异步发送卡密邮件
             String applicantEmail = record.getApplicantEmail();
             mailPushService.sendFreeLicenseEmail(applicantEmail, licenseKey)
@@ -366,7 +366,7 @@ public class KeyPublicController {
                                 .build());
                         return null;
                     });
-            
+
             // 8. 返回验证成功HTML页面
             return ResponseEntity.ok(buildSuccessHtmlPage(applicantEmail));
         } catch (Exception e) {
@@ -374,7 +374,7 @@ public class KeyPublicController {
             return ResponseEntity.ok(buildErrorHtmlPage("验证失败", "验证过程中发生错误，请稍后重试。"));
         }
     }
-    
+
     /**
      * 构建验证成功HTML页面
      * @param email 收件人邮箱
@@ -383,42 +383,42 @@ public class KeyPublicController {
     private String buildSuccessHtmlPage(String email) {
         String currentTime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
         return """
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>验证成功 - 小烟改写工具</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: Arial, 'Microsoft YaHei', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
-        .container { background: white; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); padding: 50px; max-width: 500px; width: 100%; text-align: center; }
-        .icon { font-size: 80px; color: #4CAF50; margin-bottom: 20px; }
-        h1 { color: #333; font-size: 28px; margin-bottom: 15px; }
-        p { color: #666; font-size: 16px; line-height: 1.6; margin-bottom: 15px; }
-        .email { background: #f5f5f5; padding: 15px; border-radius: 8px; font-weight: bold; color: #333; margin: 20px 0; }
-        .tip { background: #e3f2fd; padding: 15px; border-radius: 8px; color: #1976d2; margin-top: 20px; font-size: 14px; }
-        .footer { margin-top: 30px; color: #999; font-size: 12px; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="icon">✓</div>
-        <h1>验证成功！</h1>
-        <p>恭喜您，邮箱验证已成功完成。</p>
-        <div class="email">卡密已发送到：%s</div>
-        <p>请检查您的邮箱收件箱，卡密已自动发送。</p>
-        <div class="tip">
-            <strong>提示：</strong>如果未收到邮件，请检查垃圾邮件文件夹，或稍后重新申请。
-        </div>
-        <div class="footer">
-            <p>验证时间：%s</p>
-            <p>© 2025 小烟改写工具. 保留所有权利.</p>
-        </div>
-    </div>
-</body>
-</html>
-""".formatted(email, currentTime);
+                <!DOCTYPE html>
+                <html lang="zh-CN">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>验证成功 - 小烟改写工具</title>
+                    <style>
+                        * { margin: 0; padding: 0; box-sizing: border-box; }
+                        body { font-family: Arial, 'Microsoft YaHei', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+                        .container { background: white; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); padding: 50px; max-width: 500px; width: 100%; text-align: center; }
+                        .icon { font-size: 80px; color: #4CAF50; margin-bottom: 20px; }
+                        h1 { color: #333; font-size: 28px; margin-bottom: 15px; }
+                        p { color: #666; font-size: 16px; line-height: 1.6; margin-bottom: 15px; }
+                        .email { background: #f5f5f5; padding: 15px; border-radius: 8px; font-weight: bold; color: #333; margin: 20px 0; }
+                        .tip { background: #e3f2fd; padding: 15px; border-radius: 8px; color: #1976d2; margin-top: 20px; font-size: 14px; }
+                        .footer { margin-top: 30px; color: #999; font-size: 12px; }
+                    </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <div class="icon">✓</div>
+                        <h1>验证成功！</h1>
+                        <p>恭喜您，邮箱验证已成功完成。</p>
+                        <div class="email">卡密已发送到：%s</div>
+                        <p>请检查您的邮箱收件箱，卡密已自动发送。</p>
+                        <div class="tip">
+                            <strong>提示：</strong>如果未收到邮件，请检查垃圾邮件文件夹，或稍后重新申请。
+                        </div>
+                        <div class="footer">
+                            <p>验证时间：%s</p>
+                            <p>© 2025 小烟改写工具. 保留所有权利.</p>
+                        </div>
+                    </div>
+                </body>
+                </html>
+                """.formatted(email, currentTime);
     }
 
     /**
@@ -430,40 +430,40 @@ public class KeyPublicController {
     private String buildErrorHtmlPage(String title, String message) {
         String currentTime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
         return """
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>验证失败 - 小烟改写工具</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: Arial, 'Microsoft YaHei', sans-serif; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
-        .container { background: white; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); padding: 50px; max-width: 500px; width: 100%; text-align: center; }
-        .icon { font-size: 80px; color: #f44336; margin-bottom: 20px; }
-        h1 { color: #333; font-size: 28px; margin-bottom: 15px; }
-        p { color: #666; font-size: 16px; line-height: 1.6; margin-bottom: 15px; }
-        .error-box { background: #ffebee; padding: 20px; border-radius: 8px; color: #c62828; margin: 20px 0; }
-        .button { display: inline-block; background: #409EFF; color: white; padding: 12px 30px; border-radius: 25px; text-decoration: none; margin-top: 20px; font-weight: bold; }
-        .button:hover { background: #3a8ee6; }
-        .footer { margin-top: 30px; color: #999; font-size: 12px; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="icon">✗</div>
-        <h1>%s</h1>
-        <div class="error-box">%s</div>
-        <p>如有问题，请访问我们的官方网站重新申请。</p>
-        <a href="%s" class="button">前往官网</a>
-        <div class="footer">
-            <p>错误时间：%s</p>
-            <p>© 2025 小烟改写工具. 保留所有权利.</p>
-        </div>
-    </div>
-</body>
-</html>
-""".formatted(title, message, Constants.WEB_DOMAIN, currentTime);
+                <!DOCTYPE html>
+                <html lang="zh-CN">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>验证失败 - 小烟改写工具</title>
+                    <style>
+                        * { margin: 0; padding: 0; box-sizing: border-box; }
+                        body { font-family: Arial, 'Microsoft YaHei', sans-serif; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+                        .container { background: white; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); padding: 50px; max-width: 500px; width: 100%; text-align: center; }
+                        .icon { font-size: 80px; color: #f44336; margin-bottom: 20px; }
+                        h1 { color: #333; font-size: 28px; margin-bottom: 15px; }
+                        p { color: #666; font-size: 16px; line-height: 1.6; margin-bottom: 15px; }
+                        .error-box { background: #ffebee; padding: 20px; border-radius: 8px; color: #c62828; margin: 20px 0; }
+                        .button { display: inline-block; background: #409EFF; color: white; padding: 12px 30px; border-radius: 25px; text-decoration: none; margin-top: 20px; font-weight: bold; }
+                        .button:hover { background: #3a8ee6; }
+                        .footer { margin-top: 30px; color: #999; font-size: 12px; }
+                    </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <div class="icon">✗</div>
+                        <h1>%s</h1>
+                        <div class="error-box">%s</div>
+                        <p>如有问题，请访问我们的官方网站重新申请。</p>
+                        <a href="%s" class="button">前往官网</a>
+                        <div class="footer">
+                            <p>错误时间：%s</p>
+                            <p>© 2025 小烟改写工具. 保留所有权利.</p>
+                        </div>
+                    </div>
+                </body>
+                </html>
+                """.formatted(title, message, Constants.WEB_DOMAIN, currentTime);
     }
 
 }
