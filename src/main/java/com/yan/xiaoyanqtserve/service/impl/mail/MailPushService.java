@@ -107,6 +107,17 @@ public class MailPushService {
     }
 
     /**
+     * 同步发送免费卡密邮件模板
+     * @param to 收件人
+     * @param license 卡密
+     * @return 实际使用的发送账号邮箱地址
+     */
+    public String sendFreeLicenseEmailSync(String to, String license) {
+        String htmlContent = templateService.generateFreeLicenseTemplate(to, license);
+        return sendHtmlMailWithAccountSync(null, to, "【小烟改写工具】免费卡密赠送", htmlContent);
+    }
+
+    /**
      * 邮箱验证链接邮件模板
      * @param to 收件人
      * @param verifyUrl 验证链接URL

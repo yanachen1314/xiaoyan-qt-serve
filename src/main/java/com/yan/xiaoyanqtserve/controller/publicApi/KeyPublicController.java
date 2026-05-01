@@ -332,19 +332,15 @@ public class KeyPublicController {
             updateRecord.setApplyStatus((byte) 2);
             mailApplyRecordService.updateById(updateRecord);
 
-            // 7. 异步发送卡密邮件
+            // 7. 同步发送卡密邮件，根据发送结果返回对应页面
             String applicantEmail = record.getApplicantEmail();
-            mailPushService.sendFreeLicenseEmail(applicantEmail, licenseKey)
-                    .thenAccept(systemSenderEmail -> {
-                        log.debug("卡密邮件发送成功，邮箱: {}, 发送账号: {}", applicantEmail, systemSenderEmail);
-
-                    })
-                    .exceptionally(ex -> {
-                        Throwable cause = ex.getCause() != null ? ex.getCause() : ex;
-                        log.error("卡密邮件发送失败，邮箱: {}, 原因: {}", applicantEmail, cause.getMessage(), cause);
-
-                        return null;
-                    });
+            try {
+                String systemSenderEmail = mailPushService.sendFreeLicenseEmailSync(applicantEmail, licenseKey);
+                log.debug("卡密邮件发送成功，邮箱: {}, 发送账号: {}", applicantEmail, systemSenderEmail);
+            } catch (Exception mailEx) {
+                log.error("卡密邮件发送失败，邮箱: {}, 原因: {}", applicantEmail, mailEx.getMessage(), mailEx);
+                return ResponseEntity.ok(buildErrorHtmlPage("邮件发送失败", "卡密邮件发送失败，请联系客服处理。"));
+            }
 
             // 8. 返回验证成功HTML页面
             return ResponseEntity.ok(buildSuccessHtmlPage(applicantEmail));
