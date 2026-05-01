@@ -27,7 +27,8 @@ public class Constants {
 
 
     // 网站域名
-    public static final String WEB_DOMAIN = "https://ai.xygo.cn";
+    // public static final String WEB_DOMAIN = "https://ai.xygo.cn";
+    public static final String WEB_DOMAIN = "http://s4bf59f9.natappfree.cc";
 
     // 购买卡密外链地址
     public static final String SHOP_URL = "https://pay.ldxp.cn/shop/xiaoyanai";

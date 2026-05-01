@@ -208,6 +208,7 @@ public class KeyPublicController {
      */
     @PostMapping("/applyEmailVerify")
     @RateLimiter(key = "applyEmailVerify", time = 30, count = 1, limitBy = RateLimiterType.DEVICE_ID)
+    @VerifyCaptcha(sceneId = SceneIdEnum.EMAIL_APPLY)
     public ApiResponse<EmailVerifyVo> applyEmailVerify(@Valid @RequestBody EmailApplyDto emailApplyDto,
                                                         HttpServletRequest request) {
         String applicantEmail = emailApplyDto.getEmail();
