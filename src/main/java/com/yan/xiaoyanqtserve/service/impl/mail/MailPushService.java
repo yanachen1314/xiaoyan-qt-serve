@@ -1,11 +1,9 @@
 package com.yan.xiaoyanqtserve.service.impl.mail;
 
-import com.yan.xiaoyanqtserve.common.Constants;
-import com.yan.xiaoyanqtserve.common.dto.MailRecordDto;
 import com.yan.xiaoyanqtserve.common.enums.EmailServiceProvider;
 import com.yan.xiaoyanqtserve.common.exception.BizException;
 import com.yan.xiaoyanqtserve.config.MultiMailSenderConfig;
-import com.yan.xiaoyanqtserve.config.custome.MailProperties;
+import com.yan.xiaoyanqtserve.config.custome.MailPropertiesConfig;
 import com.yan.xiaoyanqtserve.entity.MailAccount;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
@@ -34,7 +32,7 @@ public class MailPushService {
     private final MultiMailSenderConfig multiMailSenderConfig;
     private final MailAccountManagerService mailAccountManagerService;
     private final MailApplyManagerService mailApplyManagerService;
-    private final MailProperties mailProperties;
+    private final MailPropertiesConfig mailPropertiesConfig;
 
     /**
      * 发送验证码邮件
@@ -127,7 +125,7 @@ public class MailPushService {
      */
     public CompletableFuture<String> sendEmailVerifyLink(String to, String verifyUrl) {
         String htmlContent = templateService.generateEmailVerifyLinkTemplate(to, verifyUrl,
-                String.valueOf(mailProperties.getVerifyLink().getExpireTime()));
+                String.valueOf(mailPropertiesConfig.getVerifyLink().getExpireTime()));
         return sendHtmlMailWithAccount(null, to, "【小烟改写工具】邮箱验证", htmlContent);
     }
 

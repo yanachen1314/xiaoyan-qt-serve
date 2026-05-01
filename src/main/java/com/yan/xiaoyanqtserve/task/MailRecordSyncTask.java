@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.yan.xiaoyanqtserve.common.Constants;
 import com.yan.xiaoyanqtserve.common.utils.LicenseKeyGenerator;
 import com.yan.xiaoyanqtserve.common.utils.RedisUtil;
-import com.yan.xiaoyanqtserve.config.custome.MailProperties;
+import com.yan.xiaoyanqtserve.config.custome.MailPropertiesConfig;
 import com.yan.xiaoyanqtserve.entity.MailAccount;
 import com.yan.xiaoyanqtserve.mapper.MailAccountMapper;
 import lombok.RequiredArgsConstructor;
@@ -30,7 +30,7 @@ public class MailRecordSyncTask {
     private final RedisUtil redisUtil;
     private final MailAccountMapper mailAccountMapper;
     private final LicenseKeyGenerator licenseKeyGenerator;
-    private final MailProperties mailProperties;
+    private final MailPropertiesConfig mailPropertiesConfig;
 
     /**
      * 每天00:10执行，同步昨天的发送统计数据到数据库
@@ -105,7 +105,7 @@ public class MailRecordSyncTask {
             currentPoolSize = 0L;
         }
         // 获取每日发送上限
-        Integer dailyTotalMax = mailProperties.getSafetyLimits().getDailyTotalMax();
+        Integer dailyTotalMax = mailPropertiesConfig.getSafetyLimits().getDailyTotalMax();
         if (currentPoolSize < dailyTotalMax) {
             log.info("密钥池剩余数量: {}，小于日发送上限: {}，开始补充200个免费密钥", currentPoolSize, dailyTotalMax);
             replenishFreeKeyPool();

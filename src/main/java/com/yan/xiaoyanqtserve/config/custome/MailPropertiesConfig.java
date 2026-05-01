@@ -10,13 +10,13 @@ import org.springframework.context.annotation.Configuration;
 @Data
 @Configuration
 @ConfigurationProperties(prefix = "xiaoyan.mail")
-public class MailProperties {
+public class MailPropertiesConfig {
     // 验证链接配置
     private VerifyLinkConfig verifyLink;
 
     // 安全限制配置
     private SafetyLimitsConfig safetyLimits;
-    public MailProperties() {
+    public MailPropertiesConfig() {
         this.verifyLink = new VerifyLinkConfig();
         this.safetyLimits = new SafetyLimitsConfig();
     }

@@ -9,7 +9,7 @@ import com.aliyun.teaopenapi.models.Config;
 import com.yan.xiaoyanqtserve.common.enums.SceneIdEnum;
 import com.yan.xiaoyanqtserve.common.exception.BizException;
 import com.yan.xiaoyanqtserve.common.utils.SceneIdEncryptor;
-import com.yan.xiaoyanqtserve.config.custome.CaptchaProperties;
+import com.yan.xiaoyanqtserve.config.custome.AliCaptchaConfig;
 import com.yan.xiaoyanqtserve.service.SysConfigService;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +26,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class AliyunCaptchaService {
 
-    private final CaptchaProperties properties;
+    private final AliCaptchaConfig properties;
     private final SysConfigService sysConfigService;
 
     // 阿里云Client

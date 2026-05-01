@@ -1,7 +1,7 @@
 package com.yan.xiaoyanqtserve.service.impl.mail;
 
 import com.yan.xiaoyanqtserve.common.enums.ApplyStatus;
-import com.yan.xiaoyanqtserve.config.custome.MailProperties;
+import com.yan.xiaoyanqtserve.config.custome.MailPropertiesConfig;
 import com.yan.xiaoyanqtserve.entity.MailApplyRecord;
 import com.yan.xiaoyanqtserve.service.MailApplyRecordService;
 import com.yan.xiaoyanqtserve.service.MailSendRecordService;
@@ -24,7 +24,7 @@ import java.util.Base64;
 public class MailApplyManagerService {
     private final MailSendRecordService mailSendRecordService;
     private final MailApplyRecordService mailApplyRecordService;
-    private final MailProperties mailProperties;
+    private final MailPropertiesConfig mailPropertiesConfig;
     /**
      * 生成验证token
      *
@@ -32,7 +32,7 @@ public class MailApplyManagerService {
      */
     public String generateVerifyToken() {
         // 生成更安全的token
-        byte[] randomBytes = new byte[mailProperties.getVerifyLink().getTokenLength()];
+        byte[] randomBytes = new byte[mailPropertiesConfig.getVerifyLink().getTokenLength()];
         new SecureRandom().nextBytes(randomBytes);
         return Base64.getUrlEncoder().withoutPadding().encodeToString(randomBytes);
     }

@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Configuration;
 @Data
 @Configuration
 @ConfigurationProperties(prefix = "xiaoyan.webinfo")
-public class WebInfoProperties {
+public class WebInfoPropertiesConfig {
     /**
      * 网站名称
      */

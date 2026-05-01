@@ -7,7 +7,7 @@ import com.yan.xiaoyanqtserve.common.utils.MainUtil;
 import com.yan.xiaoyanqtserve.common.utils.NetUtil;
 import com.yan.xiaoyanqtserve.common.utils.SecurityResponseUtil;
 import com.yan.xiaoyanqtserve.common.vo.VersionCheckVo;
-import com.yan.xiaoyanqtserve.config.custome.MailProperties;
+import com.yan.xiaoyanqtserve.config.custome.MailPropertiesConfig;
 import com.yan.xiaoyanqtserve.service.SysConfigService;
 import com.yan.xiaoyanqtserve.service.impl.system.ClientVersionService;
 import com.yan.xiaoyanqtserve.service.impl.system.MaintenanceService;
@@ -33,7 +33,7 @@ public class SystemModeFilter implements Filter {
     private final MaintenanceService maintenanceService;
     private final SecurityResponseUtil securityResponseUtil;
     private final SysConfigService sysConfigService;
-    private final MailProperties mailProperties;
+    private final MailPropertiesConfig mailPropertiesConfig;
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response,
@@ -116,7 +116,7 @@ public class SystemModeFilter implements Filter {
                 // 管理员运维接口
                 "/api/admin/**",
                 // 验证链接校验的接口
-                mailProperties.getVerifyLink().getBasePath()
+                mailPropertiesConfig.getVerifyLink().getBasePath()
         };
         return MainUtil.isAllowedPath(allowedPatterns, requestUri);
     }

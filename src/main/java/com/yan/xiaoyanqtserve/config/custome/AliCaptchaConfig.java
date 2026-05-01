@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Configuration;
 @Data
 @Configuration
 @ConfigurationProperties(prefix = "aliyun.captcha")
-public class CaptchaProperties {
+public class AliCaptchaConfig {
     /**
      * AccessKey ID（必须）
      */
