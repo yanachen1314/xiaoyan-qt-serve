@@ -117,14 +117,14 @@ public class KeyPublicController {
      * <p>
      * 当前业务：免费密钥申请接口，邮箱轮询发送免费密钥，一个邮箱只能领取一次
      * </p>
-     * @see KeyPublicController#verifyEmail(String) /verifyEmail（链接验证接口）
+     * @see KeyPublicController#verifyEmailLink(String) /verifyEmailLink（链接验证接口）
      * @param emailApplyDto 包含收件人邮箱
      * @return 提示信息
      */
-    @PostMapping("/applyEmailVerify")
+    @PostMapping("/applyEmailVerifyLink")
     @RateLimiter(key = "applyEmailVerify", time = 30, count = 1, limitBy = RateLimiterType.DEVICE_ID)
     @VerifyCaptcha(sceneId = SceneIdEnum.EMAIL_APPLY)
-    public ApiResponse<EmailVerifyVo> applyEmailVerify(@Valid @RequestBody EmailApplyDto emailApplyDto,
+    public ApiResponse<EmailVerifyVo> applyEmailVerifyLink(@Valid @RequestBody EmailApplyDto emailApplyDto,
                                                        HttpServletRequest request) {
         String applicantEmail = emailApplyDto.getEmail();
         String deviceType = NetUtil.getClientDeviceType(request);
@@ -212,11 +212,12 @@ public class KeyPublicController {
      * <p>
      * 用户点击邮件中的验证链接，服务器验证token后发送卡密邮件
      * </p>
+     * @see MailPropertiesConfig#getVerifyLink() 验证链接配置
      * @param token 验证token
      * @return HTML页面显示验证结果
      */
-    @GetMapping(value = "/verifyEmail", produces = MediaType.TEXT_HTML_VALUE)
-    public ResponseEntity<String> verifyEmail(@RequestParam("token") String token) {
+    @GetMapping(value = "/verifyEmailLink", produces = MediaType.TEXT_HTML_VALUE)
+    public ResponseEntity<String> verifyEmailLink(@RequestParam("token") String token) {
         log.debug("邮箱验证请求，token: {}", token);
         try {
             // 1. 根据token查询验证记录
