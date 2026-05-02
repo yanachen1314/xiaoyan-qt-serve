@@ -38,24 +38,10 @@ public class MailApplyRecordServiceImpl extends ServiceImpl<MailApplyRecordMappe
     }
 
     /**
-     * 检查邮箱是否已领取过免费卡密
+     * 检查邮箱是否已验证
      *
      * @param email 邮箱地址
-     * @return true-已领取，false-未领取
-     */
-    @Override
-    public boolean hasReceived(String email) {
-        LambdaQueryWrapper<MailApplyRecord> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(MailApplyRecord::getApplicantEmail, email);
-        return mailApplyRecordMapper.selectCount(queryWrapper) > 0;
-    }
-
-
-    /**
-     * 检查邮箱是否已验证或已发送卡密
-     *
-     * @param email 邮箱地址
-     * @return true-已验证或已发送卡密，false-未验证
+     * @return true-已验证，false-未验证
      */
     @Override
     public boolean hasVerified(String email) {

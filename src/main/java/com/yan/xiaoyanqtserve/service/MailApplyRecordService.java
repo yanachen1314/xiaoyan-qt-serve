@@ -21,13 +21,6 @@ public interface MailApplyRecordService extends IService<MailApplyRecord> {
      */
     void recordLicense(MailApplyRecord record);
 
-    /**
-     * 检查邮箱是否已领取过免费卡密
-     *
-     * @param email 邮箱地址
-     * @return true-已领取，false-未领取
-     */
-    boolean hasReceived(String email);
 
     /**
      * 检查邮箱是否已验证

@@ -46,10 +46,11 @@ import java.util.List;
 public class KeyPublicController {
     private final KeyInfoManagerService keyinfoManagerService;
     private final MailPushService mailPushService;
-    private final MailApplyRecordService mailApplyRecordService;
     private final SysConfigService sysConfigService;
-    private final MailApplyManagerService mailApplyManagerService;
     private final TemplateService templateService;
+
+    private final MailApplyRecordService mailApplyRecordService;
+    private final MailApplyManagerService mailApplyManagerService;
 
     private final MailPropertiesConfig mailPropertiesConfig;
     private final WebInfoPropertiesConfig webInfoPropertiesConfig;
