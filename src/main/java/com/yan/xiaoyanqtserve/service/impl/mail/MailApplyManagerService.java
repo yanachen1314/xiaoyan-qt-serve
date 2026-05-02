@@ -3,14 +3,17 @@ package com.yan.xiaoyanqtserve.service.impl.mail;
 import com.yan.xiaoyanqtserve.common.enums.ApplyStatus;
 import com.yan.xiaoyanqtserve.config.custome.MailPropertiesConfig;
 import com.yan.xiaoyanqtserve.entity.MailApplyRecord;
+import com.yan.xiaoyanqtserve.entity.MailSendRecord;
 import com.yan.xiaoyanqtserve.service.MailApplyRecordService;
 import com.yan.xiaoyanqtserve.service.MailSendRecordService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
+import java.time.LocalDateTime;
 import java.util.Base64;
 
 /**
@@ -26,7 +29,7 @@ public class MailApplyManagerService {
     private final MailApplyRecordService mailApplyRecordService;
     private final MailPropertiesConfig mailPropertiesConfig;
     /**
-     * 生成验证token
+     * 生成验证链接token
      *
      * @return 验证token字符串
      */
@@ -40,7 +43,7 @@ public class MailApplyManagerService {
     /**
      * 验证链接成功，邮件发送成功处理
      */
-    public void sendMailSuccess(Long recordId, String licenseKey){
+    public void updateApplyRecordOnSendSuccess(Long recordId, String licenseKey){
         MailApplyRecord updateRecord = new MailApplyRecord();
         updateRecord.setId(recordId);
         updateRecord.setApplyApiKey(licenseKey);
@@ -51,7 +54,7 @@ public class MailApplyManagerService {
     /**
      * 邮件发送失败后的处理
      */
-    public void sendMailFailed(Long recordId, String licenseKey){
+    public void updateApplyRecordOnSendFailed(Long recordId, String licenseKey){
         MailApplyRecord updateRecord = new MailApplyRecord();
         updateRecord.setId(recordId);
         updateRecord.setApplyApiKey(licenseKey);
@@ -60,45 +63,33 @@ public class MailApplyManagerService {
     }
 
     /**
-     * 保存邮件申领记录
+     * 保存邮件申领记录（同步）
      * @param record 邮件申领记录
-     * @return 保存后的记录ID
      * @throws DuplicateKeyException 如果该邮箱已领取过
      */
-    public Long saveApplyRecord(MailApplyRecord record) {
-        return mailApplyRecordService.recordLicense(record);
+    public void saveApplyRecordSync(MailApplyRecord record) {
+        mailApplyRecordService.recordLicense(record);
     }
 
-
- /*   *//**
-     * 同步保存邮件发送记录和免费卡密记录
-     *//*
+    /**
+     * 保存邮件发送记录（异步）
+     * @param senderEmail 发件人邮箱
+     * @param receiverEmail 收件人邮箱
+     * @param status 状态
+     * @param resultMsg 结果信息
+     */
     @Async("loggingExecutor")
-    public void saveRecordAsync(MailRecordDto mailRecordDto) {
-        log.info("邮件发送记录和免费卡密记录同步保存开始 : {}", mailRecordDto);
+    public void saveSendRecordAsync(String senderEmail,String receiverEmail,Integer status,String resultMsg){
         try {
-            // 保存系统邮件发送记录
-            mailSendRecordService.save(MailSendRecord.builder()
-                    .systemSenderEmail(mailRecordDto.getSystemSenderEmail())
-                    .sendToEmail(mailRecordDto.getApplicantEmail())
-                    .status(mailRecordDto.getResultStatus())
-                    .resultMsg(mailRecordDto.getResultMsg())
-                    .createdTime(LocalDateTime.now())
-                    .build()
-            );
-
-            // 保存邮件申领记录
-            mailApplyRecordService.recordLicense(MailApplyRecord.builder()
-                    .applicantEmail(mailRecordDto.getApplicantEmail())
-                    .applyApiKey(mailRecordDto.getLicenseKey())
-                    .deviceType(mailRecordDto.getDeviceType())
-                    .deviceId(mailRecordDto.getDeviceId())
-                    .clientIp(mailRecordDto.getClientIp())
-                    .userAgent(mailRecordDto.getUserAgent())
-                    .build()
-            );
+            MailSendRecord record = new MailSendRecord();
+            record.setSystemSenderEmail(senderEmail);
+            record.setSendToEmail(receiverEmail);
+            record.setStatus(status);
+            record.setResultMsg(resultMsg);
+            record.setCreatedTime(LocalDateTime.now());
+            mailSendRecordService.save(record);
         } catch (Exception e) {
-            log.error("邮件发送记录和免费卡密记录同步保存失败", e);
+            log.error("保存邮件发送记录失败，发件人：{}，收件人：{}，状态：{}，结果信息：{}", senderEmail, receiverEmail, status, resultMsg, e);
         }
-    }*/
+    }
 }

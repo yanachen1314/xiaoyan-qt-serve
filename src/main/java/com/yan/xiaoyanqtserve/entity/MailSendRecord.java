@@ -25,7 +25,6 @@ import java.time.LocalDateTime;
 @Setter
 @ToString
 @TableName("mail_send_record")
-@Builder
 public class MailSendRecord implements Serializable {
 
     @Serial
@@ -67,17 +66,4 @@ public class MailSendRecord implements Serializable {
     @TableField("created_time")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private LocalDateTime createdTime;
-
-
-    /**
-     * 目标类型
-     */
-    @TableField("target_type")
-    private Integer targetType;
-
-    /**
-     * 目标记录ID
-     */
-    @TableField("target_id")
-    private Integer targetId;
 }

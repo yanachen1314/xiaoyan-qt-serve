@@ -19,7 +19,7 @@ public interface MailApplyRecordService extends IService<MailApplyRecord> {
      * @param record 领取记录实体
      * @throws DuplicateKeyException 如果该邮箱已领取过
      */
-    Long recordLicense(MailApplyRecord record);
+    void recordLicense(MailApplyRecord record);
 
     /**
      * 检查邮箱是否已领取过免费卡密

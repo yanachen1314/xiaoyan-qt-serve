@@ -212,12 +212,16 @@ public class MailPushService {
             doSendMailInternal(sender, selectedEmail, to, subject, htmlContent, today);
             return selectedEmail;
         } catch (BizException e) {
+
             mailAccountManagerService.recordFailure(selectedEmail, today);
 
             List<MailAccount> availableAccounts = mailAccountManagerService.getAvailableAccounts();
             if (availableAccounts.isEmpty()) {
-                throw new BizException("没有可用的邮箱账号");
+                log.warn("【邮件发送】没有配置系统邮箱账号");
+                throw new BizException("邮件系统异常，请联系管理员处理。");
             }
+            BizException bizException = new BizException();
+            bizException.initCause(e);
             for (MailAccount account : availableAccounts) {
                 if (!account.getEmailAddress().equals(selectedEmail)) {
                     JavaMailSender retrySender = multiMailSenderConfig.getMailSender(account.getEmailAddress());
@@ -227,13 +231,13 @@ public class MailPushService {
                             return account.getEmailAddress();
                         } catch (Exception retryEx) {
                             mailAccountManagerService.recordFailure(account.getEmailAddress(), today);
-                            log.warn("重试邮箱 {} 发送失败: {}", account.getEmailAddress(), retryEx.getMessage());
+                            bizException.initCause(retryEx);
                         }
                     }
                 }
             }
-            log.warn("所有可用邮箱账号发送失败");
-            throw new BizException("所有可用邮箱账号发送失败");
+            log.error("【邮件发送】所有可用邮箱账号发送失败");
+            throw new BizException("邮件系统异常，请联系管理员处理。", bizException);
         }
     }
 
@@ -259,15 +263,17 @@ public class MailPushService {
             
             // 记录发送成功统计
             mailAccountManagerService.recordSuccess(from, today);
-            log.debug("邮件发送成功: {} -> {}", from, to);
+            mailApplyManagerService.saveSendRecordAsync(from, to, 1, "邮件发送成功");
+            log.debug("【邮件发送】邮件发送成功: {} -> {}", from, to);
         } catch (Exception e) {
-            log.error("发送邮件异常: {}", e.getMessage());
+            log.error("【邮件发送】发送邮件异常: {}", e.getMessage());
+            mailApplyManagerService.saveSendRecordAsync(from, to, 0, "发送邮件异常: " + e.getMessage());
             if (e.getMessage().contains("550") || e.getMessage().contains("non-existent account")) {
                 throw new BizException("请检查收件人邮箱账号是否正确");
             } else if (e.getMessage().contains("Authentication failed") || e.getMessage().contains("invalid authentication")) {
                 throw new BizException("请检查系统邮箱账号密码是否正确");
             } else {
-                throw new BizException("发送邮件异常");
+                throw new BizException("邮件发送异常");
             }
         }
     }

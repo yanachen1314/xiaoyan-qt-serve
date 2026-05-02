@@ -42,6 +42,10 @@ public final class BizException extends RuntimeException {
         this.message = message;
         this.code = code;
     }
+    public BizException(String message, Throwable cause) {
+        super(cause);
+        this.message = message;
+    }
 
     public BizException(BizStatus code, String message, Throwable cause) {
         super(cause);

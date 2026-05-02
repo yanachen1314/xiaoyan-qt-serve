@@ -6,7 +6,6 @@ import com.yan.xiaoyanqtserve.common.dto.EmailApplyDto;
 import com.yan.xiaoyanqtserve.common.enums.ApplyStatus;
 import com.yan.xiaoyanqtserve.common.enums.SceneIdEnum;
 import com.yan.xiaoyanqtserve.common.vo.EmailVerifyVo;
-import com.yan.xiaoyanqtserve.common.vo.FreeLicenseVo;
 import com.yan.xiaoyanqtserve.common.dto.key.KeyActiveDto;
 import com.yan.xiaoyanqtserve.common.enums.RateLimiterType;
 import com.yan.xiaoyanqtserve.common.utils.*;
@@ -177,9 +176,9 @@ public class KeyPublicController {
                     .clientIp(clientIp)
                     .userAgent(userAgent)
                     .build();
-            Long applyRecordId = mailApplyManagerService.saveApplyRecord(record);
+            mailApplyManagerService.saveApplyRecordSync(record);
 
-            // 7. 异步发送验证邮件 todo:记录发送日志
+            // 7. 异步发送验证邮件
             mailPushService.sendEmailVerifyLink(applicantEmail, verifyUrl)
                     .thenAccept(systemSenderEmail -> {
                         log.debug("验证邮件发送成功，邮箱: {}, 发送账号: {}", applicantEmail, systemSenderEmail);
@@ -242,7 +241,7 @@ public class KeyPublicController {
             String licenseKey = keyinfoManagerService.getUnusedFreeKeyFromPool();
 
             // 6. 更新记录的卡密字段
-            mailApplyManagerService.sendMailSuccess(record.getId(), licenseKey);
+            mailApplyManagerService.updateApplyRecordOnSendSuccess(record.getId(), licenseKey);
 
             // 7. 同步发送卡密邮件，根据发送结果返回对应页面
             String applicantEmail = record.getApplicantEmail();
@@ -251,7 +250,7 @@ public class KeyPublicController {
                 log.debug("卡密邮件发送成功，邮箱: {}, 发送账号: {}", applicantEmail, systemSenderEmail);
             } catch (Exception mailEx) {
                 log.error("卡密邮件发送失败，邮箱: {}, 原因: {}", applicantEmail, mailEx.getMessage(), mailEx);
-                mailApplyManagerService.sendMailFailed(record.getId(), licenseKey);
+                mailApplyManagerService.updateApplyRecordOnSendFailed(record.getId(), licenseKey);
                 return ResponseEntity.ok(renderVerifyEmailFailurePage("邮件发送失败", "卡密邮件发送失败，请联系客服处理。"));
             }
 
