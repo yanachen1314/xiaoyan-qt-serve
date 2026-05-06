@@ -164,7 +164,7 @@ public class KeyPublicController {
             LocalDateTime expireTime = LocalDateTime.now().plusMinutes(verifyLink.getExpireTime());
 
             // 5. 构建验证链接URL
-            String verifyUrl = webInfoPropertiesConfig.getDomain() + verifyLink.getBasePath() + "?token=" + verifyToken;
+            String verifyUrl = webInfoPropertiesConfig.getApiSite() + verifyLink.getBasePath() + "?token=" + verifyToken;
 
             // 6. 保存验证记录（status=0）
             MailApplyRecord record = MailApplyRecord.builder()

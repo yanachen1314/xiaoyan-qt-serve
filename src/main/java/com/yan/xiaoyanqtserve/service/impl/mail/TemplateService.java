@@ -93,7 +93,7 @@ public class TemplateService {
         context.setVariable("title", "欢迎邮件");
         context.setVariable("userName", userName);
         context.setVariable("content", content);
-        context.setVariable("website", webInfoPropertiesConfig.getDomain());
+        context.setVariable("website", webInfoPropertiesConfig.getApiSite());
 
         return templateEngine.process(TEMPLATE_PATH + MailTemplateEnum.WELCOME.getName(), context);
     }
@@ -110,7 +110,7 @@ public class TemplateService {
         context.setVariable("title", "用户密码变更提醒");
         context.setVariable("userName", userName);
         context.setVariable("changeTime", changeTime);
-        context.setVariable("loginUrl", webInfoPropertiesConfig.getDomain()+"/login");
+        context.setVariable("loginUrl", webInfoPropertiesConfig.getApiSite()+"/api/login");
 
         return templateEngine.process(TEMPLATE_PATH + MailTemplateEnum.PWD_RESET.getName(), context);
     }
@@ -127,7 +127,7 @@ public class TemplateService {
         context.setVariable("title", "免费卡密");
         context.setVariable("to", to);
         context.setVariable("license", license);
-        context.setVariable("website", webInfoPropertiesConfig.getDomain());
+        context.setVariable("website", webInfoPropertiesConfig.getApiSite());
         context.setVariable("shopUrl", webInfoPropertiesConfig.getLdxpUrl());
 
         return templateEngine.process(TEMPLATE_PATH + MailTemplateEnum.FREE_LICENSE.getName(), context);
@@ -147,7 +147,7 @@ public class TemplateService {
         context.setVariable("to", to);
         context.setVariable("verifyUrl", verifyUrl);
         context.setVariable("expireTime", expireTime);
-        context.setVariable("website", webInfoPropertiesConfig.getDomain());
+        context.setVariable("website", webInfoPropertiesConfig.getApiSite());
         context.setVariable("shopUrl", webInfoPropertiesConfig.getLdxpUrl());
 
         return templateEngine.process(TEMPLATE_PATH + MailTemplateEnum.EMAIL_VERIFY_LINK.getName(), context);
@@ -179,7 +179,7 @@ public class TemplateService {
         Context context = new Context();
         context.setVariable("title", title);
         context.setVariable("message", message);
-        context.setVariable("websiteUrl", webInfoPropertiesConfig.getDomain());
+        context.setVariable("websiteUrl", webInfoPropertiesConfig.getApiSite());
         context.setVariable("errorTime", LocalDateTime.now().toString());
 
         return templateEngine.process(TEMPLATE_PATH + MailTemplateEnum.VERIFY_EMAIL_FAILURE.getName(), context);
