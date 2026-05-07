@@ -218,9 +218,9 @@
             <div class="tip-card">
                 <div class="card-title">邮箱验证</div>
                 <div class="card-content">
-                    <p>请点击下方"立即验证"按钮，完成邮箱验证后，系统将自动发送卡密到您的邮箱。</p>
+                    <p>请点击下方"立即验证"按钮，完成邮箱验证后，系统将自动发送卡密。</p>
                     <p style="color: #E6A23C; margin-top: 15px; font-weight: bold;">
-                        验证链接有效期：<span th:text="${expireTime}">30</span>分钟
+                        验证链接有效期：<span th:text="${expireTime}">3</span>天
                     </p>
                 </div>
             </div>
@@ -234,14 +234,15 @@
             <div class="notice">
                 <h3>注意事项</h3>
                 <ul>
-                    <li>验证链接有效期为30分钟，过期后需要重新申请</li>
-                    <li>验证成功后，卡密将自动发送到本邮箱</li>
+                    <li>请在验证链接有效期<span th:text="${expireTime}">3</span>天内完成验证并使用，逾期将无法使用</li>
                     <li>请勿将此验证链接泄露给他人</li>
-                    <li>如非本人操作，请忽略此邮件</li>
                     <li>如有任何疑问，欢迎随时联系我们的客服团队</li>
                 </ul>
             </div>
-
+            <!-- 非本人操作提示 -->
+            <div class="notice">
+                如非本人操作，请忽略此邮件
+            </div>
         </div>
 
         <!-- 底部 -->
