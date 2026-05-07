@@ -24,8 +24,8 @@ xiaoyan:
     verify-link:
       # 链接长度
       token-length: ${VERIFY_LINK_LENGTH:128}
-      # 链接有效期（分钟）
-      expire_time: ${VERIFY_LINK_EXPIRE_TIME:30}
+      # 链接有效期（天）
+      expire_time: ${VERIFY_LINK_EXPIRE_TIME:3}
       # 链接校验基础路径
       base_path: ${VERIFY_LINK_BASE_PATH:/api/public/verifyEmailLink}
   # 安全配置

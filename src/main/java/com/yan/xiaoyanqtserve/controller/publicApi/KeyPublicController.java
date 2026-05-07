@@ -125,7 +125,7 @@ public class KeyPublicController {
     @RateLimiter(key = "applyEmailVerify", time = 30, count = 1, limitBy = RateLimiterType.DEVICE_ID)
     @VerifyCaptcha(sceneId = SceneIdEnum.EMAIL_APPLY)
     public ApiResponse<EmailVerifyVo> applyEmailVerifyLink(@Valid @RequestBody EmailApplyDto emailApplyDto,
-                                                       HttpServletRequest request) {
+                                                           HttpServletRequest request) {
         String applicantEmail = emailApplyDto.getEmail();
         String deviceType = NetUtil.getClientDeviceType(request);
         String deviceId = NetUtil.getClientDeviceId(request);
@@ -161,7 +161,9 @@ public class KeyPublicController {
             // 4. 生成验证token和过期时间
             String verifyToken = mailApplyManagerService.generateVerifyToken();
             MailPropertiesConfig.VerifyLinkConfig verifyLink = mailPropertiesConfig.getVerifyLink();
-            LocalDateTime expireTime = LocalDateTime.now().plusMinutes(verifyLink.getExpireTime());
+            // 过期时间内激活并使用密钥，单位为天
+            int expireTimeInDays = verifyLink.getExpireTime();
+            LocalDateTime expireTime = LocalDateTime.now().plusDays(expireTimeInDays);
 
             // 5. 构建验证链接URL
             String verifyUrl = webInfoPropertiesConfig.getApiSite() + verifyLink.getBasePath() + "?token=" + verifyToken;
@@ -191,10 +193,10 @@ public class KeyPublicController {
                     });
 
             // 8. 立即返回成功提示
-            return ApiResponse.success("验证邮件已发送，请检查邮箱并在30分钟内完成验证",
+            return ApiResponse.success("验证邮件已发送，请检查邮箱并在" + expireTimeInDays + "天内完成验证",
                     EmailVerifyVo.builder()
                             .email(applicantEmail)
-                            .message("验证邮件已发送，请检查邮箱并在30分钟内完成验证")
+                            .message("验证邮件已发送，请检查邮箱并在" + expireTimeInDays + "天内完成验证")
                             .build()
             );
         } catch (Exception e) {
@@ -241,13 +243,10 @@ public class KeyPublicController {
                 return ResponseEntity.ok(renderVerifyEmailFailurePage("验证链接已使用", "该验证链接已被使用，请勿重复点击。"));
             }
 
-            // 4. 更新状态为1（已验证）
-            mailApplyRecordService.updateStatus(record.getId(), ApplyStatus.HAS_VERIFIED);
-
             // 5. 从卡密池获取卡密
             String licenseKey = keyinfoManagerService.getUnusedFreeKeyFromPool();
 
-            // 6. 更新记录的卡密字段
+            // 6. 更新记录状态和卡密字段
             mailApplyManagerService.updateApplyRecordOnSendSuccess(record.getId(), licenseKey);
 
             // 7. 同步发送卡密邮件，根据发送结果返回对应页面
@@ -261,7 +260,7 @@ public class KeyPublicController {
                 return ResponseEntity.ok(renderVerifyEmailFailurePage("邮件发送失败", "卡密邮件发送失败，请联系客服处理。"));
             }
 
-            // 9. 返回验证成功HTML页面
+            // 8. 返回验证成功HTML页面
             return ResponseEntity.ok(renderVerifyEmailSuccessPage(applicantEmail, licenseKey));
         } catch (Exception e) {
             log.error("邮箱验证失败: {}", e.getMessage(), e);

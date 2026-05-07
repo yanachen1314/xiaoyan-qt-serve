@@ -28,7 +28,7 @@ public class MailPropertiesConfig {
     public static class VerifyLinkConfig {
         // 邮箱验证验证链接长度
         private Integer tokenLength;
-        // 邮箱验证链接有效期（分钟）
+        // 邮箱验证链接有效期（天）
         private Integer expireTime;
         // 链接校验基础路径
         private String basePath;
