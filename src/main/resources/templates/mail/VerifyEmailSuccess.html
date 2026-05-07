@@ -1,153 +1,321 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="zh-CN">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title th:text="${title}">验证成功 - 小烟改写工具</title>
     <style>
+        /* 重置样式 */
+        body,
+        table,
+        td,
+        a {
+            -webkit-text-size-adjust: 100%;
+            -ms-text-size-adjust: 100%;
+        }
+        a {
+            text-decoration: none;
+            color: #333333;
+        }
+
+        table,
+        td {
+            mso-table-lspace: 0;
+            mso-table-rspace: 0;
+        }
+
+        img {
+            -ms-interpolation-mode: bicubic;
+        }
+
+        /* 基础样式 */
         body {
             margin: 0;
             padding: 0;
-            background-image:linear-gradient(135deg,#C6F6D5 ,#BEE3F8 100%);
+            background-color: #f5f5f5;
             font-family: Arial, 'Microsoft YaHei', sans-serif;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            font-size: 14px;
+            line-height: 1.5;
+            color: #333333;
         }
 
+        /* 容器样式 */
         .container {
-            background: #ffffff;
-            border-radius: 16px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-            padding: 50px;
-            max-width: 500px;
             width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        /* 头部样式 */
+        .header {
+            background-color: #67C23A;
+            color: #ffffff;
+            padding: 30px 20px;
             text-align: center;
         }
 
-        .icon {
-            font-size: 80px;
-            color: #4CAF50;
-            margin-bottom: 20px;
-        }
-
-        h1 {
-            color: #333333;
+        .header h1 {
+            margin: 0;
             font-size: 28px;
-            margin-bottom: 15px;
-        }
-
-        p {
-            color: #666666;
-            font-size: 16px;
-            line-height: 1.6;
-            margin-bottom: 15px;
-        }
-
-        .email {
-            background: #f5f5f5;
-            padding: 15px;
-            border-radius: 8px;
             font-weight: bold;
-            color: #333333;
-            margin: 20px 0;
         }
 
-        .license-key {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 20px;
+        .header .subtitle {
+            margin: 10px 0 0 0;
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        /* 内容区域样式 */
+        .content {
+            padding: 30px;
+        }
+
+        .content p {
+            margin: 0 0 20px 0;
+        }
+
+        /* 成功信息卡片 */
+        .success-card {
+            background: linear-gradient(135deg, #f0f9eb 0%, #e1f3d8 100%);
+            border: 2px solid #67C23A;
             border-radius: 12px;
+            padding: 30px;
             margin: 25px 0;
-            position: relative;
+            text-align: center;
         }
 
-        .license-key-label {
-            color: rgba(255, 255, 255, 0.9);
-            font-size: 14px;
+        .success-card .card-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        .success-card .card-title {
+            font-size: 18px;
+            color: #333333;
             margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .success-card .card-content {
+            font-size: 14px;
+            color: #666666;
+            line-height: 1.6;
+        }
+
+        .success-card .email {
+            display: inline-block;
+            background: rgba(103, 194, 58, 0.15);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            color: #529b2e;
+            margin-top: 10px;
+        }
+
+        /* 密钥卡片 */
+        .license-card {
+            background-color: #f8f9fa;
+            border: 2px solid #409EFF;
+            border-radius: 12px;
+            padding: 30px;
+            margin: 25px 0;
+            text-align: center;
+        }
+
+        .license-card .card-title {
+            font-size: 18px;
+            color: #333333;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .license-key-box {
+            background-color: #ffffff;
+            border: 1px solid #dcdfe6;
+            border-radius: 8px;
+            padding: 15px 20px;
+            margin-bottom: 15px;
         }
 
         .license-key-value {
-            background: rgba(255, 255, 255, 0.2);
-            padding: 12px 16px;
-            border-radius: 8px;
             font-family: 'Courier New', monospace;
-            font-size: 16px;
+            font-size: 18px;
             font-weight: bold;
-            color: #ffffff;
+            color: #409EFF;
             letter-spacing: 1px;
             word-break: break-all;
         }
 
         .copy-btn {
-            background: rgba(255, 255, 255, 0.3);
-            border: none;
-            padding: 8px 16px;
-            border-radius: 6px;
+            display: inline-block;
+            background-color: #409EFF;
             color: #ffffff;
-            font-size: 13px;
+            padding: 10px 25px;
+            border-radius: 50px;
+            font-size: 14px;
+            font-weight: bold;
+            border: none;
             cursor: pointer;
-            margin-top: 12px;
-            transition: background 0.3s;
+            transition: background-color 0.2s;
         }
 
         .copy-btn:hover {
-            background: rgba(255, 255, 255, 0.5);
+            background-color: #3a8ee6;
         }
 
-        .copy-btn.copied {
-            background: #4CAF50;
+        .copy-btn.done {
+            background-color: #67C23A;
         }
 
-        .tip {
-            background: #e3f2fd;
-            padding: 15px;
+        /* 注意事项样式 */
+        .notice {
+            background-color: #fff3cd;
+            border: 1px solid #ffeeba;
             border-radius: 8px;
-            color: #1976d2;
-            margin-top: 20px;
-            font-size: 14px;
+            padding: 20px;
+            margin: 25px 0;
         }
 
+        .notice h3 {
+            margin: 0 0 12px 0;
+            font-size: 16px;
+            color: #856404;
+        }
+
+        .notice ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+
+        .notice li {
+            margin-bottom: 8px;
+            color: #856404;
+            line-height: 1.6;
+        }
+
+        /* 底部样式 */
         .footer {
-            margin-top: 30px;
+            background-color: #f5f5f5;
+            padding: 20px;
+            text-align: center;
             color: #999999;
             font-size: 12px;
         }
+
+        .footer-links {
+            margin: 15px 0;
+        }
+
+        .footer-links a {
+            color: #409EFF;
+            text-decoration: none;
+            margin: 0 10px;
+            font-size: 12px;
+        }
+
+        /* 响应式设计 */
+        @media only screen and (max-width: 600px) {
+            .container {
+                width: 100% !important;
+                border-radius: 0;
+            }
+
+            .content {
+                padding: 20px;
+            }
+
+            .success-card,
+            .license-card {
+                padding: 20px;
+            }
+
+            .copy-btn {
+                width: 80%;
+            }
+        }
     </style>
 </head>
+
 <body>
-<div class="container">
-    <div class="icon">✓</div>
-    <h1>验证成功！</h1>
-    <p>恭喜您，邮箱验证已成功完成。</p>
-    <div class="email">验证邮箱：<span th:text="${email}">example@example.com</span></div>
-    <div class="license-key">
-        <div class="license-key-label">您的专属密钥</div>
-        <div class="license-key-value" id="licenseKey" th:text="${licenseKey}">XXXX-XXXX-XXXX-XXXX</div>
-        <button class="copy-btn" onclick="copyKey()">复制密钥</button>
+    <div class="container">
+        <!-- 头部 -->
+        <div class="header">
+            <h1>验证成功</h1>
+            <div class="subtitle">邮箱验证已完成</div>
+        </div>
+
+        <!-- 内容区域 -->
+        <div class="content">
+            <p>尊敬的用户：</p>
+
+            <!-- 成功信息卡片 -->
+            <div class="success-card">
+                <div class="card-icon">&#10003;</div>
+                <div class="card-title">邮箱验证已通过</div>
+                <div class="card-content">
+                    <p>恭喜您！邮箱验证已成功完成。</p>
+                    <div class="email" th:text="${email}">example@example.com</div>
+                </div>
+            </div>
+
+            <!-- 密钥卡片 -->
+            <div class="license-card">
+                <div class="card-title">您的专属密钥</div>
+                <div class="license-key-box">
+                    <div class="license-key-value" id="licenseKey" th:text="${licenseKey}">XXXX-XXXX-XXXX-XXXX</div>
+                </div>
+                <button class="copy-btn" id="copyBtn" onclick="copyKey()">复制密钥</button>
+            </div>
+
+            <!-- 注意事项 -->
+            <div class="notice">
+                <h3>注意事项</h3>
+                <ul>
+                    <li>请妥善保管您的密钥，切勿泄露给他人</li>
+                    <li>密钥可用于激活小烟改写工具的全部功能</li>
+                    <li>如密钥丢失，请联系客服进行找回</li>
+                </ul>
+            </div>
+
+            <p>感谢您使用小烟改写工具，祝您使用愉快！</p>
+
+            <p>此致<br />小烟改写工具团队</p>
+        </div>
+
+        <!-- 底部 -->
+        <div class="footer">
+            <div class="footer-links">
+                <a href="#" th:href="${website}">首页</a>
+                <a href="#" th:href="${website} + '/active'">激活/切换卡密</a>
+                <a href="#" th:href="${shopUrl}" target="_blank">购买卡密</a>
+                <a href="#" th:href="${website} + '/help'">使用说明</a>
+                <a href="#" th:href="${website} + '/privacy'">隐私协议</a>
+            </div>
+            <p>验证时间：<span th:text="${verifyTime}">2026-01-01 00:00:00</span></p>
+            <p>&copy; <span th:text="${#dates.year(#dates.createNow())}">2025</span> 小烟改写工具. 保留所有权利.</p>
+        </div>
     </div>
-    <div class="tip">
-        <strong>提示：</strong>请妥善保管您的密钥，切勿泄露给他人。密钥可用于激活小烟改写工具的全部功能。
-    </div>
-    <div class="footer">
-        <p>验证时间：<span th:text="${verifyTime}">2026-01-01 00:00:00</span></p>
-        <p>© 2025 小烟改写工具. 保留所有权利.</p>
-    </div>
-</div>
-<script>
-function copyKey() {
-    var keyText = document.getElementById('licenseKey').innerText;
-    navigator.clipboard.writeText(keyText).then(function() {
-        var btn = document.querySelector('.copy-btn');
-        btn.innerText = '已复制';
-        btn.classList.add('copied');
-        setTimeout(function() {
-            btn.innerText = '复制密钥';
-            btn.classList.remove('copied');
-        }, 2000);
-    });
-}
-</script>
+
+    <script>
+        function copyKey() {
+            var text = document.getElementById('licenseKey').innerText;
+            navigator.clipboard.writeText(text).then(function () {
+                var btn = document.getElementById('copyBtn');
+                btn.innerText = '已复制';
+                btn.classList.add('done');
+                setTimeout(function () {
+                    btn.innerText = '复制密钥';
+                    btn.classList.remove('done');
+                }, 2000);
+            });
+        }
+    </script>
 </body>
+
 </html>
