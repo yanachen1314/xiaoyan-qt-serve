@@ -14,14 +14,19 @@ import static com.yan.xiaoyanqtserve.common.Constants.HEADER_PREFIX;
  */
 public class NetUtil {
 
+    /**
+     * 获取客户端IP地址
+     * @param request HTTP请求对象
+     * @return 客户端IP地址
+     */
     public static String getClientIpAddress(HttpServletRequest request) {
-        String xForwardedFor = request.getHeader("X-Forwarded-For");
-        if (xForwardedFor != null && !xForwardedFor.isEmpty() && !"unknown".equalsIgnoreCase(xForwardedFor)) {
-            return xForwardedFor.split(",")[0].trim();
-        }
         String xRealIp = request.getHeader("X-Real-IP");
         if (xRealIp != null && !xRealIp.isEmpty() && !"unknown".equalsIgnoreCase(xRealIp)) {
             return xRealIp;
+        }
+        String xForwardedFor = request.getHeader("X-Forwarded-For");
+        if (xForwardedFor != null && !xForwardedFor.isEmpty() && !"unknown".equalsIgnoreCase(xForwardedFor)) {
+            return xForwardedFor.split(",")[0].trim();
         }
         return request.getRemoteAddr();
     }
