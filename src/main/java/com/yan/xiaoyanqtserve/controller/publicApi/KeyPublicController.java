@@ -32,6 +32,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * 密钥公开控制器
@@ -234,12 +235,13 @@ public class KeyPublicController {
             }
 
             // 3. 验证状态是否为已验证或已发送卡密
-            if (record.getApplyStatus() == ApplyStatus.HAS_VERIFIED.getCode() || record.getApplyStatus() == ApplyStatus.HAS_SENT.getCode()) {
+            if (Objects.equals(record.getApplyStatus(), ApplyStatus.HAS_VERIFIED.getCode())
+                    || Objects.equals(record.getApplyStatus(), ApplyStatus.HAS_SENT.getCode())) {
                 return ResponseEntity.ok(renderVerifyEmailSuccessPage(record.getApplicantEmail(), record.getApplyApiKey()));
             }
 
             // 4. 验证状态是否为未验证
-            if (record.getApplyStatus() != ApplyStatus.NOT_VERIFIED.getCode()) {
+            if (!Objects.equals(record.getApplyStatus(), ApplyStatus.NOT_VERIFIED.getCode())) {
                 return ResponseEntity.ok(renderVerifyEmailFailurePage("验证链接已使用", "该验证链接已被使用，请勿重复点击。"));
             }
 
