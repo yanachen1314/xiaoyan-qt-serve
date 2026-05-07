@@ -231,8 +231,13 @@ public class KeyPublicController {
                 return ResponseEntity.ok(renderVerifyEmailFailurePage("验证链接已过期", "该验证链接已过期，请重新申请。"));
             }
 
-            // 3. 验证状态是否为0（未验证）
-            if (record.getApplyStatus() != 0) {
+            // 3. 验证状态是否为已验证或已发送卡密
+            if (record.getApplyStatus() == ApplyStatus.HAS_VERIFIED.getCode() || record.getApplyStatus() == ApplyStatus.HAS_SENT.getCode()) {
+                return ResponseEntity.ok(renderVerifyEmailSuccessPage(record.getApplicantEmail(), record.getApplyApiKey()));
+            }
+
+            // 4. 验证状态是否为未验证
+            if (record.getApplyStatus() != ApplyStatus.NOT_VERIFIED.getCode()) {
                 return ResponseEntity.ok(renderVerifyEmailFailurePage("验证链接已使用", "该验证链接已被使用，请勿重复点击。"));
             }
 
@@ -256,8 +261,8 @@ public class KeyPublicController {
                 return ResponseEntity.ok(renderVerifyEmailFailurePage("邮件发送失败", "卡密邮件发送失败，请联系客服处理。"));
             }
 
-            // 8. 返回验证成功HTML页面
-            return ResponseEntity.ok(renderVerifyEmailSuccessPage(applicantEmail));
+            // 9. 返回验证成功HTML页面
+            return ResponseEntity.ok(renderVerifyEmailSuccessPage(applicantEmail, licenseKey));
         } catch (Exception e) {
             log.error("邮箱验证失败: {}", e.getMessage(), e);
             return ResponseEntity.ok(renderVerifyEmailFailurePage("验证失败", "验证过程中发生错误，请稍后重试。"));
@@ -267,10 +272,11 @@ public class KeyPublicController {
     /**
      * 渲染邮箱验证成功页面
      * @param email 验证成功的邮箱地址
+     * @param licenseKey 申请到的卡密
      * @return HTML页面内容
      */
-    private String renderVerifyEmailSuccessPage(String email) {
-        return templateService.generateVerifyEmailSuccessPage(email);
+    private String renderVerifyEmailSuccessPage(String email, String licenseKey) {
+        return templateService.generateVerifyEmailSuccessPage(email, licenseKey);
     }
 
     /**

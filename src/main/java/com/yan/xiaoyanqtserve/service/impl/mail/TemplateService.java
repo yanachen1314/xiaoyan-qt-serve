@@ -157,12 +157,14 @@ public class TemplateService {
      * 生成邮箱验证结果-成功页面模板
      *
      * @param email 验证成功的邮箱地址
+     * @param licenseKey 申请到的卡密
      * @return HTML字符串
      */
-    public String generateVerifyEmailSuccessPage(String email) {
+    public String generateVerifyEmailSuccessPage(String email, String licenseKey) {
         Context context = new Context();
         context.setVariable("title", "验证成功 - 小烟改写工具");
         context.setVariable("email", email);
+        context.setVariable("licenseKey", licenseKey);
         context.setVariable("verifyTime", LocalDateTime.now().toString());
 
         return templateEngine.process(TEMPLATE_PATH + MailTemplateEnum.VERIFY_EMAIL_SUCCESS.getName(), context);
