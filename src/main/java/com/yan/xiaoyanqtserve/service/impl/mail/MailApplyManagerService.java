@@ -35,9 +35,9 @@ import java.util.Base64;
 @Service
 @RequiredArgsConstructor
 public class MailApplyManagerService {
-    private final MailSendRecordService mailSendRecordService;
     private final MailPropertiesConfig mailPropertiesConfig;
 
+    private final MailSendRecordService mailSendRecordService;
     private final MailApplyRecordService mailApplyRecordService;
     private final MailApplyRecordMapper mailApplyRecordMapper;
 
@@ -46,16 +46,26 @@ public class MailApplyManagerService {
     private final ProductTypeService productTypeService;
 
     /**
-     * 检查邮箱是否已申请但未验证（status=0）
+     * 检查邮箱是否已申请
      *
      * @param email 邮箱地址
      * @return true-已申请，false-未申请
      */
-    public boolean hasPendingVerification(String email) {
+    public boolean hasEmailApply(String email) {
         LambdaQueryWrapper<MailApplyRecord> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(MailApplyRecord::getApplicantEmail, email)
-                .eq(MailApplyRecord::getApplyStatus, ApplyStatus.NOT_VERIFIED.getCode());
+        queryWrapper.eq(MailApplyRecord::getApplicantEmail, email);
         return mailApplyRecordMapper.selectCount(queryWrapper) > 0;
+    }
+    /**
+     * 邮箱已申请并检查是否发送过验证邮件
+     *
+     * @param email 邮箱地址
+     * @return true-已申请并发送过验证邮件，false-已申请并未发送过验证邮件
+     */
+    public boolean hasEmailApplyAndSend(String email) {
+        LambdaQueryWrapper<MailSendRecord> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(MailSendRecord::getSendToEmail, email);
+        return mailSendRecordService.count(queryWrapper) > 0;
     }
 
     /**
