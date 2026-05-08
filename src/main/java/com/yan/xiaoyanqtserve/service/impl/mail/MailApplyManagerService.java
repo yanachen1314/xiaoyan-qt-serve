@@ -1,14 +1,14 @@
 package com.yan.xiaoyanqtserve.service.impl.mail;
 
-import com.yan.xiaoyanqtserve.common.enums.ApplyStatus;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.yan.xiaoyanqtserve.config.custome.MailPropertiesConfig;
 import com.yan.xiaoyanqtserve.entity.MailApplyRecord;
 import com.yan.xiaoyanqtserve.entity.MailSendRecord;
+import com.yan.xiaoyanqtserve.mapper.MailApplyRecordMapper;
 import com.yan.xiaoyanqtserve.service.MailApplyRecordService;
 import com.yan.xiaoyanqtserve.service.MailSendRecordService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DuplicateKeyException;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -26,8 +26,11 @@ import java.util.Base64;
 @RequiredArgsConstructor
 public class MailApplyManagerService {
     private final MailSendRecordService mailSendRecordService;
-    private final MailApplyRecordService mailApplyRecordService;
     private final MailPropertiesConfig mailPropertiesConfig;
+
+    private final MailApplyRecordService mailApplyRecordService;
+    private final MailApplyRecordMapper mailApplyRecordMapper;
+
     /**
      * 生成验证链接token
      *
@@ -40,36 +43,59 @@ public class MailApplyManagerService {
         return Base64.getUrlEncoder().withoutPadding().encodeToString(randomBytes);
     }
 
-    /**
-     * 验证链接成功，更新申请记录状态
-     */
-    public void updateApplyRecordStatusSuccess(Long recordId, String licenseKey){
-        MailApplyRecord updateRecord = new MailApplyRecord();
-        updateRecord.setId(recordId);
-        updateRecord.setApplyApiKey(licenseKey);
-        updateRecord.setApplyStatus(ApplyStatus.HAS_SENT.getCode());
-        mailApplyRecordService.updateById(updateRecord);
-    }
 
     /**
-     * 验证链接失败，更新申请记录状态
+     * 检查邮箱是否已申请但未验证（status=0）且未过期
+     *
+     * @param email 邮箱地址
+     * @return true-已申请且未过期，false-未申请或已过期
      */
-    public void updateApplyRecordStatusFailed(Long recordId,  ApplyStatus applyStatus){
-        MailApplyRecord updateRecord = new MailApplyRecord();
-        updateRecord.setId(recordId);
-        updateRecord.setApplyStatus(applyStatus.getCode());
-        updateRecord.setRemark(applyStatus.getMessage());
-        mailApplyRecordService.updateById(updateRecord);
+    public boolean hasPendingVerification(String email) {
+        LambdaQueryWrapper<MailApplyRecord> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(MailApplyRecord::getApplicantEmail, email)
+                .eq(MailApplyRecord::getApplyStatus, 0)
+                .gt(MailApplyRecord::getVerifyExpireTime, LocalDateTime.now());
+        return mailApplyRecordMapper.selectCount(queryWrapper) > 0;
+    }
+    /**
+     * 检查邮箱是否已验证
+     *
+     * @param email 邮箱地址
+     * @return true-已验证，false-未验证
+     */
+    public boolean hasVerified(String email) {
+        LambdaQueryWrapper<MailApplyRecord> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(MailApplyRecord::getApplicantEmail, email)
+                .eq(MailApplyRecord::getApplyStatus, 1);
+        return mailApplyRecordMapper.selectCount(queryWrapper) > 0;
+    }
+    /**
+     * 检查邮箱是否已发送卡密
+     *
+     * @param email 邮箱地址
+     * @return true-已发送卡密，false-未发送卡密
+     */
+    public boolean hasSentKey(String email) {
+        LambdaQueryWrapper<MailApplyRecord> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(MailApplyRecord::getApplicantEmail, email)
+                .eq(MailApplyRecord::getApplyStatus, 2);
+        return mailApplyRecordMapper.selectCount(queryWrapper) > 0;
+    }
+    /**
+     * 根据token查询验证记录
+     *
+     * @param token 验证token
+     * @return 验证记录实体，不存在则返回null
+     */
+    public MailApplyRecord getByToken(String token) {
+        LambdaQueryWrapper<MailApplyRecord> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(MailApplyRecord::getVerifyToken, token);
+        return mailApplyRecordMapper.selectOne(queryWrapper);
     }
 
-    /**
-     * 保存邮件申领记录（同步）
-     * @param record 邮件申领记录
-     * @throws DuplicateKeyException 如果该邮箱已领取过
-     */
-    public void saveApplyRecordSync(MailApplyRecord record) {
-        mailApplyRecordService.recordLicense(record);
-    }
+
+
+
 
     /**
      * 保存邮件发送记录（异步）

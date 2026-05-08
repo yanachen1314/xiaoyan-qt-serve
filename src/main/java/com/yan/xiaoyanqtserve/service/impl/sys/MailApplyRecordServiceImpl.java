@@ -1,8 +1,8 @@
 package com.yan.xiaoyanqtserve.service.impl.sys;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.yan.xiaoyanqtserve.common.enums.ApplyStatus;
+import com.yan.xiaoyanqtserve.common.exception.BizException;
 import com.yan.xiaoyanqtserve.entity.MailApplyRecord;
 import com.yan.xiaoyanqtserve.mapper.MailApplyRecordMapper;
 import com.yan.xiaoyanqtserve.service.MailApplyRecordService;
@@ -10,8 +10,7 @@ import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
-
-import java.time.LocalDateTime;
+import org.springframework.util.StringUtils;
 
 /**
  * 免费领取卡密记录服务实现类
@@ -33,49 +32,14 @@ public class MailApplyRecordServiceImpl extends ServiceImpl<MailApplyRecordMappe
      * @throws DuplicateKeyException 如果该邮箱已领取过
      */
     @Override
-    public void recordLicense(MailApplyRecord record) {
-        mailApplyRecordMapper.insert(record);
-    }
-
-    /**
-     * 检查邮箱是否已验证
-     *
-     * @param email 邮箱地址
-     * @return true-已验证，false-未验证
-     */
-    @Override
-    public boolean hasVerified(String email) {
-        LambdaQueryWrapper<MailApplyRecord> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(MailApplyRecord::getApplicantEmail, email)
-                    .eq(MailApplyRecord::getApplyStatus, 1);
-        return mailApplyRecordMapper.selectCount(queryWrapper) > 0;
-    }
-
-    /**
-     * 检查邮箱是否已发送卡密
-     *
-     * @param email 邮箱地址
-     * @return true-已发送卡密，false-未发送卡密
-     */
-    @Override
-    public boolean hasSentKey(String email) {
-        LambdaQueryWrapper<MailApplyRecord> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(MailApplyRecord::getApplicantEmail, email)
-                .eq(MailApplyRecord::getApplyStatus, 2);
-        return mailApplyRecordMapper.selectCount(queryWrapper) > 0;
-    }
-
-    /**
-     * 根据token查询验证记录
-     *
-     * @param token 验证token
-     * @return 验证记录实体，不存在则返回null
-     */
-    @Override
-    public MailApplyRecord getByToken(String token) {
-        LambdaQueryWrapper<MailApplyRecord> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(MailApplyRecord::getVerifyToken, token);
-        return mailApplyRecordMapper.selectOne(queryWrapper);
+    public void saveApplyRecord(MailApplyRecord record) {
+        try {
+            mailApplyRecordMapper.insert(record);
+        } catch (DuplicateKeyException e) {
+            throw new BizException("该邮箱已领取过");
+        } catch (Exception e) {
+            throw new BizException("保存领取记录失败", e);
+        }
     }
 
     /**
@@ -92,35 +56,38 @@ public class MailApplyRecordServiceImpl extends ServiceImpl<MailApplyRecordMappe
         mailApplyRecordMapper.updateById(record);
     }
 
-
     /**
-     * 检查邮箱是否已申请但未验证（status=0）且未过期
-     *
-     * @param email 邮箱地址
-     * @return true-已申请且未过期，false-未申请或已过期
+     * 验证领取成功，更新记录状态和 apiKey
+     * @param id 记录ID
+     * @param apiKey 领取的卡密
      */
     @Override
-    public boolean hasPendingVerification(String email) {
-        LambdaQueryWrapper<MailApplyRecord> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(MailApplyRecord::getApplicantEmail, email)
-                    .eq(MailApplyRecord::getApplyStatus, 0)
-                    .gt(MailApplyRecord::getVerifyExpireTime, LocalDateTime.now());
-        return mailApplyRecordMapper.selectCount(queryWrapper) > 0;
+    public void verifyApplySuccess(Long id, String apiKey) {
+        MailApplyRecord updateRecord = new MailApplyRecord();
+        updateRecord.setId(id);
+        updateRecord.setApplyApiKey(apiKey);
+        updateRecord.setApplyStatus(ApplyStatus.HAS_SENT.getCode());
+        mailApplyRecordMapper.updateById(updateRecord);
     }
 
     /**
-     * 获取邮箱的待验证记录（status=0）
+     * 验证领取失败，更新记录状态
      *
-     * @param email 邮箱地址
-     * @return 验证记录实体，不存在则返回null
+     * @param id          记录ID
+     * @param applyStatus 新状态
+     * @param errMsg      错误信息
      */
     @Override
-    public MailApplyRecord getPendingRecord(String email) {
-        LambdaQueryWrapper<MailApplyRecord> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(MailApplyRecord::getApplicantEmail, email)
-                    .eq(MailApplyRecord::getApplyStatus, 0)
-                    .orderByDesc(MailApplyRecord::getCreatedTime)
-                    .last("LIMIT 1");
-        return mailApplyRecordMapper.selectOne(queryWrapper);
+    public void verifyApplyFail(Long id, ApplyStatus applyStatus, String errMsg) {
+        MailApplyRecord updateRecord = new MailApplyRecord();
+        updateRecord.setId(id);
+        updateRecord.setApplyStatus(applyStatus.getCode());
+        if (StringUtils.hasText(errMsg)) {
+            updateRecord.setRemark(applyStatus.getMessage() + "，详情：" + errMsg);
+        } else {
+            updateRecord.setRemark(applyStatus.getMessage());
+        }
+        mailApplyRecordMapper.updateById(updateRecord);
     }
+
 }

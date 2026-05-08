@@ -142,15 +142,15 @@ public class KeyPublicController {
             }
 
             // 2. 检查邮箱是否已验证或已领取
-            if (mailApplyRecordService.hasVerified(applicantEmail)) {
+            if (mailApplyManagerService.hasVerified(applicantEmail)) {
                 throw new IllegalArgumentException("该邮箱已验证，请勿重复申请");
             }
-            if (mailApplyRecordService.hasSentKey(applicantEmail)) {
+            if (mailApplyManagerService.hasSentKey(applicantEmail)) {
                 throw new IllegalArgumentException("卡密已发送，请注意查收邮件");
             }
 
             // 3. 检查邮箱是否已申请但未验证
-            if (mailApplyRecordService.hasPendingVerification(applicantEmail)) {
+            if (mailApplyManagerService.hasPendingVerification(applicantEmail)) {
                 return ApiResponse.success("验证邮件已发送，请检查邮箱并在30分钟内完成验证",
                         EmailVerifyVo.builder()
                                 .email(applicantEmail)
@@ -180,7 +180,7 @@ public class KeyPublicController {
                     .clientIp(clientIp)
                     .userAgent(userAgent)
                     .build();
-            mailApplyManagerService.saveApplyRecordSync(record);
+            mailApplyRecordService.saveApplyRecord(record);
 
             // 7. 异步发送验证邮件
             mailPushService.sendEmailVerifyLink(applicantEmail, verifyUrl)
@@ -225,7 +225,7 @@ public class KeyPublicController {
         log.debug("邮箱验证请求，token: {}", token);
         try {
             // 1. 根据token查询验证记录
-            MailApplyRecord record = mailApplyRecordService.getByToken(token);
+            MailApplyRecord record = mailApplyManagerService.getByToken(token);
             if (record == null) {
                 return ResponseEntity.ok(renderVerifyEmailFailurePage("验证链接无效", "该验证链接不存在，请返回邮件重新点击验证链接。"));
             }
@@ -255,7 +255,7 @@ public class KeyPublicController {
             }
 
             // 6. 更新记录状态和卡密字段
-            mailApplyManagerService.updateApplyRecordStatusSuccess(record.getId(), licenseKey);
+            mailApplyRecordService.verifyApplySuccess(record.getId(), licenseKey);
 
             // 7. 返回验证成功HTML页面（密钥直接展示在页面中）
             return ResponseEntity.ok(renderVerifyEmailSuccessPage(record.getApplicantEmail(), licenseKey));

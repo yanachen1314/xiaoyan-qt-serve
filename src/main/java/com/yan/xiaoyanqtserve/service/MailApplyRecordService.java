@@ -19,32 +19,7 @@ public interface MailApplyRecordService extends IService<MailApplyRecord> {
      * @param record 领取记录实体
      * @throws DuplicateKeyException 如果该邮箱已领取过
      */
-    void recordLicense(MailApplyRecord record);
-
-
-    /**
-     * 检查邮箱是否已验证
-     *
-     * @param email 邮箱地址
-     * @return true-已验证，false-未验证
-     */
-    boolean hasVerified(String email);
-
-    /**
-     * 检查邮箱是否已发送卡密
-     *
-     * @param email 邮箱地址
-     * @return true-已发送卡密，false-未发送卡密
-     */
-    boolean hasSentKey(String email);
-
-    /**
-     * 根据token查询验证记录
-     *
-     * @param token 验证token
-     * @return 验证记录实体，不存在则返回null
-     */
-    MailApplyRecord getByToken(String token);
+    void saveApplyRecord(MailApplyRecord record);
 
     /**
      * 更新验证记录状态
@@ -54,20 +29,19 @@ public interface MailApplyRecordService extends IService<MailApplyRecord> {
      */
     void updateStatus(Long id, ApplyStatus status);
 
+    /**
+     * 验证领取成功，更新记录状态和 apiKey
+     * @param id 记录ID
+     * @param apiKey 领取的卡密
+     */
+    void verifyApplySuccess(Long id, String apiKey);
 
     /**
-     * 检查邮箱是否已申请但未验证（status=0）且未过期
+     * 验证领取失败，更新记录状态
      *
-     * @param email 邮箱地址
-     * @return true-已申请且未过期，false-未申请或已过期
+     * @param id          记录ID
+     * @param applyStatus 新状态
+     * @param errMsg      错误信息
      */
-    boolean hasPendingVerification(String email);
-
-    /**
-     * 获取邮箱的待验证记录（status=0）
-     *
-     * @param email 邮箱地址
-     * @return 验证记录实体，不存在则返回null
-     */
-    MailApplyRecord getPendingRecord(String email);
+    void verifyApplyFail(Long id, ApplyStatus applyStatus, String errMsg);
 }
