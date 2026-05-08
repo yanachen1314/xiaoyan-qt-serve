@@ -77,7 +77,7 @@ public class MailApplyManagerService {
     public boolean hasVerified(String email) {
         LambdaQueryWrapper<MailApplyRecord> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(MailApplyRecord::getApplicantEmail, email)
-                .eq(MailApplyRecord::getApplyStatus, ApplyStatus.HAS_SENT.getCode());
+                .eq(MailApplyRecord::getApplyStatus, ApplyStatus.SENT_SUCCESS.getCode());
         return mailApplyRecordMapper.selectCount(queryWrapper) > 0;
     }
 
@@ -90,7 +90,7 @@ public class MailApplyManagerService {
     public boolean hasSentKey(String email) {
         LambdaQueryWrapper<MailApplyRecord> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(MailApplyRecord::getApplicantEmail, email)
-                .eq(MailApplyRecord::getApplyStatus, ApplyStatus.HAS_SENT.getCode());
+                .eq(MailApplyRecord::getApplyStatus, ApplyStatus.SENT_SUCCESS.getCode());
         return mailApplyRecordMapper.selectCount(queryWrapper) > 0;
     }
 

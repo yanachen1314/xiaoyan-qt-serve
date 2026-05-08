@@ -11,8 +11,9 @@ import lombok.Getter;
 @Getter
 public enum ApplyStatus {
     NOT_VERIFIED((byte) 0, "未验证"),
-    HAS_SENT((byte) 1, "卡密已成功发送"),
-    HAS_SENT_FAILED((byte) 2, "验证链接已过期");
+    CLICKED((byte) 1, "已点击"),
+    HAS_SENT_FAILED((byte) 2, "验证链接已过期"),
+    SENT_SUCCESS((byte) 10, "卡密已成功发送");
 
     private final Byte code;
 

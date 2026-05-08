@@ -22,4 +22,12 @@ public interface MailApplyRecordMapper extends BaseMapper<MailApplyRecord> {
      */
     @Update("UPDATE mail_apply_record SET click_count = click_count + #{number} WHERE verify_token = #{token}")
     void increaseClickCountByToken(@Param("token") String token, @Param("number") Integer number);
+
+    /**
+     * 更新验证记录状态
+     * @param id     记录ID
+     * @param status 新状态
+     */
+    @Update("UPDATE mail_apply_record SET apply_status = #{status} WHERE id = #{id}")
+    void updateStatus(@Param("id") Long id, @Param("status") Byte status);
 }

@@ -187,19 +187,21 @@ public class KeyPublicController {
     public ResponseEntity<String> verifyEmailLink(@RequestParam("token") String token) {
         log.debug("邮箱验证请求，token: {}", token);
         try {
-            // 1、增加点击次数
-            mailApplyRecordService.increaseClickCountByToken(token);
-            // 2. 根据token查询验证记录
+            // 1. 根据token查询验证记录
             MailApplyRecord record = mailApplyManagerService.getByToken(token);
             if (record == null) {
                 return ResponseEntity.ok(renderVerifyEmailFailurePage("验证链接无效", "该验证链接不存在，请检查验证链接。"));
             }
+            // 2. 增加点击次数，并修改状态为已点击
+            mailApplyRecordService.increaseClickCountByToken(token);
+            mailApplyRecordService.updateStatus(record.getId(), ApplyStatus.CLICKED);
+
             // 3. 验证是否已过期
             if (record.getVerifyExpireTime().isBefore(LocalDateTime.now())) {
                 return ResponseEntity.ok(renderVerifyEmailFailurePage("验证链接已过期", "该验证链接已过期，申请已失效"));
             }
             // 4. 验证是否已成功发送卡密，如果已经发送过则直接返回成功页面
-            if (Objects.equals(record.getApplyStatus(), ApplyStatus.HAS_SENT.getCode())) {
+            if (Objects.equals(record.getApplyStatus(), ApplyStatus.SENT_SUCCESS.getCode())) {
                 return ResponseEntity.ok(renderVerifyEmailSuccessPage(record.getApplicantEmail(), record.getApplyApiKey()));
             }
 

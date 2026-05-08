@@ -59,10 +59,7 @@ public class MailApplyRecordServiceImpl extends ServiceImpl<MailApplyRecordMappe
      */
     @Override
     public void updateStatus(Long id, ApplyStatus status) {
-        MailApplyRecord record = new MailApplyRecord();
-        record.setId(id);
-        record.setApplyStatus(status.getCode());
-        mailApplyRecordMapper.updateById(record);
+        mailApplyRecordMapper.updateStatus( id, status.getCode());
     }
 
     /**
@@ -75,7 +72,7 @@ public class MailApplyRecordServiceImpl extends ServiceImpl<MailApplyRecordMappe
         MailApplyRecord updateRecord = new MailApplyRecord();
         updateRecord.setId(id);
         updateRecord.setApplyApiKey(apiKey);
-        updateRecord.setApplyStatus(ApplyStatus.HAS_SENT.getCode());
+        updateRecord.setApplyStatus(ApplyStatus.SENT_SUCCESS.getCode());
         mailApplyRecordMapper.updateById(updateRecord);
     }
 
