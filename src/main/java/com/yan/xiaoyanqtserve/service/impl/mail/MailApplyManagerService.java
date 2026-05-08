@@ -41,9 +41,9 @@ public class MailApplyManagerService {
     }
 
     /**
-     * 验证链接成功，邮件发送成功处理
+     * 验证链接成功，更新申请记录状态
      */
-    public void updateApplyRecordOnSendSuccess(Long recordId, String licenseKey){
+    public void updateApplyRecordStatusSuccess(Long recordId, String licenseKey){
         MailApplyRecord updateRecord = new MailApplyRecord();
         updateRecord.setId(recordId);
         updateRecord.setApplyApiKey(licenseKey);
@@ -52,13 +52,13 @@ public class MailApplyManagerService {
     }
 
     /**
-     * 邮件发送失败后的处理
+     * 验证链接失败，更新申请记录状态
      */
-    public void updateApplyRecordOnSendFailed(Long recordId, String licenseKey){
+    public void updateApplyRecordStatusFailed(Long recordId,  ApplyStatus applyStatus){
         MailApplyRecord updateRecord = new MailApplyRecord();
         updateRecord.setId(recordId);
-        updateRecord.setApplyApiKey(licenseKey);
-        updateRecord.setApplyStatus(ApplyStatus.HAS_SENT_FAILED.getCode());
+        updateRecord.setApplyStatus(applyStatus.getCode());
+        updateRecord.setRemark(applyStatus.getMessage());
         mailApplyRecordService.updateById(updateRecord);
     }
 
@@ -79,7 +79,7 @@ public class MailApplyManagerService {
      * @param resultMsg 结果信息
      */
     @Async("loggingExecutor")
-    public void saveSendRecordAsync(String senderEmail,String receiverEmail,Integer status,String resultMsg){
+    public void saveEmailSendRecordAsync(String senderEmail, String receiverEmail, Integer status, String resultMsg){
         try {
             MailSendRecord record = new MailSendRecord();
             record.setSystemSenderEmail(senderEmail);

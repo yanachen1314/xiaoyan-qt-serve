@@ -181,7 +181,7 @@ public class TemplateService {
         Context context = new Context();
         context.setVariable("title", title);
         context.setVariable("message", message);
-        context.setVariable("websiteUrl", webInfoPropertiesConfig.getApiSite());
+        context.setVariable("websiteUrl", webInfoPropertiesConfig.getWriterSite());
         context.setVariable("errorTime", LocalDateTime.now().toString());
 
         return templateEngine.process(TEMPLATE_PATH + MailTemplateEnum.VERIFY_EMAIL_FAILURE.getName(), context);

@@ -263,11 +263,11 @@ public class MailPushService {
             
             // 记录发送成功统计
             mailAccountManagerService.recordSuccess(from, today);
-            mailApplyManagerService.saveSendRecordAsync(from, to, 1, "邮件发送成功");
+            mailApplyManagerService.saveEmailSendRecordAsync(from, to, 1, "邮件发送成功");
             log.debug("【邮件发送】邮件发送成功: {} -> {}", from, to);
         } catch (Exception e) {
             log.error("【邮件发送】发送邮件异常: {}", e.getMessage());
-            mailApplyManagerService.saveSendRecordAsync(from, to, 0, "发送邮件异常: " + e.getMessage());
+            mailApplyManagerService.saveEmailSendRecordAsync(from, to, 0, "发送邮件异常: " + e.getMessage());
             if (e.getMessage().contains("550") || e.getMessage().contains("non-existent account")) {
                 throw new BizException("请检查收件人邮箱账号是否正确");
             } else if (e.getMessage().contains("Authentication failed") || e.getMessage().contains("invalid authentication")) {

@@ -40,7 +40,7 @@
 
         p {
             color: #666666;
-            font-size: 16px;
+            font-size: 14px;
             line-height: 1.6;
             margin-bottom: 15px;
         }
@@ -82,7 +82,7 @@
     <div class="error-box">
         <span th:text="${message}">验证过程中发生错误，请稍后重试。</span>
     </div>
-    <p>请返回邮件重新点击验证链接完成验证。</p>
+    <p>PS: 请尝试重新点击验证链接或重新申请，若问题依旧存在，请联系客服。</p>
     <a class="button" th:href="${websiteUrl}" href="#">前往官网</a>
     <div class="footer">
         <p>错误时间：<span th:text="${errorTime}">2026-01-01 00:00:00</span></p>

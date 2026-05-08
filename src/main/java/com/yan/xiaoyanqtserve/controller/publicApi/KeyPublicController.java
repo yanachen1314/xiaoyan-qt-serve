@@ -219,7 +219,7 @@ public class KeyPublicController {
      * @param token 验证token
      * @return HTML页面显示验证结果
      */
-    @RateLimiter(key = "verifyEmailLink", time = 60, count = 3, limitBy = RateLimiterType.IP)
+    @RateLimiter(key = "verifyEmailLink", time = 60, count = 10, limitBy = RateLimiterType.IP)
     @GetMapping(value = "/verifyEmailLink", produces = MediaType.TEXT_HTML_VALUE)
     public ResponseEntity<String> verifyEmailLink(@RequestParam("token") String token) {
         log.debug("邮箱验证请求，token: {}", token);
@@ -227,7 +227,7 @@ public class KeyPublicController {
             // 1. 根据token查询验证记录
             MailApplyRecord record = mailApplyRecordService.getByToken(token);
             if (record == null) {
-                return ResponseEntity.ok(renderVerifyEmailFailurePage("验证链接无效", "该验证链接不存在或已被使用，请返回邮件重新点击验证链接。"));
+                return ResponseEntity.ok(renderVerifyEmailFailurePage("验证链接无效", "该验证链接不存在，请返回邮件重新点击验证链接。"));
             }
 
             // 2. 验证是否已过期
@@ -255,7 +255,7 @@ public class KeyPublicController {
             }
 
             // 6. 更新记录状态和卡密字段
-            mailApplyManagerService.updateApplyRecordOnSendSuccess(record.getId(), licenseKey);
+            mailApplyManagerService.updateApplyRecordStatusSuccess(record.getId(), licenseKey);
 
             // 7. 返回验证成功HTML页面（密钥直接展示在页面中）
             return ResponseEntity.ok(renderVerifyEmailSuccessPage(record.getApplicantEmail(), licenseKey));

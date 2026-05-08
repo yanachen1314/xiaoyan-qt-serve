@@ -463,7 +463,7 @@ public class KeyInfoManagerService {
 
             // 关键修复：再次检查是否为空
             if (freeKeyValueObj == null) {
-                throw new BizException("免费密钥池补充后仍无可用密钥，请稍后再试或联系客服！");
+                throw new BizException("免费密钥池补充后仍无可用密钥，请联系客服！");
             }
         }
 
