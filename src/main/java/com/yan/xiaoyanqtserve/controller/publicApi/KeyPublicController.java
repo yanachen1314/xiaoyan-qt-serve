@@ -227,12 +227,7 @@ public class KeyPublicController {
                 mailApplyManagerService.saveApiKeyAndUpdateApplyRecord(record.getId(), licenseKey);
             } catch (Exception saveEx) {
                 // 事务回滚，将卡密归还到密钥池
-                try {
-                    keyinfoManagerService.returnFreeKeyToPool(licenseKey);
-                    log.info("卡密已归还密钥池，邮箱: {}, 卡密: {}", record.getApplicantEmail(), licenseKey);
-                } catch (Exception returnEx) {
-                    log.error("卡密归还池中失败，邮箱: {}, 卡密: {}, 原因: {}", record.getApplicantEmail(), licenseKey, returnEx.getMessage(), returnEx);
-                }
+                keyinfoManagerService.returnFreeKeyToPool(licenseKey);
                 log.error("保存密钥记录失败，邮箱: {}, 卡密: {}, 原因: {}", record.getApplicantEmail(), licenseKey, saveEx.getMessage(), saveEx);
                 return ResponseEntity.ok(renderVerifyEmailFailurePage("获取卡密失败", "获取卡密失败，请重新尝试！"));
             }
@@ -300,6 +295,7 @@ public class KeyPublicController {
         String message = "验证邮件已发送，" + hint + "请检查邮箱并在" + expireDays + "天内完成验证";
         return ApiResponse.success(message, EmailVerifyVo.builder().email(email).message(message).build());
     }
+
     private ApiResponse<EmailVerifyVo> buildApplySuccessResponse(String email, int expireDays) {
         return buildApplySuccessResponse(email, expireDays, null);
     }

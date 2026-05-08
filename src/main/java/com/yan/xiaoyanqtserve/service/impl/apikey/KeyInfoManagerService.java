@@ -439,12 +439,16 @@ public class KeyInfoManagerService {
      * @param freeKeyValue 要归还的卡密值
      */
     public void returnFreeKeyToPool(String freeKeyValue) {
-        // 将卡密重新添加到池中
-        redisUtil.sAdd(Constants.FREE_KEY_POOL, freeKeyValue);
-        // 递减今日发放计数
-        String today = LocalDate.now().toString();
-        String countKey = Constants.FREE_KEY_DAILY_COUNT + today;
-        redisUtil.decr(countKey, 1);
-        log.info("卡密已归还到密钥池: {}", freeKeyValue);
+        try {
+            // 将卡密重新添加到池中
+            redisUtil.sAdd(Constants.FREE_KEY_POOL, freeKeyValue);
+            // 递减今日发放计数
+            String today = LocalDate.now().toString();
+            String countKey = Constants.FREE_KEY_DAILY_COUNT + today;
+            redisUtil.decr(countKey, 1);
+            log.info("卡密已归还到密钥池: {}", freeKeyValue);
+        } catch (Exception returnEx) {
+            log.error("卡密归还池中失败，卡密: {}, 原因: {}", freeKeyValue , returnEx.getMessage(), returnEx);
+        }
     }
 }
