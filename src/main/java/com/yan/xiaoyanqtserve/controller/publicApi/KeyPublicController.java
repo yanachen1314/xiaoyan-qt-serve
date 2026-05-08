@@ -113,7 +113,7 @@ public class KeyPublicController {
      * 当前业务：免费密钥申请接口，邮箱轮询发送免费密钥，一个邮箱只能领取一次
      * </p>
      * <br/>
-     * {@link KeyPublicController#verifyEmailLink(String)} /verifyEmailLink（链接验证接口）
+     * /verifyEmailLink（链接验证接口）: {@link KeyPublicController#verifyEmailLink(String)}
      * @param emailApplyDto 包含收件人邮箱
      * @return 提示信息
      */
@@ -178,7 +178,7 @@ public class KeyPublicController {
      * <p>
      * 用户点击邮件中的验证链接，服务器验证token后直接在页面中展示卡密
      * </p>
-     * @see MailPropertiesConfig#getVerifyLink() 验证链接配置
+     * 验证链接配置: {@link MailPropertiesConfig#getVerifyLink()}
      * @param token 验证token
      * @return HTML页面显示验证结果
      */
