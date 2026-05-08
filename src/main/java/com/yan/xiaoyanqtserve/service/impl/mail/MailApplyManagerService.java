@@ -3,7 +3,6 @@ package com.yan.xiaoyanqtserve.service.impl.mail;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.yan.xiaoyanqtserve.common.Constants;
 import com.yan.xiaoyanqtserve.common.dto.key.GenerateKeyDto;
-import com.yan.xiaoyanqtserve.common.enums.ApplyStatus;
 import com.yan.xiaoyanqtserve.common.exception.BizException;
 import com.yan.xiaoyanqtserve.config.custome.MailPropertiesConfig;
 import com.yan.xiaoyanqtserve.entity.KeyInfo;
@@ -68,31 +67,6 @@ public class MailApplyManagerService {
         return mailSendRecordService.count(queryWrapper) > 0;
     }
 
-    /**
-     * 检查邮箱是否已点击验证链接
-     *
-     * @param email 邮箱地址
-     * @return true-已验证，false-未验证
-     */
-    public boolean hasVerified(String email) {
-        LambdaQueryWrapper<MailApplyRecord> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(MailApplyRecord::getApplicantEmail, email)
-                .eq(MailApplyRecord::getApplyStatus, ApplyStatus.SENT_SUCCESS.getCode());
-        return mailApplyRecordMapper.selectCount(queryWrapper) > 0;
-    }
-
-    /**
-     * 检查邮箱是否已发送卡密
-     *
-     * @param email 邮箱地址
-     * @return true-已发送卡密，false-未发送卡密
-     */
-    public boolean hasSentKey(String email) {
-        LambdaQueryWrapper<MailApplyRecord> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(MailApplyRecord::getApplicantEmail, email)
-                .eq(MailApplyRecord::getApplyStatus, ApplyStatus.SENT_SUCCESS.getCode());
-        return mailApplyRecordMapper.selectCount(queryWrapper) > 0;
-    }
 
     /**
      * 根据token查询验证记录

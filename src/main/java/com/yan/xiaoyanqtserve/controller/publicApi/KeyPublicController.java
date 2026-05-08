@@ -205,10 +205,14 @@ public class KeyPublicController {
             if (Objects.equals(record.getApplyStatus(), ApplyStatus.SENT_SUCCESS.getCode())) {
                 return ResponseEntity.ok(renderVerifyEmailSuccessPage(record.getApplicantEmail(), record.getApplyApiKey()));
             }
+            // 验证是否出现了异常错误
+            if (Objects.equals(record.getApplyStatus(), ApplyStatus.GET_KEY_FAILED.getCode())
+                    || Objects.equals(record.getApplyStatus(), ApplyStatus.SAVE_RECORD_FAILED.getCode())) {
+                return ResponseEntity.ok(renderVerifyEmailFailurePage("获取卡密失败", "获取卡密失败，请重新尝试！"));
+            }
 
             // 判断是否为第一次点击
-            Boolean firstClick = mailApplyManagerService.isFirstClickAfterIncClickCount(token);
-
+            // Boolean firstClick = mailApplyManagerService.isFirstClickAfterIncClickCount(token);
 
             // 5. 从卡密池获取卡密
             String licenseKey;
