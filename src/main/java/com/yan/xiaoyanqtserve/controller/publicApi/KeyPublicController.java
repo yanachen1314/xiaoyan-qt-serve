@@ -232,9 +232,14 @@ public class KeyPublicController {
                                 .build()
                 );
             }
-        } catch (Exception e) {
-            log.error("邮箱验证申请失败: {}", e.getMessage(), e);
+        } catch (BizException | IllegalArgumentException e) {
+            log.warn("邮箱验证申请失败: {}", e.getMessage());
             return ApiResponse.fail(e.getMessage(),
+                    EmailVerifyVo.builder().email(applicantEmail).build()
+            );
+        } catch (Exception e) {
+            log.error("邮箱验证申请异常，邮箱: {}", applicantEmail, e);
+            return ApiResponse.fail("申请失败，请稍后重试",
                     EmailVerifyVo.builder().email(applicantEmail).build()
             );
         }
