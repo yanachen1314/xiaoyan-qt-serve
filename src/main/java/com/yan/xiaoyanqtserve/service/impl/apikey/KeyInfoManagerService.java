@@ -322,6 +322,8 @@ public class KeyInfoManagerService {
 
     /**
      * 构建密钥信息
+     * <br>
+     * 生产密钥对象的辅助函数
      * @param key 密钥
      * @param operator 操作员
      * @param generateKeyDto 密钥生成参数
