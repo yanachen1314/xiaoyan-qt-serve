@@ -225,29 +225,25 @@ public class KeyPublicController {
     public ResponseEntity<String> verifyEmailLink(@RequestParam("token") String token) {
         log.debug("邮箱验证请求，token: {}", token);
         try {
-            // 增加点击次数
+            // 1、增加点击次数
             mailApplyRecordService.increaseClickCountByToken(token);
-
-            // 1. 根据token查询验证记录
+            // 2. 根据token查询验证记录
             MailApplyRecord record = mailApplyManagerService.getByToken(token);
             if (record == null) {
                 return ResponseEntity.ok(renderVerifyEmailFailurePage("验证链接无效", "该验证链接不存在，请返回邮件重新点击验证链接。"));
             }
-
-            // 2. 验证是否已过期
+            // 3. 验证是否已过期
             if (record.getVerifyExpireTime().isBefore(LocalDateTime.now())) {
                 return ResponseEntity.ok(renderVerifyEmailFailurePage("验证链接已过期", "该验证链接已过期，请返回邮件重新点击验证链接。"));
             }
-
-            // 3. 验证状态是否为已验证或已发送卡密
+            // 4. 验证是否已成功发送卡密，如果已经发送过则直接返回成功页面
             if (Objects.equals(record.getApplyStatus(), ApplyStatus.HAS_SENT.getCode())) {
                 return ResponseEntity.ok(renderVerifyEmailSuccessPage(record.getApplicantEmail(), record.getApplyApiKey()));
             }
 
-            // 4. 验证状态是否为未验证
-            if (!Objects.equals(record.getApplyStatus(), ApplyStatus.NOT_VERIFIED.getCode())) {
-                return ResponseEntity.ok(renderVerifyEmailFailurePage("验证链接已使用", "该验证链接已被使用，请勿重复点击。"));
-            }
+            // 判断是否为第一次点击
+            Boolean firstClick = mailApplyManagerService.isFirstClickAfterIncClickCount(token);
+
 
             // 5. 从卡密池获取卡密
             String licenseKey;

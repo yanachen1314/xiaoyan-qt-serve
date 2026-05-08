@@ -32,19 +32,6 @@ public class MailApplyManagerService {
     private final MailApplyRecordMapper mailApplyRecordMapper;
 
     /**
-     * 生成验证链接token
-     *
-     * @return 验证token字符串
-     */
-    public String generateVerifyToken() {
-        // 生成更安全的token
-        byte[] randomBytes = new byte[mailPropertiesConfig.getVerifyLink().getTokenLength()];
-        new SecureRandom().nextBytes(randomBytes);
-        return Base64.getUrlEncoder().withoutPadding().encodeToString(randomBytes);
-    }
-
-
-    /**
      * 检查邮箱是否已申请但未验证（status=0）且未过期
      *
      * @param email 邮箱地址
@@ -93,9 +80,33 @@ public class MailApplyManagerService {
         return mailApplyRecordMapper.selectOne(queryWrapper);
     }
 
+    /**
+     * 检查是否第一次点击
+     * <br/>
+     * 说明：在增加点击次数{@code mailApplyRecordService.increaseClickCountByToken()}之后进行判断，用于判断用户是否第一次点击验证链接
+     * @param token 验证token
+     * @return true-是第一次点击，false-不是第一次点击
+     */
+    public Boolean isFirstClickAfterIncClickCount(String token) {
+        LambdaQueryWrapper<MailApplyRecord> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(MailApplyRecord::getVerifyToken, token)
+                .eq(MailApplyRecord::getClickCount, 1);
+        return mailApplyRecordMapper.selectCount(queryWrapper) > 0;
+    }
 
 
 
+    /**
+     * 生成验证链接token
+     *
+     * @return 验证token字符串
+     */
+    public String generateVerifyToken() {
+        // 生成更安全的token
+        byte[] randomBytes = new byte[mailPropertiesConfig.getVerifyLink().getTokenLength()];
+        new SecureRandom().nextBytes(randomBytes);
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(randomBytes);
+    }
 
     /**
      * 保存邮件发送记录（异步）
