@@ -22,6 +22,13 @@ public interface MailApplyRecordService extends IService<MailApplyRecord> {
     void saveApplyRecord(MailApplyRecord record);
 
     /**
+     * 增加验证链接点击次数
+     * @param token     验证链接token
+     */
+    void increaseClickCountByToken(String token);
+
+
+    /**
      * 更新验证记录状态
      *
      * @param id 记录ID

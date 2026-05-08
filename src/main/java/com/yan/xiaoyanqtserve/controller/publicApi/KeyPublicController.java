@@ -174,6 +174,7 @@ public class KeyPublicController {
                     .applicantEmail(applicantEmail)
                     .verifyToken(verifyToken)
                     .applyStatus(ApplyStatus.NOT_VERIFIED.getCode())
+                    .clickCount(0)
                     .verifyExpireTime(expireTime)
                     .deviceType(deviceType)
                     .deviceId(deviceId)
@@ -224,6 +225,9 @@ public class KeyPublicController {
     public ResponseEntity<String> verifyEmailLink(@RequestParam("token") String token) {
         log.debug("邮箱验证请求，token: {}", token);
         try {
+            // 增加点击次数
+            mailApplyRecordService.increaseClickCountByToken(token);
+
             // 1. 根据token查询验证记录
             MailApplyRecord record = mailApplyManagerService.getByToken(token);
             if (record == null) {

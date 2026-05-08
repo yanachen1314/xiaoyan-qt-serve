@@ -43,6 +43,15 @@ public class MailApplyRecordServiceImpl extends ServiceImpl<MailApplyRecordMappe
     }
 
     /**
+     * 增加验证链接点击次数
+     *
+     * @param token     验证链接token
+     */
+    public void increaseClickCountByToken(String token) {
+        mailApplyRecordMapper.increaseClickCountByToken(token, 1);
+    }
+
+    /**
      * 更新验证记录状态
      *
      * @param id 记录ID

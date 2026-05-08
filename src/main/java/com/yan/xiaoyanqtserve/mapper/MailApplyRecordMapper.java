@@ -3,6 +3,8 @@ package com.yan.xiaoyanqtserve.mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.yan.xiaoyanqtserve.entity.MailApplyRecord;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Update;
 
 /**
  * 免费领取卡密记录表 Mapper 接口
@@ -11,4 +13,13 @@ import org.apache.ibatis.annotations.Mapper;
  */
 @Mapper
 public interface MailApplyRecordMapper extends BaseMapper<MailApplyRecord> {
+
+    /**
+     * 增加验证链接点击次数
+     *
+     * @param token  邮件申请链接的token
+     * @param number 点击次数
+     */
+    @Update("UPDATE mail_apply_record SET click_count = click_count + #{number} WHERE verify_token = #{token}")
+    void increaseClickCountByToken(@Param("token") String token, @Param("number") Integer number);
 }
