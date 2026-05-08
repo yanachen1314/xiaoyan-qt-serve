@@ -121,7 +121,7 @@ public class MailRecordSyncTask {
      * <br>
      * 不创建数据库记录，只生成卡密的密钥值保存在redis中，当使用时再创建数据库记录
      */
-    private void replenishFreeKeyPool() {
+    public void replenishFreeKeyPool() {
         try {
             // 生成200个密钥值
             List<String> keyList = licenseKeyGenerator.generateKey(200);

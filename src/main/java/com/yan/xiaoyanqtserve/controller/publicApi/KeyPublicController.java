@@ -213,12 +213,13 @@ public class KeyPublicController {
     /**
      * 验证邮箱链接接口
      * <p>
-     * 用户点击邮件中的验证链接，服务器验证token后发送卡密邮件
+     * 用户点击邮件中的验证链接，服务器验证token后直接在页面中展示卡密
      * </p>
      * @see MailPropertiesConfig#getVerifyLink() 验证链接配置
      * @param token 验证token
      * @return HTML页面显示验证结果
      */
+    @RateLimiter(key = "verifyEmailLink", time = 60, count = 3, limitBy = RateLimiterType.IP)
     @GetMapping(value = "/verifyEmailLink", produces = MediaType.TEXT_HTML_VALUE)
     public ResponseEntity<String> verifyEmailLink(@RequestParam("token") String token) {
         log.debug("邮箱验证请求，token: {}", token);
@@ -226,17 +227,16 @@ public class KeyPublicController {
             // 1. 根据token查询验证记录
             MailApplyRecord record = mailApplyRecordService.getByToken(token);
             if (record == null) {
-                return ResponseEntity.ok(renderVerifyEmailFailurePage("验证链接无效", "该验证链接不存在或已被使用，请重新申请。"));
+                return ResponseEntity.ok(renderVerifyEmailFailurePage("验证链接无效", "该验证链接不存在或已被使用，请返回邮件重新点击验证链接。"));
             }
 
             // 2. 验证是否已过期
             if (record.getVerifyExpireTime().isBefore(LocalDateTime.now())) {
-                return ResponseEntity.ok(renderVerifyEmailFailurePage("验证链接已过期", "该验证链接已过期，请重新申请。"));
+                return ResponseEntity.ok(renderVerifyEmailFailurePage("验证链接已过期", "该验证链接已过期，请返回邮件重新点击验证链接。"));
             }
 
             // 3. 验证状态是否为已验证或已发送卡密
-            if (Objects.equals(record.getApplyStatus(), ApplyStatus.HAS_VERIFIED.getCode())
-                    || Objects.equals(record.getApplyStatus(), ApplyStatus.HAS_SENT.getCode())) {
+            if (Objects.equals(record.getApplyStatus(), ApplyStatus.HAS_SENT.getCode())) {
                 return ResponseEntity.ok(renderVerifyEmailSuccessPage(record.getApplicantEmail(), record.getApplyApiKey()));
             }
 
@@ -246,24 +246,19 @@ public class KeyPublicController {
             }
 
             // 5. 从卡密池获取卡密
-            String licenseKey = keyinfoManagerService.getUnusedFreeKeyFromPool();
+            String licenseKey;
+            try {
+                licenseKey = keyinfoManagerService.getUnusedFreeKeyFromPool();
+            } catch (Exception keyEx) {
+                log.error("获取卡密失败，邮箱: {}, 原因: {}", record.getApplicantEmail(), keyEx.getMessage(), keyEx);
+                return ResponseEntity.ok(renderVerifyEmailFailurePage("获取卡密失败", keyEx.getMessage() ));
+            }
 
             // 6. 更新记录状态和卡密字段
             mailApplyManagerService.updateApplyRecordOnSendSuccess(record.getId(), licenseKey);
 
-            // 7. 同步发送卡密邮件，根据发送结果返回对应页面
-            String applicantEmail = record.getApplicantEmail();
-            try {
-                String systemSenderEmail = mailPushService.sendFreeLicenseEmailSync(applicantEmail, licenseKey);
-                log.debug("卡密邮件发送成功，邮箱: {}, 发送账号: {}", applicantEmail, systemSenderEmail);
-            } catch (Exception mailEx) {
-                log.error("卡密邮件发送失败，邮箱: {}, 原因: {}", applicantEmail, mailEx.getMessage(), mailEx);
-                mailApplyManagerService.updateApplyRecordOnSendFailed(record.getId(), licenseKey);
-                return ResponseEntity.ok(renderVerifyEmailFailurePage("邮件发送失败", "卡密邮件发送失败，请联系客服处理。"));
-            }
-
-            // 8. 返回验证成功HTML页面
-            return ResponseEntity.ok(renderVerifyEmailSuccessPage(applicantEmail, licenseKey));
+            // 7. 返回验证成功HTML页面（密钥直接展示在页面中）
+            return ResponseEntity.ok(renderVerifyEmailSuccessPage(record.getApplicantEmail(), licenseKey));
         } catch (Exception e) {
             log.error("邮箱验证失败: {}", e.getMessage(), e);
             return ResponseEntity.ok(renderVerifyEmailFailurePage("验证失败", "验证过程中发生错误，请稍后重试。"));

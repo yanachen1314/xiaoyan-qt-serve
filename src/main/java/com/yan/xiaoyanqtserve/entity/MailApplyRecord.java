@@ -69,6 +69,12 @@ public class MailApplyRecord implements Serializable {
     @TableField("apply_api_key")
     private String applyApiKey;
 
+    /**
+     * 备注
+     */
+    @TableField("remark")
+    private String remark;
+
 
     /**
      * 设备类型（web：网页端，app：win APP端）
