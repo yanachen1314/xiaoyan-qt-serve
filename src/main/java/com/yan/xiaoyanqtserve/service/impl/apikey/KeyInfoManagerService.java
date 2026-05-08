@@ -17,7 +17,6 @@ import com.yan.xiaoyanqtserve.service.impl.mail.MailAccountManagerService;
 import com.yan.xiaoyanqtserve.task.MailRecordSyncTask;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -407,30 +406,6 @@ public class KeyInfoManagerService {
 
         // 从密钥池中获取一个未使用的免费密钥
         String freeKeyValue = getFreeKeyFromPool();
-
-        // 开始真正创建ApiKey的数据库记录
-        try {
-            // 构建密钥生成参数
-            GenerateKeyDto generateKeyDto = new GenerateKeyDto();
-            generateKeyDto.setKeyNumber(200);
-            generateKeyDto.setUsageType(Constants.FREE_KEY_USAGE_TYPE);
-            generateKeyDto.setRemark("系统自动生成-免费密钥");
-
-            ProductType productType = productTypeService.getByProductCode(Constants.FREE_KEY_PRODUCT_CODE);
-            if (productType == null) {
-                log.warn("产品类型不存在，无法生成密钥：{}", Constants.FREE_KEY_PRODUCT_CODE);
-                throw new BizException("产品类型不存在！");
-            }
-            generateKeyDto.setProductTypeId(productType.getId().intValue());
-            KeyInfo keyInfo = buildKeyInfo(freeKeyValue, 1L, generateKeyDto, productType);
-            // 设置已售出
-            keyInfo.setSelled((byte) 1);
-            // 保存密钥信息
-            keyInfoService.save(keyInfo);
-        } catch (Exception e) {
-            log.error("【分发免费密钥】保存密钥信息失败，密钥值: {}", freeKeyValue);
-            throw new BizException("获取卡密失败，请重新尝试！");
-        }
 
         // 增加今日发放计数
         String today = LocalDate.now().toString();

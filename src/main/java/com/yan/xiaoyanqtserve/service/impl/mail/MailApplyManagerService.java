@@ -1,16 +1,26 @@
 package com.yan.xiaoyanqtserve.service.impl.mail;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.yan.xiaoyanqtserve.common.Constants;
+import com.yan.xiaoyanqtserve.common.dto.key.GenerateKeyDto;
+import com.yan.xiaoyanqtserve.common.enums.ApplyStatus;
+import com.yan.xiaoyanqtserve.common.exception.BizException;
 import com.yan.xiaoyanqtserve.config.custome.MailPropertiesConfig;
+import com.yan.xiaoyanqtserve.entity.KeyInfo;
 import com.yan.xiaoyanqtserve.entity.MailApplyRecord;
 import com.yan.xiaoyanqtserve.entity.MailSendRecord;
+import com.yan.xiaoyanqtserve.entity.ProductType;
 import com.yan.xiaoyanqtserve.mapper.MailApplyRecordMapper;
+import com.yan.xiaoyanqtserve.service.KeyInfoService;
 import com.yan.xiaoyanqtserve.service.MailApplyRecordService;
 import com.yan.xiaoyanqtserve.service.MailSendRecordService;
+import com.yan.xiaoyanqtserve.service.ProductTypeService;
+import com.yan.xiaoyanqtserve.service.impl.apikey.KeyInfoManagerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
@@ -31,6 +41,10 @@ public class MailApplyManagerService {
     private final MailApplyRecordService mailApplyRecordService;
     private final MailApplyRecordMapper mailApplyRecordMapper;
 
+    private final KeyInfoService keyInfoService;
+    private final KeyInfoManagerService keyInfoManagerService;
+    private final ProductTypeService productTypeService;
+
     /**
      * 检查邮箱是否已申请但未验证（status=0）且未过期
      *
@@ -44,8 +58,9 @@ public class MailApplyManagerService {
                 .gt(MailApplyRecord::getVerifyExpireTime, LocalDateTime.now());
         return mailApplyRecordMapper.selectCount(queryWrapper) > 0;
     }
+
     /**
-     * 检查邮箱是否已验证
+     * 检查邮箱是否已点击验证链接
      *
      * @param email 邮箱地址
      * @return true-已验证，false-未验证
@@ -53,9 +68,10 @@ public class MailApplyManagerService {
     public boolean hasVerified(String email) {
         LambdaQueryWrapper<MailApplyRecord> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(MailApplyRecord::getApplicantEmail, email)
-                .eq(MailApplyRecord::getApplyStatus, 1);
+                .eq(MailApplyRecord::getApplyStatus, ApplyStatus.HAS_SENT.getCode());
         return mailApplyRecordMapper.selectCount(queryWrapper) > 0;
     }
+
     /**
      * 检查邮箱是否已发送卡密
      *
@@ -65,9 +81,10 @@ public class MailApplyManagerService {
     public boolean hasSentKey(String email) {
         LambdaQueryWrapper<MailApplyRecord> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(MailApplyRecord::getApplicantEmail, email)
-                .eq(MailApplyRecord::getApplyStatus, 2);
+                .eq(MailApplyRecord::getApplyStatus, ApplyStatus.HAS_SENT.getCode());
         return mailApplyRecordMapper.selectCount(queryWrapper) > 0;
     }
+
     /**
      * 根据token查询验证记录
      *
@@ -83,7 +100,7 @@ public class MailApplyManagerService {
     /**
      * 检查是否第一次点击
      * <br/>
-     * 说明：在增加点击次数{@code mailApplyRecordService.increaseClickCountByToken()}之后进行判断，用于判断用户是否第一次点击验证链接
+     * 说明： {@link MailApplyRecordService#increaseClickCountByToken(String)}之后进行判断，用于判断用户是否第一次点击验证链接
      * @param token 验证token
      * @return true-是第一次点击，false-不是第一次点击
      */
@@ -94,7 +111,40 @@ public class MailApplyManagerService {
         return mailApplyRecordMapper.selectCount(queryWrapper) > 0;
     }
 
+    /**
+     * 同步保存apikey的数据记录，并更新申请记录状态为已发送卡密
+     * @param id 申请记录ID
+     * @param freeKeyValue 卡密
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public void saveApiKeyAndUpdateApplyRecord(Long id, String freeKeyValue) {
+        // 1、更新记录状态和卡密字段
+        mailApplyRecordService.verifyApplySuccess(id, freeKeyValue);
 
+        // 2、开始真正创建密钥对象的数据库记录
+        try {
+            // 构建密钥生成参数，生成密钥对象时需要使用
+            GenerateKeyDto generateKeyDto = new GenerateKeyDto();
+            generateKeyDto.setUsageType(Constants.FREE_KEY_USAGE_TYPE);
+            generateKeyDto.setRemark("系统自动生成-免费密钥");
+
+            ProductType productType = productTypeService.getByProductCode(Constants.FREE_KEY_PRODUCT_CODE);
+            if (productType == null) {
+                log.warn("产品类型不存在，无法生成密钥：{}", Constants.FREE_KEY_PRODUCT_CODE);
+                throw new BizException("产品类型不存在！");
+            }
+            generateKeyDto.setProductTypeId(productType.getId().intValue());
+            // 生成密钥对象
+            KeyInfo keyInfo = keyInfoManagerService.buildKeyInfo(freeKeyValue, 1L, generateKeyDto, productType);
+            // 设置已售出
+            keyInfo.setSelled((byte) 1);
+            // 保存密钥对象
+            keyInfoService.save(keyInfo);
+        } catch (Exception e) {
+            log.error("【分发免费密钥】保存密钥信息失败，密钥值: {}", freeKeyValue);
+            throw new BizException("获取卡密失败，请重新尝试！");
+        }
+    }
 
     /**
      * 生成验证链接token
@@ -116,7 +166,7 @@ public class MailApplyManagerService {
      * @param resultMsg 结果信息
      */
     @Async("loggingExecutor")
-    public void saveEmailSendRecordAsync(String senderEmail, String receiverEmail, Integer status, String resultMsg){
+    public void saveEmailSendRecordAsync(String senderEmail, String receiverEmail, Integer status, String resultMsg) {
         try {
             MailSendRecord record = new MailSendRecord();
             record.setSystemSenderEmail(senderEmail);

@@ -118,7 +118,8 @@ public class KeyPublicController {
      * <p>
      * 当前业务：免费密钥申请接口，邮箱轮询发送免费密钥，一个邮箱只能领取一次
      * </p>
-     * @see KeyPublicController#verifyEmailLink(String) /verifyEmailLink（链接验证接口）
+     * <br/>
+     * {@link KeyPublicController#verifyEmailLink(String)} /verifyEmailLink（链接验证接口）
      * @param emailApplyDto 包含收件人邮箱
      * @return 提示信息
      */
@@ -141,29 +142,23 @@ public class KeyPublicController {
                 throw new IllegalArgumentException("邮箱格式不正确");
             }
 
-            // 2. 检查邮箱是否已验证或已领取
-            if (mailApplyManagerService.hasVerified(applicantEmail)) {
-                throw new IllegalArgumentException("该邮箱已验证，请勿重复申请");
-            }
-            if (mailApplyManagerService.hasSentKey(applicantEmail)) {
-                throw new IllegalArgumentException("卡密已发送，请注意查收邮件");
-            }
-
-            // 3. 检查邮箱是否已申请但未验证
-            if (mailApplyManagerService.hasPendingVerification(applicantEmail)) {
-                return ApiResponse.success("验证邮件已发送，请检查邮箱并在30分钟内完成验证",
-                        EmailVerifyVo.builder()
-                                .email(applicantEmail)
-                                .message("验证邮件已发送，请检查邮箱并在30分钟内完成验证")
-                                .build()
-                );
-            }
-
-            // 4. 生成验证token和过期时间
-            String verifyToken = mailApplyManagerService.generateVerifyToken();
             MailPropertiesConfig.VerifyLinkConfig verifyLink = mailPropertiesConfig.getVerifyLink();
             // 过期时间内激活并使用密钥，单位为天
             int expireTimeInDays = verifyLink.getExpireTime();
+
+            // 2. 检查邮箱是否已点击验证链接
+            if (mailApplyManagerService.hasVerified(applicantEmail)) {
+                throw new IllegalArgumentException("验证邮件已发送，请检查邮箱并在" + expireTimeInDays + "天内完成验证");
+            }
+            // 3. 检查邮箱是否已发送卡密
+            if (mailApplyManagerService.hasSentKey(applicantEmail)) {
+                throw new IllegalArgumentException("验证已发送，请点击验证链接后查看卡密");
+            }
+
+
+            // 4. 生成验证token和过期时间
+            String verifyToken = mailApplyManagerService.generateVerifyToken();
+            // 生成过期时间，单位为天
             LocalDateTime expireTime = LocalDateTime.now().plusDays(expireTimeInDays);
 
             // 5. 构建验证链接URL
@@ -230,11 +225,11 @@ public class KeyPublicController {
             // 2. 根据token查询验证记录
             MailApplyRecord record = mailApplyManagerService.getByToken(token);
             if (record == null) {
-                return ResponseEntity.ok(renderVerifyEmailFailurePage("验证链接无效", "该验证链接不存在，请返回邮件重新点击验证链接。"));
+                return ResponseEntity.ok(renderVerifyEmailFailurePage("验证链接无效", "该验证链接不存在，请检查验证链接。"));
             }
             // 3. 验证是否已过期
             if (record.getVerifyExpireTime().isBefore(LocalDateTime.now())) {
-                return ResponseEntity.ok(renderVerifyEmailFailurePage("验证链接已过期", "该验证链接已过期，请返回邮件重新点击验证链接。"));
+                return ResponseEntity.ok(renderVerifyEmailFailurePage("验证链接已过期", "该验证链接已过期，申请已失效"));
             }
             // 4. 验证是否已成功发送卡密，如果已经发送过则直接返回成功页面
             if (Objects.equals(record.getApplyStatus(), ApplyStatus.HAS_SENT.getCode())) {
@@ -254,8 +249,8 @@ public class KeyPublicController {
                 return ResponseEntity.ok(renderVerifyEmailFailurePage("获取卡密失败", keyEx.getMessage() ));
             }
 
-            // 6. 更新记录状态和卡密字段
-            mailApplyRecordService.verifyApplySuccess(record.getId(), licenseKey);
+            // 6. 【事务一致】保存卡密并更新验证记录
+            mailApplyManagerService.saveApiKeyAndUpdateApplyRecord(record.getId(), licenseKey);
 
             // 7. 返回验证成功HTML页面（密钥直接展示在页面中）
             return ResponseEntity.ok(renderVerifyEmailSuccessPage(record.getApplicantEmail(), licenseKey));
