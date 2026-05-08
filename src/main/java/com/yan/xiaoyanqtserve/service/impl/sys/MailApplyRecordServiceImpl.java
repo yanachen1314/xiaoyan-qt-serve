@@ -59,7 +59,12 @@ public class MailApplyRecordServiceImpl extends ServiceImpl<MailApplyRecordMappe
      */
     @Override
     public void updateStatus(Long id, ApplyStatus status) {
-        mailApplyRecordMapper.updateStatus( id, status.getCode());
+        try {
+            mailApplyRecordMapper.updateStatus( id, status.getCode());
+        } catch (Exception e) {
+            log.error("更新验证记录状态失败，id：{}，status：{}", id, status, e);
+            throw new RuntimeException(e);
+        }
     }
 
     /**

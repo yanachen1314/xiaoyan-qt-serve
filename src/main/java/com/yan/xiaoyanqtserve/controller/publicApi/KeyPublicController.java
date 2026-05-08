@@ -198,6 +198,7 @@ public class KeyPublicController {
 
             // 3. 验证是否已过期
             if (record.getVerifyExpireTime().isBefore(LocalDateTime.now())) {
+                mailApplyRecordService.updateStatus(record.getId(), ApplyStatus.EXPIRED);
                 return ResponseEntity.ok(renderVerifyEmailFailurePage("验证链接已过期", "该验证链接已过期，申请已失效"));
             }
             // 4. 验证是否已成功发送卡密，如果已经发送过则直接返回成功页面
@@ -219,21 +220,26 @@ public class KeyPublicController {
                 licenseKey = keyinfoManagerService.getUnusedFreeKeyFromPool();
             } catch (Exception keyEx) {
                 log.error("获取卡密失败，邮箱: {}, 原因: {}", record.getApplicantEmail(), keyEx.getMessage(), keyEx);
+                mailApplyRecordService.updateStatus(record.getId(), ApplyStatus.GET_KEY_FAILED);
                 return ResponseEntity.ok(renderVerifyEmailFailurePage("获取卡密失败", keyEx.getMessage()));
             }
 
-            // 6. 【事务一致】保存卡密并更新验证记录
+            // 6. 【事务一致】保存卡密信息并更新验证记录信息
             try {
                 mailApplyManagerService.saveApiKeyAndUpdateApplyRecord(record.getId(), licenseKey);
             } catch (Exception saveEx) {
                 // 事务回滚，将卡密归还到密钥池
                 keyinfoManagerService.returnFreeKeyToPool(licenseKey);
                 log.error("保存密钥记录失败，邮箱: {}, 卡密: {}, 原因: {}", record.getApplicantEmail(), licenseKey, saveEx.getMessage(), saveEx);
+                mailApplyRecordService.updateStatus(record.getId(), ApplyStatus.SAVE_RECORD_FAILED);
                 return ResponseEntity.ok(renderVerifyEmailFailurePage("获取卡密失败", "获取卡密失败，请重新尝试！"));
             }
 
             // 7. 返回验证成功HTML页面（密钥直接展示在页面中）
             return ResponseEntity.ok(renderVerifyEmailSuccessPage(record.getApplicantEmail(), licenseKey));
+        } catch (BizException e) {
+            log.error("邮箱验证失败: {}", e.getMessage(), e);
+            return ResponseEntity.ok(renderVerifyEmailFailurePage("验证失败", e.getMessage()));
         } catch (Exception e) {
             log.error("邮箱验证失败: {}", e.getMessage(), e);
             return ResponseEntity.ok(renderVerifyEmailFailurePage("验证失败", "验证过程中发生错误，请稍后重试。"));

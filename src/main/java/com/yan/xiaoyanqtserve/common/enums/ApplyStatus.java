@@ -12,7 +12,9 @@ import lombok.Getter;
 public enum ApplyStatus {
     NOT_VERIFIED((byte) 0, "未验证"),
     CLICKED((byte) 1, "已点击"),
-    HAS_SENT_FAILED((byte) 2, "验证链接已过期"),
+    EXPIRED((byte) 2, "验证链接已过期"),
+    GET_KEY_FAILED((byte) 3, "获取卡密失败"),
+    SAVE_RECORD_FAILED((byte) 4, "保存卡密信息并更新验证记录信息失败"),
     SENT_SUCCESS((byte) 10, "卡密已成功发送");
 
     private final Byte code;
