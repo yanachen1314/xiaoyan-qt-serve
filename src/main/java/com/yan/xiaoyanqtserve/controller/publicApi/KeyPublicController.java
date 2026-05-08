@@ -69,8 +69,7 @@ public class KeyPublicController {
      */
     @RateLimiter(key = "active", time = 1, count = 10, limitBy = RateLimiterType.IP)
     @PostMapping("/active")
-    public ApiResponse<KeyActiveVo> activateKey(@Valid @RequestBody KeyActiveDto keyActiveDto,
-                                                HttpServletRequest request) {
+    public ApiResponse<KeyActiveVo> activateKey(@Valid @RequestBody KeyActiveDto keyActiveDto, HttpServletRequest request) {
         String apiKeyFromHeader = NetUtil.extractApiKeyFromHeader(request);
         log.debug("Key activated: {} for device {}", apiKeyFromHeader, keyActiveDto.getDeviceID());
         if (apiKeyFromHeader == null) {
@@ -102,16 +101,7 @@ public class KeyPublicController {
         } else {
             remainingActiveNumView = "无限制";
         }
-        return ApiResponse.success("密钥激活成功", KeyActiveVo.builder()
-                .apiKey(keyInfo.getKeyValue())
-                .devices(keyInfo.getActivationDevice())
-                .expireTime(keyInfo.getExpiryTime())
-                .totalUsage(totalUses == 0 ? "无限制" : totalUses + "次")
-                .residualUsage(residualUsageView)
-                .activationNums(activationsNum == 0 ? "无限制" : activationsNum + "次")
-                .remainingActiveNum(remainingActiveNumView)
-                .build()
-        );
+        return ApiResponse.success("密钥激活成功", KeyActiveVo.builder().apiKey(keyInfo.getKeyValue()).devices(keyInfo.getActivationDevice()).expireTime(keyInfo.getExpiryTime()).totalUsage(totalUses == 0 ? "无限制" : totalUses + "次").residualUsage(residualUsageView).activationNums(activationsNum == 0 ? "无限制" : activationsNum + "次").remainingActiveNum(remainingActiveNumView).build());
     }
 
     /**
@@ -130,15 +120,13 @@ public class KeyPublicController {
     @PostMapping("/applyEmailVerifyLink")
     @RateLimiter(key = "applyEmailVerify", time = 30, count = 1, limitBy = RateLimiterType.DEVICE_ID)
     @VerifyCaptcha(sceneId = SceneIdEnum.EMAIL_APPLY)
-    public ApiResponse<EmailVerifyVo> applyEmailVerifyLink(@Valid @RequestBody EmailApplyDto emailApplyDto,
-                                                           HttpServletRequest request) {
+    public ApiResponse<EmailVerifyVo> applyEmailVerifyLink(@Valid @RequestBody EmailApplyDto emailApplyDto, HttpServletRequest request) {
         String applicantEmail = emailApplyDto.getEmail();
         String deviceType = NetUtil.getClientDeviceType(request);
         String deviceId = NetUtil.getClientDeviceId(request);
         String clientIp = NetUtil.getClientIpAddress(request);
         String userAgent = NetUtil.getUserAgent(request);
-        log.debug("申请邮箱验证：{}，设备类型：{}，设备ID：{}，客户端IP：{}，用户代理：{}",
-                applicantEmail, deviceType, deviceId, clientIp, userAgent);
+        log.debug("申请邮箱验证：{}，设备类型：{}，设备ID：{}，客户端IP：{}，用户代理：{}", applicantEmail, deviceType, deviceId, clientIp, userAgent);
         try {
             // 1. 邮箱格式校验
             List<String> emailSuffixList = sysConfigService.getEmailSuffixList();
@@ -150,98 +138,38 @@ public class KeyPublicController {
                 throw new BizException("今日免费密钥已发完了，明天早点来哦！");
             }
 
-            // 过期时间内激活并使用密钥，单位为天
             MailPropertiesConfig.VerifyLinkConfig verifyLink = mailPropertiesConfig.getVerifyLink();
             int expireTimeInDays = verifyLink.getExpireTime();
 
-            // 3. 检查邮箱是否已申请
-            if (mailApplyManagerService.hasEmailApply(applicantEmail)) {
-                // 3.1 已申请，看邮箱是否发送过验证邮件
-                if (mailApplyManagerService.hasEmailApplyAndSend(applicantEmail)) {
-                    // 3.1.1. 邮箱已发送过验证邮件，直接返回成功提示
-                    return ApiResponse.success("验证邮件已发送，请检查邮箱并在" + expireTimeInDays + "天内完成验证",
-                            EmailVerifyVo.builder()
-                                    .email(applicantEmail)
-                                    .message("验证邮件已发送，请检查邮箱并在" + expireTimeInDays + "天内完成验证")
-                                    .build()
-                    );
-                } else {
-                    // 3.1.2. 邮箱未发送过验证邮件，返回验证邮件已发送的提示，请注意查收
-                    String verifyToken = mailApplyManagerService.generateVerifyToken();
-                    String verifyUrl = webInfoPropertiesConfig.getApiSite() + verifyLink.getBasePath() + "?token=" + verifyToken;
-
-                    // 发送验证邮件
-                    mailPushService.sendEmailVerifyLink(applicantEmail, verifyUrl)
-                            .thenAccept(systemSenderEmail -> {
-                                log.debug("验证邮件发送成功，邮箱: {}, 发送账号: {}", applicantEmail, systemSenderEmail);
-                            })
-                            .exceptionally(ex -> {
-                                Throwable cause = ex.getCause() != null ? ex.getCause() : ex;
-                                log.error("验证邮件发送失败，邮箱: {}, 原因: {}", applicantEmail, cause.getMessage(), cause);
-                                return null;
-                            });
-                    // 返回提示
-                    return ApiResponse.success("验证邮件已发送，请注意查收并在" + expireTimeInDays + "天内完成验证",
-                            EmailVerifyVo.builder()
-                                    .email(applicantEmail)
-                                    .message("验证邮件已发送，请注意查收并在" + expireTimeInDays + "天内完成验证")
-                                    .build()
-                    );
-                }
-            } else {
-
-                // 3.2 未申请，开始进行处理
-                // 3.2.1. 生成验证token和过期时间
-                String verifyToken = mailApplyManagerService.generateVerifyToken();
-                // 生成过期时间，单位为天
-                LocalDateTime expireTime = LocalDateTime.now().plusDays(expireTimeInDays);
-
-                // 3.2.2. 构建验证链接URL
-                String verifyUrl = webInfoPropertiesConfig.getApiSite() + verifyLink.getBasePath() + "?token=" + verifyToken;
-
-                // 3.2.3. 保存验证记录（status=0）
-                MailApplyRecord record = MailApplyRecord.builder()
-                        .applicantEmail(applicantEmail)
-                        .verifyToken(verifyToken)
-                        .applyStatus(ApplyStatus.NOT_VERIFIED.getCode())
-                        .clickCount(0)
-                        .verifyExpireTime(expireTime)
-                        .deviceType(deviceType)
-                        .deviceId(deviceId)
-                        .clientIp(clientIp)
-                        .userAgent(userAgent)
-                        .build();
-                mailApplyRecordService.saveApplyRecord(record);
-
-                // 3.2.4. 异步发送验证邮件
-                mailPushService.sendEmailVerifyLink(applicantEmail, verifyUrl)
-                        .thenAccept(systemSenderEmail -> {
-                            log.debug("验证邮件发送成功，邮箱: {}, 发送账号: {}", applicantEmail, systemSenderEmail);
-                        })
-                        .exceptionally(ex -> {
-                            Throwable cause = ex.getCause() != null ? ex.getCause() : ex;
-                            log.error("验证邮件发送失败，邮箱: {}, 原因: {}", applicantEmail, cause.getMessage(), cause);
-                            return null;
-                        });
-
-                // 3.2.5. 立即返回成功提示
-                return ApiResponse.success("验证邮件已发送，请检查邮箱并在" + expireTimeInDays + "天内完成验证",
-                        EmailVerifyVo.builder()
-                                .email(applicantEmail)
-                                .message("验证邮件已发送，请检查邮箱并在" + expireTimeInDays + "天内完成验证")
-                                .build()
-                );
+            // 3.1 已申请且已发送过验证邮件，直接返回
+            if (mailApplyManagerService.hasEmailApplyAndSend(applicantEmail)) {
+                return buildApplySuccessResponse(applicantEmail, expireTimeInDays);
             }
+
+            // 3.2 已申请但未发送过验证邮件，重新生成token并发送
+            if (mailApplyManagerService.hasEmailApply(applicantEmail)) {
+                String verifyToken = mailApplyManagerService.generateVerifyToken();
+                String verifyUrl = buildVerifyUrl(verifyLink, verifyToken);
+                asyncSendVerifyEmail(applicantEmail, verifyUrl);
+                return buildApplySuccessResponse(applicantEmail, expireTimeInDays, "请注意查收");
+            }
+
+            // 3.3 未申请，创建记录并发送验证邮件
+            String verifyToken = mailApplyManagerService.generateVerifyToken();
+            String verifyUrl = buildVerifyUrl(verifyLink, verifyToken);
+            LocalDateTime expireTime = LocalDateTime.now().plusDays(expireTimeInDays);
+
+            MailApplyRecord record = MailApplyRecord.builder().applicantEmail(applicantEmail).verifyToken(verifyToken).applyStatus(ApplyStatus.NOT_VERIFIED.getCode()).clickCount(0).verifyExpireTime(expireTime).deviceType(deviceType).deviceId(deviceId).clientIp(clientIp).userAgent(userAgent).build();
+            mailApplyRecordService.saveApplyRecord(record);
+
+            asyncSendVerifyEmail(applicantEmail, verifyUrl);
+            return buildApplySuccessResponse(applicantEmail, expireTimeInDays);
         } catch (BizException | IllegalArgumentException e) {
             log.warn("邮箱验证申请失败: {}", e.getMessage());
-            return ApiResponse.fail(e.getMessage(),
-                    EmailVerifyVo.builder().email(applicantEmail).build()
-            );
+            return ApiResponse.fail(e.getMessage(), EmailVerifyVo.builder().email(applicantEmail).build());
         } catch (Exception e) {
             log.error("邮箱验证申请异常，邮箱: {}", applicantEmail, e);
-            return ApiResponse.fail("申请失败，请稍后重试",
-                    EmailVerifyVo.builder().email(applicantEmail).build()
-            );
+            return ApiResponse.fail("申请失败，请稍后重试", EmailVerifyVo.builder().email(applicantEmail).build());
         }
     }
 
@@ -301,11 +229,9 @@ public class KeyPublicController {
                     keyinfoManagerService.returnFreeKeyToPool(licenseKey);
                     log.info("卡密已归还密钥池，邮箱: {}, 卡密: {}", record.getApplicantEmail(), licenseKey);
                 } catch (Exception returnEx) {
-                    log.error("卡密归还池中失败，邮箱: {}, 卡密: {}, 原因: {}",
-                            record.getApplicantEmail(), licenseKey, returnEx.getMessage(), returnEx);
+                    log.error("卡密归还池中失败，邮箱: {}, 卡密: {}, 原因: {}", record.getApplicantEmail(), licenseKey, returnEx.getMessage(), returnEx);
                 }
-                log.error("保存密钥记录失败，邮箱: {}, 卡密: {}, 原因: {}",
-                        record.getApplicantEmail(), licenseKey, saveEx.getMessage(), saveEx);
+                log.error("保存密钥记录失败，邮箱: {}, 卡密: {}, 原因: {}", record.getApplicantEmail(), licenseKey, saveEx.getMessage(), saveEx);
                 return ResponseEntity.ok(renderVerifyEmailFailurePage("获取卡密失败", "获取卡密失败，请重新尝试！"));
             }
 
@@ -335,6 +261,45 @@ public class KeyPublicController {
      */
     private String renderVerifyEmailFailurePage(String title, String message) {
         return templateService.generateVerifyEmailFailurePage(title, message);
+    }
+
+    /**
+     * 构建验证链接
+     * @param verifyLink 验证链接配置
+     * @param verifyToken 验证Token
+     * @return 完整的验证链接
+     */
+    private String buildVerifyUrl(MailPropertiesConfig.VerifyLinkConfig verifyLink, String verifyToken) {
+        return webInfoPropertiesConfig.getApiSite() + verifyLink.getBasePath() + "?token=" + verifyToken;
+    }
+
+    /**
+     * 异步发送验证邮件
+     * @param email 收件邮箱
+     * @param verifyUrl 验证链接
+     */
+    private void asyncSendVerifyEmail(String email, String verifyUrl) {
+        mailPushService.sendEmailVerifyLink(email, verifyUrl).thenAccept(senderEmail -> log.debug("验证邮件发送成功，邮箱: {}, 发送账号: {}", email, senderEmail)).exceptionally(ex -> {
+            Throwable cause = ex.getCause() != null ? ex.getCause() : ex;
+            log.error("验证邮件发送失败，邮箱: {}, 原因: {}", email, cause.getMessage(), cause);
+            return null;
+        });
+    }
+
+    /**
+     * 构建邮箱验证申请成功响应
+     * @param email 邮箱地址
+     * @param expireDays 验证码有效期（天）
+     * @param extraHint 额外的提示信息
+     * @return ApiResponse响应对象
+     */
+    private ApiResponse<EmailVerifyVo> buildApplySuccessResponse(String email, int expireDays, String extraHint) {
+        String hint = extraHint != null ? extraHint + "并" : "";
+        String message = "验证邮件已发送，" + hint + "请检查邮箱并在" + expireDays + "天内完成验证";
+        return ApiResponse.success(message, EmailVerifyVo.builder().email(email).message(message).build());
+    }
+    private ApiResponse<EmailVerifyVo> buildApplySuccessResponse(String email, int expireDays) {
+        return buildApplySuccessResponse(email, expireDays, null);
     }
 
 }
