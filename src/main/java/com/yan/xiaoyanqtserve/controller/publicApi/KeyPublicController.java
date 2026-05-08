@@ -117,10 +117,10 @@ public class KeyPublicController {
      * @param emailApplyDto 包含收件人邮箱
      * @return 提示信息
      */
-    @PostMapping("/applyEmailVerifyLink")
+    @PostMapping("/applyEmailLink")
     @RateLimiter(key = "applyEmailVerify", time = 30, count = 1, limitBy = RateLimiterType.DEVICE_ID)
     @VerifyCaptcha(sceneId = SceneIdEnum.EMAIL_APPLY)
-    public ApiResponse<EmailVerifyVo> applyEmailVerifyLink(@Valid @RequestBody EmailApplyDto emailApplyDto, HttpServletRequest request) {
+    public ApiResponse<EmailVerifyVo> applyEmailLink(@Valid @RequestBody EmailApplyDto emailApplyDto, HttpServletRequest request) {
         String applicantEmail = emailApplyDto.getEmail();
         String deviceType = NetUtil.getClientDeviceType(request);
         String deviceId = NetUtil.getClientDeviceId(request);
