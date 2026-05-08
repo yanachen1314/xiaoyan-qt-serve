@@ -13,7 +13,6 @@ import com.yan.xiaoyanqtserve.common.exception.BizException;
 import com.yan.xiaoyanqtserve.entity.ProductType;
 import com.yan.xiaoyanqtserve.service.KeyInfoService;
 import com.yan.xiaoyanqtserve.service.ProductTypeService;
-import com.yan.xiaoyanqtserve.service.impl.mail.MailAccountManagerService;
 import com.yan.xiaoyanqtserve.task.MailRecordSyncTask;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -41,7 +40,6 @@ public class KeyInfoManagerService {
     private final ProductTypeService productTypeService;
     private final RedisUtil redisUtil;
 
-    private final MailAccountManagerService mailAccountManagerService;
     private final MailRecordSyncTask mailRecordSyncTask;
 
     private final RedisLockUtil redisLockUtil;
@@ -401,32 +399,9 @@ public class KeyInfoManagerService {
      * @return 未使用的免费密钥
      */
     public String getUnusedFreeKeyFromPool() {
-        // 判断今日是否已经发出指定数量的免费密钥
-        if (mailAccountManagerService.isTodayFreeKeyLimitReached()) {
-            throw new BizException("今日免费密钥已发完了，明天早点来哦！");
-        }
-
-        // 从密钥池中获取一个未使用的免费密钥
-        String freeKeyValue = getFreeKeyFromPool();
-
-        // 增加今日发放计数
-        String today = LocalDate.now().toString();
-        String countKey = Constants.FREE_KEY_DAILY_COUNT + today;
-        redisUtil.incr(countKey, 1);
-
-        return freeKeyValue;
-    }
-
-    /**
-     * 从密钥池中获取一个密钥
-     * 自动补货，如果出现异常，会抛出BizException
-     * @return 未使用的密钥
-     * @throws BizException 如果无法获取密钥
-     */
-    private String getFreeKeyFromPool() {
         // 从redis中的免费密钥池获取一个未使用的密钥值
         Object freeKeyValueObj = redisUtil.sPop(Constants.FREE_KEY_POOL);
-
+        // 如果为空，尝试一次补充免费密钥池
         if (freeKeyValueObj == null) {
             log.warn("免费密钥池已空，开始自动补充");
             try {
@@ -438,14 +413,23 @@ public class KeyInfoManagerService {
             // 再次尝试从Redis池中获取
             freeKeyValueObj = redisUtil.sPop(Constants.FREE_KEY_POOL);
 
-            // 关键修复：再次检查是否为空
+            // 再次检查是否为空
             if (freeKeyValueObj == null) {
                 throw new BizException("免费密钥池补充后仍无可用密钥，请联系客服！");
             }
         }
 
-        return freeKeyValueObj.toString();
+        // 从密钥池中获取一个未使用的免费密钥
+        String freeKeyValue = freeKeyValueObj.toString();
+
+        // 增加今日发放计数
+        String today = LocalDate.now().toString();
+        String countKey = Constants.FREE_KEY_DAILY_COUNT + today;
+        redisUtil.incr(countKey, 1);
+
+        return freeKeyValue;
     }
+
 
     /**
      * 将卡密归还到密钥池，并递减今日发放计数

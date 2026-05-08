@@ -46,16 +46,15 @@ public class MailApplyManagerService {
     private final ProductTypeService productTypeService;
 
     /**
-     * 检查邮箱是否已申请但未验证（status=0）且未过期
+     * 检查邮箱是否已申请但未验证（status=0）
      *
      * @param email 邮箱地址
-     * @return true-已申请且未过期，false-未申请或已过期
+     * @return true-已申请，false-未申请
      */
     public boolean hasPendingVerification(String email) {
         LambdaQueryWrapper<MailApplyRecord> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(MailApplyRecord::getApplicantEmail, email)
-                .eq(MailApplyRecord::getApplyStatus, 0)
-                .gt(MailApplyRecord::getVerifyExpireTime, LocalDateTime.now());
+                .eq(MailApplyRecord::getApplyStatus, ApplyStatus.NOT_VERIFIED.getCode());
         return mailApplyRecordMapper.selectCount(queryWrapper) > 0;
     }
 

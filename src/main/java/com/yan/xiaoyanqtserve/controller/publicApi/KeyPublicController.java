@@ -5,6 +5,7 @@ import com.yan.xiaoyanqtserve.common.annotaions.VerifyCaptcha;
 import com.yan.xiaoyanqtserve.common.dto.EmailApplyDto;
 import com.yan.xiaoyanqtserve.common.enums.ApplyStatus;
 import com.yan.xiaoyanqtserve.common.enums.SceneIdEnum;
+import com.yan.xiaoyanqtserve.common.exception.BizException;
 import com.yan.xiaoyanqtserve.common.vo.EmailVerifyVo;
 import com.yan.xiaoyanqtserve.common.dto.key.KeyActiveDto;
 import com.yan.xiaoyanqtserve.common.enums.RateLimiterType;
@@ -17,6 +18,7 @@ import com.yan.xiaoyanqtserve.entity.MailApplyRecord;
 import com.yan.xiaoyanqtserve.service.MailApplyRecordService;
 import com.yan.xiaoyanqtserve.service.SysConfigService;
 import com.yan.xiaoyanqtserve.service.impl.apikey.KeyInfoManagerService;
+import com.yan.xiaoyanqtserve.service.impl.mail.MailAccountManagerService;
 import com.yan.xiaoyanqtserve.service.impl.mail.MailApplyManagerService;
 import com.yan.xiaoyanqtserve.service.impl.mail.MailPushService;
 import com.yan.xiaoyanqtserve.service.impl.mail.TemplateService;
@@ -47,6 +49,8 @@ import java.util.Objects;
 public class KeyPublicController {
     private final KeyInfoManagerService keyinfoManagerService;
     private final MailPushService mailPushService;
+    private final MailAccountManagerService mailAccountManagerService;
+
     private final SysConfigService sysConfigService;
     private final TemplateService templateService;
 
@@ -136,35 +140,43 @@ public class KeyPublicController {
         log.debug("申请邮箱验证：{}，设备类型：{}，设备ID：{}，客户端IP：{}，用户代理：{}",
                 applicantEmail, deviceType, deviceId, clientIp, userAgent);
         try {
-            // 1. 邮箱校验
+            // 1. 邮箱格式校验
             List<String> emailSuffixList = sysConfigService.getEmailSuffixList();
             if (!EmailValidator.isValidEmail(applicantEmail, emailSuffixList)) {
                 throw new IllegalArgumentException("邮箱格式不正确");
+            }
+            // 2. 判断今日是否已经发出指定数量的免费密钥
+            if (mailAccountManagerService.isTodayFreeKeyLimitReached()) {
+                throw new BizException("今日免费密钥已发完了，明天早点来哦！");
+            }
+            // 3. 检查邮箱是否已申请但未验证（status=0）
+            if(mailApplyManagerService.hasPendingVerification(applicantEmail)){
+                throw new BizException("您已申请过，请勿重复申请");
             }
 
             MailPropertiesConfig.VerifyLinkConfig verifyLink = mailPropertiesConfig.getVerifyLink();
             // 过期时间内激活并使用密钥，单位为天
             int expireTimeInDays = verifyLink.getExpireTime();
 
-            // 2. 检查邮箱是否已点击验证链接
+            // 3. 检查邮箱是否已点击验证链接
             if (mailApplyManagerService.hasVerified(applicantEmail)) {
                 throw new IllegalArgumentException("验证邮件已发送，请检查邮箱并在" + expireTimeInDays + "天内完成验证");
             }
-            // 3. 检查邮箱是否已发送卡密
+            // 4. 检查邮箱是否已发送卡密
             if (mailApplyManagerService.hasSentKey(applicantEmail)) {
                 throw new IllegalArgumentException("验证已发送，请点击验证链接后查看卡密");
             }
 
 
-            // 4. 生成验证token和过期时间
+            // 5. 生成验证token和过期时间
             String verifyToken = mailApplyManagerService.generateVerifyToken();
             // 生成过期时间，单位为天
             LocalDateTime expireTime = LocalDateTime.now().plusDays(expireTimeInDays);
 
-            // 5. 构建验证链接URL
+            // 6. 构建验证链接URL
             String verifyUrl = webInfoPropertiesConfig.getApiSite() + verifyLink.getBasePath() + "?token=" + verifyToken;
 
-            // 6. 保存验证记录（status=0）
+            // 7. 保存验证记录（status=0）
             MailApplyRecord record = MailApplyRecord.builder()
                     .applicantEmail(applicantEmail)
                     .verifyToken(verifyToken)
@@ -178,7 +190,7 @@ public class KeyPublicController {
                     .build();
             mailApplyRecordService.saveApplyRecord(record);
 
-            // 7. 异步发送验证邮件
+            // 8. 异步发送验证邮件
             mailPushService.sendEmailVerifyLink(applicantEmail, verifyUrl)
                     .thenAccept(systemSenderEmail -> {
                         log.debug("验证邮件发送成功，邮箱: {}, 发送账号: {}", applicantEmail, systemSenderEmail);
@@ -189,7 +201,7 @@ public class KeyPublicController {
                         return null;
                     });
 
-            // 8. 立即返回成功提示
+            // 9. 立即返回成功提示
             return ApiResponse.success("验证邮件已发送，请检查邮箱并在" + expireTimeInDays + "天内完成验证",
                     EmailVerifyVo.builder()
                             .email(applicantEmail)
@@ -199,9 +211,7 @@ public class KeyPublicController {
         } catch (Exception e) {
             log.error("邮箱验证申请失败: {}", e.getMessage(), e);
             return ApiResponse.fail(e.getMessage(),
-                    EmailVerifyVo.builder()
-                            .email(applicantEmail)
-                            .build()
+                    EmailVerifyVo.builder().email(applicantEmail).build()
             );
         }
     }
@@ -243,6 +253,10 @@ public class KeyPublicController {
             // 5. 从卡密池获取卡密
             String licenseKey;
             try {
+                // 判断今日是否已经发出指定数量的免费密钥
+                if (mailAccountManagerService.isTodayFreeKeyLimitReached()) {
+                    throw new BizException("今日免费密钥已发完了，明天早点来哦！");
+                }
                 licenseKey = keyinfoManagerService.getUnusedFreeKeyFromPool();
             } catch (Exception keyEx) {
                 log.error("获取卡密失败，邮箱: {}, 原因: {}", record.getApplicantEmail(), keyEx.getMessage(), keyEx);
