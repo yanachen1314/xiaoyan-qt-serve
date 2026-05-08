@@ -250,7 +250,21 @@ public class KeyPublicController {
             }
 
             // 6. 【事务一致】保存卡密并更新验证记录
-            mailApplyManagerService.saveApiKeyAndUpdateApplyRecord(record.getId(), licenseKey);
+            try {
+                mailApplyManagerService.saveApiKeyAndUpdateApplyRecord(record.getId(), licenseKey);
+            } catch (Exception saveEx) {
+                // 事务回滚，将卡密归还到密钥池
+                try {
+                    keyinfoManagerService.returnFreeKeyToPool(licenseKey);
+                    log.info("卡密已归还密钥池，邮箱: {}, 卡密: {}", record.getApplicantEmail(), licenseKey);
+                } catch (Exception returnEx) {
+                    log.error("卡密归还池中失败，邮箱: {}, 卡密: {}, 原因: {}",
+                            record.getApplicantEmail(), licenseKey, returnEx.getMessage(), returnEx);
+                }
+                log.error("保存密钥记录失败，邮箱: {}, 卡密: {}, 原因: {}",
+                        record.getApplicantEmail(), licenseKey, saveEx.getMessage(), saveEx);
+                return ResponseEntity.ok(renderVerifyEmailFailurePage("获取卡密失败", "获取卡密失败，请重新尝试！"));
+            }
 
             // 7. 返回验证成功HTML页面（密钥直接展示在页面中）
             return ResponseEntity.ok(renderVerifyEmailSuccessPage(record.getApplicantEmail(), licenseKey));
