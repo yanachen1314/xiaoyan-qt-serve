@@ -1,5 +1,6 @@
 package com.yan.xiaoyanqtserve.controller.publicApi;
 
+import com.yan.xiaoyanqtserve.common.Constants;
 import com.yan.xiaoyanqtserve.common.annotaions.RateLimiter;
 import com.yan.xiaoyanqtserve.common.annotaions.VerifyCaptcha;
 import com.yan.xiaoyanqtserve.common.dto.EmailApplyDto;
@@ -175,6 +176,45 @@ public class KeyPublicController {
     }
 
     /**
+     * 构建验证链接
+     * @param verifyLink 验证链接配置
+     * @param verifyToken 验证Token
+     * @return 完整的验证链接
+     */
+    private String buildVerifyUrl(MailPropertiesConfig.VerifyLinkConfig verifyLink, String verifyToken) {
+        return webInfoPropertiesConfig.getApiSite() + verifyLink.getBasePath() + "?token=" + verifyToken;
+    }
+    /**
+     * 异步发送验证邮件
+     * @param email 收件邮箱
+     * @param verifyUrl 验证链接
+     */
+    private void asyncSendVerifyEmail(String email, String verifyUrl) {
+        mailPushService.sendEmailVerifyLink(email, verifyUrl).thenAccept(senderEmail -> log.debug("验证邮件发送成功，邮箱: {}, 发送账号: {}", email, senderEmail)).exceptionally(ex -> {
+            Throwable cause = ex.getCause() != null ? ex.getCause() : ex;
+            log.error("验证邮件发送失败，邮箱: {}, 原因: {}", email, cause.getMessage(), cause);
+            return null;
+        });
+    }
+    /**
+     * 构建邮箱验证申请成功响应
+     * @param email 邮箱地址
+     * @param expireDays 验证码有效期（天）
+     * @param extraHint 额外的提示信息
+     * @return ApiResponse响应对象
+     */
+    private ApiResponse<EmailVerifyVo> buildApplySuccessResponse(String email, int expireDays, String extraHint) {
+        String hint = extraHint != null ? extraHint + "并" : "";
+        String message = "验证邮件已发送，" + hint + "请检查邮箱并在" + expireDays + "天内完成验证";
+        return ApiResponse.success(message, EmailVerifyVo.builder().email(email).message(message).build());
+    }
+    private ApiResponse<EmailVerifyVo> buildApplySuccessResponse(String email, int expireDays) {
+        return buildApplySuccessResponse(email, expireDays, null);
+    }
+
+
+
+    /**
      * 验证邮箱链接接口
      * <p>
      * 用户点击邮件中的验证链接，服务器验证token后直接在页面中展示卡密
@@ -187,7 +227,7 @@ public class KeyPublicController {
     @GetMapping(value = "/verifyEmailLink", produces = MediaType.TEXT_HTML_VALUE)
     public ResponseEntity<String> verifyEmailLink(@RequestParam("token") String token) {
         log.debug("邮箱验证请求，token: {}", token);
-        String lockKey = "verifyEmailLink:" + token;
+        String lockKey = Constants.FREE_KEY_VERIFY_EMAIL_LINK + token;
         boolean locked = false;
         try {
             // 1. 根据token查询验证记录
@@ -236,7 +276,7 @@ public class KeyPublicController {
             } catch (Exception keyEx) {
                 log.error("获取卡密失败，邮箱: {}, 原因: {}", record.getApplicantEmail(), keyEx.getMessage(), keyEx);
                 if (!(keyEx instanceof BizException)) {
-                    mailApplyRecordService.updateStatus(record.getId(), ApplyStatus.FAILED);
+                    mailApplyRecordService.verifyApplyFail(record.getId(), ApplyStatus.FAILED, keyEx.getMessage());
                 }
                 throw keyEx;
             }
@@ -248,7 +288,7 @@ public class KeyPublicController {
                 // 事务回滚，将卡密归还到密钥池
                 keyinfoManagerService.returnFreeKeyToPool(licenseKey);
                 log.error("保存密钥记录失败，邮箱: {}, 卡密: {}, 原因: {}", record.getApplicantEmail(), licenseKey, saveEx.getMessage(), saveEx);
-                mailApplyRecordService.updateStatus(record.getId(), ApplyStatus.FAILED);
+                mailApplyRecordService.verifyApplyFail(record.getId(), ApplyStatus.FAILED, saveEx.getMessage());
                 throw new BizException("获取卡密失败，请重新尝试！");
             }
             
@@ -287,45 +327,4 @@ public class KeyPublicController {
     private String renderVerifyEmailFailurePage(String title, String message) {
         return templateService.generateVerifyEmailFailurePage(title, message);
     }
-
-    /**
-     * 构建验证链接
-     * @param verifyLink 验证链接配置
-     * @param verifyToken 验证Token
-     * @return 完整的验证链接
-     */
-    private String buildVerifyUrl(MailPropertiesConfig.VerifyLinkConfig verifyLink, String verifyToken) {
-        return webInfoPropertiesConfig.getApiSite() + verifyLink.getBasePath() + "?token=" + verifyToken;
-    }
-
-    /**
-     * 异步发送验证邮件
-     * @param email 收件邮箱
-     * @param verifyUrl 验证链接
-     */
-    private void asyncSendVerifyEmail(String email, String verifyUrl) {
-        mailPushService.sendEmailVerifyLink(email, verifyUrl).thenAccept(senderEmail -> log.debug("验证邮件发送成功，邮箱: {}, 发送账号: {}", email, senderEmail)).exceptionally(ex -> {
-            Throwable cause = ex.getCause() != null ? ex.getCause() : ex;
-            log.error("验证邮件发送失败，邮箱: {}, 原因: {}", email, cause.getMessage(), cause);
-            return null;
-        });
-    }
-
-    /**
-     * 构建邮箱验证申请成功响应
-     * @param email 邮箱地址
-     * @param expireDays 验证码有效期（天）
-     * @param extraHint 额外的提示信息
-     * @return ApiResponse响应对象
-     */
-    private ApiResponse<EmailVerifyVo> buildApplySuccessResponse(String email, int expireDays, String extraHint) {
-        String hint = extraHint != null ? extraHint + "并" : "";
-        String message = "验证邮件已发送，" + hint + "请检查邮箱并在" + expireDays + "天内完成验证";
-        return ApiResponse.success(message, EmailVerifyVo.builder().email(email).message(message).build());
-    }
-
-    private ApiResponse<EmailVerifyVo> buildApplySuccessResponse(String email, int expireDays) {
-        return buildApplySuccessResponse(email, expireDays, null);
-    }
-
 }

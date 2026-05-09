@@ -37,13 +37,6 @@ public interface MailApplyRecordService extends IService<MailApplyRecord> {
     void updateStatus(Long id, ApplyStatus status);
 
     /**
-     * 验证领取成功，更新记录状态和 apiKey
-     * @param id 记录ID
-     * @param apiKey 领取的卡密
-     */
-    void verifyApplySuccess(Long id, String apiKey);
-
-    /**
      * 验证领取失败，更新记录状态
      *
      * @param id          记录ID
@@ -51,4 +44,12 @@ public interface MailApplyRecordService extends IService<MailApplyRecord> {
      * @param errMsg      错误信息
      */
     void verifyApplyFail(Long id, ApplyStatus applyStatus, String errMsg);
+
+    /**
+     * 验证领取成功，更新记录状态和 apiKey
+     * @param id 记录ID
+     * @param apiKey 领取的卡密
+     */
+    void verifyApplySuccess(Long id, String apiKey);
+
 }

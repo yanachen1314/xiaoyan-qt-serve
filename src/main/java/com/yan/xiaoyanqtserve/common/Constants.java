@@ -86,6 +86,8 @@ public class Constants {
     public static final String FREE_KEY_POOL = "free_key:pool";
     // 今日免费密钥发放数量统计
     public static final String FREE_KEY_DAILY_COUNT = "free_key:daily_count:";
+    // 邮件申请，验证邮箱链接前缀
+    public static final String FREE_KEY_VERIFY_EMAIL_LINK = "free_key:verifyEmailLink:";
     // 邮箱免费密钥的使用场景标识
     public static final String FREE_KEY_USAGE_TYPE = "apikey.usageType.emailFree";
     // 邮箱免费密钥的产品码

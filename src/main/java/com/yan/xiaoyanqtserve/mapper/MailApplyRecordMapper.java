@@ -27,7 +27,8 @@ public interface MailApplyRecordMapper extends BaseMapper<MailApplyRecord> {
      * 更新验证记录状态
      * @param id     记录ID
      * @param status 新状态
+     * @param remark 备注
      */
-    @Update("UPDATE mail_apply_record SET apply_status = #{status} WHERE id = #{id}")
-    void updateStatus(@Param("id") Long id, @Param("status") Byte status);
+    @Update("UPDATE mail_apply_record SET apply_status = #{status} , remark = #{remark} WHERE id = #{id}")
+    void updateStatus(@Param("id") Long id, @Param("status") Byte status, @Param("remark") String remark);
 }
