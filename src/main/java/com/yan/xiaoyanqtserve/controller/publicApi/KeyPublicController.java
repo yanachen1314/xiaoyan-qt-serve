@@ -144,12 +144,12 @@ public class KeyPublicController {
             MailPropertiesConfig.VerifyLinkConfig verifyLink = mailPropertiesConfig.getVerifyLink();
             int expireTimeInDays = verifyLink.getExpireTime();
 
-            // 3.1 已申请且已发送过验证邮件，直接返回
+            // 3.1 已申请且已成功发送过验证邮件，直接返回
             if (mailApplyManagerService.hasEmailApplyAndSend(applicantEmail)) {
-                return buildApplySuccessResponse(applicantEmail, expireTimeInDays,"验证邮件不要重复发送");
+                return buildApplySuccessResponse(applicantEmail, expireTimeInDays, "验证邮件不要重复发送");
             }
 
-            // 3.2 已申请但未发送过验证邮件，重新生成token并发送
+            // 3.2 已申请但未发送过验证邮件或发送失败，重新生成token并发送
             if (mailApplyManagerService.hasEmailApply(applicantEmail)) {
                 String verifyToken = mailApplyManagerService.generateVerifyToken();
                 String verifyUrl = buildVerifyUrl(verifyLink, verifyToken);
@@ -161,12 +161,12 @@ public class KeyPublicController {
             String verifyToken = mailApplyManagerService.generateVerifyToken();
             String verifyUrl = buildVerifyUrl(verifyLink, verifyToken);
             LocalDateTime expireTime = LocalDateTime.now().plusDays(expireTimeInDays);
-
+            // 保存申请记录
             MailApplyRecord record = MailApplyRecord.builder().applicantEmail(applicantEmail).verifyToken(verifyToken).applyStatus(ApplyStatus.PENDING.getCode()).clickCount(0).verifyExpireTime(expireTime).deviceType(deviceType).deviceId(deviceId).clientIp(clientIp).userAgent(userAgent).build();
             mailApplyRecordService.saveApplyRecord(record);
-
+            // 异步发送验证邮件
             asyncSendVerifyEmail(applicantEmail, verifyUrl);
-            return buildApplySuccessResponse(applicantEmail, expireTimeInDays,"验证邮件已发送");
+            return buildApplySuccessResponse(applicantEmail, expireTimeInDays, "验证邮件已发送");
         } catch (BizException | IllegalArgumentException e) {
             log.warn("邮箱验证申请失败: {}", e.getMessage());
             return ApiResponse.fail(e.getMessage(), EmailVerifyVo.builder().email(applicantEmail).build());
@@ -192,11 +192,13 @@ public class KeyPublicController {
      * @param verifyUrl 验证链接
      */
     private void asyncSendVerifyEmail(String email, String verifyUrl) {
-        mailPushService.sendEmailVerifyLink(email, verifyUrl).thenAccept(senderEmail -> log.debug("验证邮件发送成功，邮箱: {}, 发送账号: {}", email, senderEmail)).exceptionally(ex -> {
-            Throwable cause = ex.getCause() != null ? ex.getCause() : ex;
-            log.error("验证邮件发送失败，邮箱: {}, 原因: {}", email, cause.getMessage(), cause);
-            return null;
-        });
+        mailPushService.sendEmailVerifyLink(email, verifyUrl)
+                .thenAccept(senderEmail -> log.debug("验证邮件发送成功，邮箱: {}, 发送账号: {}", email, senderEmail))
+                .exceptionally(ex -> {
+                    Throwable cause = ex.getCause() != null ? ex.getCause() : ex;
+                    log.error("验证邮件发送失败，邮箱: {}, 原因: {}", email, cause.getMessage(), cause);
+                    return null;
+                });
     }
 
     /**

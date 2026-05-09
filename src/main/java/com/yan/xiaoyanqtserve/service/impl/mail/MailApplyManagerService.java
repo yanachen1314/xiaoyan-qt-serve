@@ -45,25 +45,37 @@ public class MailApplyManagerService {
     private final ProductTypeService productTypeService;
 
     /**
-     * 检查邮箱是否已申请
+     * 检查邮箱是否 已申请但未发送过验证邮件或发送失败
      *
      * @param email 邮箱地址
-     * @return true-已申请，false-未申请
+     * @return true-已申请但未发送过验证邮件或发送失败，false-未申请
      */
     public boolean hasEmailApply(String email) {
-        LambdaQueryWrapper<MailApplyRecord> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(MailApplyRecord::getApplicantEmail, email);
-        return mailApplyRecordMapper.selectCount(queryWrapper) > 0;
+        LambdaQueryWrapper<MailApplyRecord> queryApplyWrapper = new LambdaQueryWrapper<>();
+        queryApplyWrapper.eq(MailApplyRecord::getApplicantEmail, email);
+        // 必须已申请 = true
+        boolean isApply = mailApplyRecordMapper.selectCount(queryApplyWrapper) > 0;
+        if(!isApply) {
+            return false;
+        }
+        // 邮件未发送，或发送失败 = true        其他 = false
+        LambdaQueryWrapper<MailSendRecord> querySendWrapper = new LambdaQueryWrapper<>();
+        querySendWrapper.eq(MailSendRecord::getSendToEmail, email)
+                .eq(MailSendRecord::getStatus, 0);
+        boolean isSending = mailSendRecordService.count(querySendWrapper) > 0;
+
+        return isSending;
     }
     /**
-     * 邮箱已申请并检查是否发送过验证邮件
+     * 邮箱已申请并检查是否成功发送过验证邮件
      *
      * @param email 邮箱地址
-     * @return true-已申请并发送过验证邮件，false-已申请并未发送过验证邮件
+     * @return true-已申请并成功发送过验证邮件，false-已申请但未成功发送过验证邮件
      */
     public boolean hasEmailApplyAndSend(String email) {
         LambdaQueryWrapper<MailSendRecord> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(MailSendRecord::getSendToEmail, email);
+        queryWrapper.eq(MailSendRecord::getSendToEmail, email)
+                .eq(MailSendRecord::getStatus, 1);
         return mailSendRecordService.count(queryWrapper) > 0;
     }
 

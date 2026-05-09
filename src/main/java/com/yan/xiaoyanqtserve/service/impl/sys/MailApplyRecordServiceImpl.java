@@ -38,7 +38,7 @@ public class MailApplyRecordServiceImpl extends ServiceImpl<MailApplyRecordMappe
         } catch (DuplicateKeyException e) {
             throw new BizException("该邮箱已领取过");
         } catch (Exception e) {
-            throw new BizException("保存领取记录失败", e);
+            throw new RuntimeException("保存领取记录失败", e);
         }
     }
 

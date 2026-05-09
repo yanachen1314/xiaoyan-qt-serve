@@ -217,7 +217,7 @@ public class MailPushService {
 
             List<MailAccount> availableAccounts = mailAccountManagerService.getAvailableAccounts();
             if (availableAccounts.isEmpty()) {
-                log.warn("【邮件发送】没有配置系统邮箱账号");
+                log.warn("【邮件推送】没有配置系统邮箱账号");
                 throw new BizException("邮件系统异常，请联系管理员处理。");
             }
             BizException bizException = new BizException();
@@ -236,7 +236,7 @@ public class MailPushService {
                     }
                 }
             }
-            log.error("【邮件发送】所有可用邮箱账号发送失败");
+            log.error("【邮件推送】所有可用邮箱账号发送失败");
             throw new BizException("邮件系统异常，请联系管理员处理。", bizException);
         }
     }
@@ -264,9 +264,9 @@ public class MailPushService {
             // 记录发送成功统计
             mailAccountManagerService.recordSuccess(from, today);
             mailApplyManagerService.saveEmailSendRecordAsync(from, to, 1, "邮件发送成功");
-            log.debug("【邮件发送】邮件发送成功: {} -> {}", from, to);
+            log.debug("【邮件推送】邮件发送成功: {} -> {}", from, to);
         } catch (Exception e) {
-            log.error("【邮件发送】发送邮件异常: {}", e.getMessage());
+            log.error("【邮件推送】发送邮件异常: {}", e.getMessage());
             mailApplyManagerService.saveEmailSendRecordAsync(from, to, 0, "发送邮件异常: " + e.getMessage());
             if (e.getMessage().contains("550") || e.getMessage().contains("non-existent account")) {
                 throw new BizException("请检查收件人邮箱账号是否正确");
