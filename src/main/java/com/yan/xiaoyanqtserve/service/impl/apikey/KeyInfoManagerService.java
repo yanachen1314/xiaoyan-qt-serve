@@ -18,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -439,6 +440,9 @@ public class KeyInfoManagerService {
      * @param freeKeyValue 要归还的卡密值
      */
     public void returnFreeKeyToPool(String freeKeyValue) {
+        if(!StringUtils.hasText(freeKeyValue)) {
+            return;
+        }
         try {
             // 将卡密重新添加到池中
             redisUtil.sAdd(Constants.FREE_KEY_POOL, freeKeyValue);
