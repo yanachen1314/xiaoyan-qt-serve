@@ -10,6 +10,7 @@ import com.yan.xiaoyanqtserve.entity.MailApplyRecord;
 import com.yan.xiaoyanqtserve.entity.MailSendRecord;
 import com.yan.xiaoyanqtserve.entity.ProductType;
 import com.yan.xiaoyanqtserve.mapper.MailApplyRecordMapper;
+import com.yan.xiaoyanqtserve.mapper.MailSendRecordMapper;
 import com.yan.xiaoyanqtserve.service.KeyInfoService;
 import com.yan.xiaoyanqtserve.service.MailApplyRecordService;
 import com.yan.xiaoyanqtserve.service.MailSendRecordService;
@@ -37,6 +38,7 @@ public class MailApplyManagerService {
     private final MailPropertiesConfig mailPropertiesConfig;
 
     private final MailSendRecordService mailSendRecordService;
+    private final MailSendRecordMapper mailSendRecordMapper;
     private final MailApplyRecordService mailApplyRecordService;
     private final MailApplyRecordMapper mailApplyRecordMapper;
 
@@ -46,26 +48,45 @@ public class MailApplyManagerService {
 
     /**
      * 检查邮箱是否 已申请但未发送过验证邮件或发送失败
-     *
+     * 如果出现这种情况则可以重试
      * @param email 邮箱地址
-     * @return true-已申请但未发送过验证邮件或发送失败，false-未申请
+     * @return true-可以重试，false-不能重试
      */
     public boolean hasEmailApply(String email) {
-        LambdaQueryWrapper<MailApplyRecord> queryApplyWrapper = new LambdaQueryWrapper<>();
-        queryApplyWrapper.eq(MailApplyRecord::getApplicantEmail, email);
-        // 必须已申请 = true
-        boolean isApply = mailApplyRecordMapper.selectCount(queryApplyWrapper) > 0;
-        if(!isApply) {
+        // 1. 直接查询唯一申请记录（利用uk_email唯一索引）
+        MailApplyRecord applyRecord = mailApplyRecordMapper.selectOne(
+                new LambdaQueryWrapper<MailApplyRecord>()
+                        .select(MailApplyRecord::getCreatedTime) // 仅需时间字段
+                        .eq(MailApplyRecord::getApplicantEmail, email)
+        );
+
+        // 无申请记录 → 不可重试
+        if (applyRecord == null) {
             return false;
         }
-        // 邮件未发送，或发送失败 = true        其他 = false
-        LambdaQueryWrapper<MailSendRecord> querySendWrapper = new LambdaQueryWrapper<>();
-        querySendWrapper.eq(MailSendRecord::getSendToEmail, email)
-                .eq(MailSendRecord::getStatus, 0);
-        boolean isSending = mailSendRecordService.count(querySendWrapper) > 0;
 
-        return isSending;
+        // 2. 查询"本次申请后"的最新发送记录（关键：时间过滤+排序）
+        MailSendRecord latestSendRecord = mailSendRecordMapper.selectOne(
+                new LambdaQueryWrapper<MailSendRecord>()
+                        .select(MailSendRecord::getStatus, MailSendRecord::getCreatedTime) // 仅需关键字段
+                        .eq(MailSendRecord::getSendToEmail, email)
+                        .ge(MailSendRecord::getCreatedTime, applyRecord.getCreatedTime()) // 申请后才有效
+                        .orderByDesc(MailSendRecord::getCreatedTime) // 按发送时间倒序
+                        .last("LIMIT 1") // 取最新一条
+        );
+
+        // 3. 精确判断逻辑
+        if (latestSendRecord == null) {
+            // 申请后无发送记录 → 可重试（首次申请场景）
+            return true;
+        } else if (latestSendRecord.getStatus() == 0) {
+            // 申请后发送失败 → 可重试（重试场景）
+            return true;
+        }
+        // 申请后已成功发送 → 不可重试
+        return false;
     }
+
     /**
      * 邮箱已申请并检查是否成功发送过验证邮件
      *
