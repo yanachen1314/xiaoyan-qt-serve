@@ -30,6 +30,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -145,7 +146,7 @@ public class KeyPublicController {
 
             // 3.1 已申请且已发送过验证邮件，直接返回
             if (mailApplyManagerService.hasEmailApplyAndSend(applicantEmail)) {
-                return buildApplySuccessResponse(applicantEmail, expireTimeInDays);
+                return buildApplySuccessResponse(applicantEmail, expireTimeInDays,"验证邮件不要重复发送");
             }
 
             // 3.2 已申请但未发送过验证邮件，重新生成token并发送
@@ -153,7 +154,7 @@ public class KeyPublicController {
                 String verifyToken = mailApplyManagerService.generateVerifyToken();
                 String verifyUrl = buildVerifyUrl(verifyLink, verifyToken);
                 asyncSendVerifyEmail(applicantEmail, verifyUrl);
-                return buildApplySuccessResponse(applicantEmail, expireTimeInDays, "请注意查收");
+                return buildApplySuccessResponse(applicantEmail, expireTimeInDays, "请查收验证邮件");
             }
 
             // 3.3 未申请，创建记录并发送验证邮件
@@ -165,7 +166,7 @@ public class KeyPublicController {
             mailApplyRecordService.saveApplyRecord(record);
 
             asyncSendVerifyEmail(applicantEmail, verifyUrl);
-            return buildApplySuccessResponse(applicantEmail, expireTimeInDays);
+            return buildApplySuccessResponse(applicantEmail, expireTimeInDays,"验证邮件已发送");
         } catch (BizException | IllegalArgumentException e) {
             log.warn("邮箱验证申请失败: {}", e.getMessage());
             return ApiResponse.fail(e.getMessage(), EmailVerifyVo.builder().email(applicantEmail).build());
@@ -184,6 +185,7 @@ public class KeyPublicController {
     private String buildVerifyUrl(MailPropertiesConfig.VerifyLinkConfig verifyLink, String verifyToken) {
         return webInfoPropertiesConfig.getApiSite() + verifyLink.getBasePath() + "?token=" + verifyToken;
     }
+
     /**
      * 异步发送验证邮件
      * @param email 收件邮箱
@@ -196,23 +198,19 @@ public class KeyPublicController {
             return null;
         });
     }
+
     /**
      * 构建邮箱验证申请成功响应
      * @param email 邮箱地址
      * @param expireDays 验证码有效期（天）
-     * @param extraHint 额外的提示信息
+     * @param preHint 额外的提示信息
      * @return ApiResponse响应对象
      */
-    private ApiResponse<EmailVerifyVo> buildApplySuccessResponse(String email, int expireDays, String extraHint) {
-        String hint = extraHint != null ? extraHint + "并" : "";
-        String message = "验证邮件已发送，" + hint + "请检查邮箱并在" + expireDays + "天内完成验证";
+    private ApiResponse<EmailVerifyVo> buildApplySuccessResponse(String email, int expireDays, String preHint) {
+        String hint = StringUtils.hasText(preHint) ? preHint + "，" : "";
+        String message = hint + "请检查邮箱并在" + expireDays + "天内完成验证";
         return ApiResponse.success(message, EmailVerifyVo.builder().email(email).message(message).build());
     }
-    private ApiResponse<EmailVerifyVo> buildApplySuccessResponse(String email, int expireDays) {
-        return buildApplySuccessResponse(email, expireDays, null);
-    }
-
-
 
     /**
      * 验证邮箱链接接口
@@ -235,35 +233,35 @@ public class KeyPublicController {
             if (record == null) {
                 return ResponseEntity.ok(renderVerifyEmailFailurePage("验证链接无效", "该验证链接不存在，请检查验证链接。"));
             }
-            
+
             // 2. 幂等性检查：验证是否已成功发放卡密，如果已经发放过则直接返回成功页面
             if (Objects.equals(record.getApplyStatus(), ApplyStatus.SUCCESS.getCode())) {
                 return ResponseEntity.ok(renderVerifyEmailSuccessPage(record.getApplicantEmail(), record.getApplyApiKey()));
             }
-            
+
             // 验证是否处于失败状态，允许重试
             if (Objects.equals(record.getApplyStatus(), ApplyStatus.FAILED.getCode())) {
                 // 允许重试，继续执行后续流程
                 log.info("检测到失败状态，允许重试，邮箱: {}, 当前状态: {}", record.getApplicantEmail(), record.getApplyStatus());
             }
-            
+
             // 3. 验证是否已过期（使用最新数据）
             if (record.getVerifyExpireTime().isBefore(LocalDateTime.now())) {
                 mailApplyRecordService.updateStatus(record.getId(), ApplyStatus.EXPIRED);
                 return ResponseEntity.ok(renderVerifyEmailFailurePage("验证链接已过期", "该验证链接已过期，申请已失效"));
             }
-            
+
             // 4. 获取分布式锁，防止并发重复发放卡密
             locked = redisLockUtil.lock(lockKey, 30);
             if (!locked) {
                 log.warn("获取分布式锁失败，token: {}", token);
                 return ResponseEntity.ok(renderVerifyEmailFailurePage("正在处理中", "验证请求正在处理中，请勿重复提交，请稍后刷新页面。"));
             }
-            
+
             // 5. 增加点击次数，并修改状态为处理中
             mailApplyRecordService.increaseClickCountByToken(token);
             mailApplyRecordService.updateStatus(record.getId(), ApplyStatus.PROCESSING);
-            
+
             // 6. 从卡密池获取卡密
             String licenseKey;
             try {
@@ -280,7 +278,7 @@ public class KeyPublicController {
                 }
                 throw keyEx;
             }
-            
+
             // 7. 【事务一致】保存卡密信息并更新验证记录信息
             try {
                 mailApplyManagerService.saveApiKeyAndUpdateApplyRecord(record.getId(), licenseKey);
@@ -291,7 +289,7 @@ public class KeyPublicController {
                 mailApplyRecordService.verifyApplyFail(record.getId(), ApplyStatus.FAILED, saveEx.getMessage());
                 throw new BizException("获取卡密失败，请重新尝试！");
             }
-            
+
             // 8. 返回验证成功HTML页面（密钥直接展示在页面中）
             return ResponseEntity.ok(renderVerifyEmailSuccessPage(record.getApplicantEmail(), licenseKey));
         } catch (BizException e) {
