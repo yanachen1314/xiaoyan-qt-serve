@@ -77,7 +77,7 @@ public class MailApplyRecordServiceImpl extends ServiceImpl<MailApplyRecordMappe
         MailApplyRecord updateRecord = new MailApplyRecord();
         updateRecord.setId(id);
         updateRecord.setApplyApiKey(apiKey);
-        updateRecord.setApplyStatus(ApplyStatus.SENT_SUCCESS.getCode());
+        updateRecord.setApplyStatus(ApplyStatus.SUCCESS.getCode());
         mailApplyRecordMapper.updateById(updateRecord);
     }
 
