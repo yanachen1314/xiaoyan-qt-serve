@@ -93,7 +93,7 @@ public class MailApplyManagerService {
      * @param email 邮箱地址
      * @return true-已申请并成功发送过验证邮件，false-已申请但未成功发送过验证邮件
      */
-    public boolean hasEmailApplyAndSend(String email) {
+    public boolean hasEmailApplyAndSendSuccess(String email) {
         LambdaQueryWrapper<MailSendRecord> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(MailSendRecord::getSendToEmail, email)
                 .eq(MailSendRecord::getStatus, 1);

@@ -145,7 +145,7 @@ public class KeyPublicController {
             int expireTimeInDays = verifyLink.getExpireTime();
 
             // 3.1 已申请且已成功发送过验证邮件，直接返回
-            if (mailApplyManagerService.hasEmailApplyAndSend(applicantEmail)) {
+            if (mailApplyManagerService.hasEmailApplyAndSendSuccess(applicantEmail)) {
                 return buildApplySuccessResponse(applicantEmail, expireTimeInDays, "验证邮件请勿重复发送");
             }
 
