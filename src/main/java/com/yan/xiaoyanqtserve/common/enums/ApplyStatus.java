@@ -33,6 +33,20 @@ public enum ApplyStatus {
         this.code = code;
         this.message = message;
     }
+
+    /**
+     * 根据状态码获取 ApplyStatus 枚举
+     * @param code 状态码
+     * @return ApplyStatus 枚举，未找到返回 null
+     */
+    public static ApplyStatus of(Byte code) {
+        for (ApplyStatus status : ApplyStatus.values()) {
+            if (status.getCode().equals(code)) {
+                return status;
+            }
+        }
+        return null;
+    }
     
     /**
      * 判断是否为终态（不可变更状态）

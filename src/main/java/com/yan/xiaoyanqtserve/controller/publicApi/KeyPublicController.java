@@ -150,7 +150,7 @@ public class KeyPublicController {
             }
 
             // 3.2 已申请但未发送过验证邮件或发送失败，重新生成token并发送
-            if (mailApplyManagerService.hasEmailApply(applicantEmail)) {
+            if (mailApplyManagerService.hasEmailApplyButFail(applicantEmail)) {
                 String verifyToken = mailApplyManagerService.generateVerifyToken();
                 String verifyUrl = buildVerifyUrl(verifyLink, verifyToken);
                 asyncSendVerifyEmail(applicantEmail, verifyUrl);

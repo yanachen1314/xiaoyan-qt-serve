@@ -3,6 +3,7 @@ package com.yan.xiaoyanqtserve.service.impl.mail;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.yan.xiaoyanqtserve.common.Constants;
 import com.yan.xiaoyanqtserve.common.dto.key.GenerateKeyDto;
+import com.yan.xiaoyanqtserve.common.enums.ApplyStatus;
 import com.yan.xiaoyanqtserve.common.exception.BizException;
 import com.yan.xiaoyanqtserve.config.custome.MailPropertiesConfig;
 import com.yan.xiaoyanqtserve.entity.KeyInfo;
@@ -49,14 +50,19 @@ public class MailApplyManagerService {
     /**
      * 检查邮箱是否 已申请但未发送过验证邮件或发送失败
      * 如果出现这种情况则可以重试
+     * <br/>
+     * 判断逻辑：
+     * 1. 如果申请记录状态为终态（SUCCESS/EXPIRED），不允许重试
+     * 2. 如果申请后无发送记录 → 可重试（首次申请场景）
+     * 3. 如果申请后发送失败 → 可重试（重试场景）
+     * 4. 如果申请后已成功发送 → 不可重试
      * @param email 邮箱地址
      * @return true-可以重试，false-不能重试
      */
-    public boolean hasEmailApply(String email) {
-        // 1. 直接查询唯一申请记录（利用uk_email唯一索引）
+    public boolean hasEmailApplyButFail(String email) {
+        // 1. 查询申请记录（利用uk_email唯一索引）
         MailApplyRecord applyRecord = mailApplyRecordMapper.selectOne(
                 new LambdaQueryWrapper<MailApplyRecord>()
-                        .select(MailApplyRecord::getCreatedTime) // 仅需时间字段
                         .eq(MailApplyRecord::getApplicantEmail, email)
         );
 
@@ -65,17 +71,26 @@ public class MailApplyManagerService {
             return false;
         }
 
-        // 2. 查询"本次申请后"的最新发送记录（关键：时间过滤+排序）
+        // 2. 检查申请记录状态，终态不允许重试
+        if (applyRecord.getApplyStatus() != null) {
+            ApplyStatus currentStatus = ApplyStatus.of(applyRecord.getApplyStatus());
+            if (currentStatus != null && currentStatus.isTerminal()) {
+                log.debug("邮箱 {} 的申请状态为终态 {}，不允许重试", email, currentStatus.getMessage());
+                return false;
+            }
+        }
+
+        // 3. 查询"本次申请后"的最新发送记录（关键：时间过滤+排序）
         MailSendRecord latestSendRecord = mailSendRecordMapper.selectOne(
                 new LambdaQueryWrapper<MailSendRecord>()
-                        .select(MailSendRecord::getStatus, MailSendRecord::getCreatedTime) // 仅需关键字段
+                        .select(MailSendRecord::getStatus, MailSendRecord::getCreatedTime)
                         .eq(MailSendRecord::getSendToEmail, email)
-                        .ge(MailSendRecord::getCreatedTime, applyRecord.getCreatedTime()) // 申请后才有效
-                        .orderByDesc(MailSendRecord::getCreatedTime) // 按发送时间倒序
-                        .last("LIMIT 1") // 取最新一条
+                        .ge(MailSendRecord::getCreatedTime, applyRecord.getCreatedTime())
+                        .orderByDesc(MailSendRecord::getCreatedTime)
+                        .last("LIMIT 1")
         );
 
-        // 3. 精确判断逻辑
+        // 4. 精确判断逻辑
         if (latestSendRecord == null) {
             // 申请后无发送记录 → 可重试（首次申请场景）
             return true;
@@ -86,18 +101,38 @@ public class MailApplyManagerService {
         // 申请后已成功发送 → 不可重试
         return false;
     }
+    
+
 
     /**
      * 邮箱已申请并检查是否成功发送过验证邮件
-     *
+     * <br/>
+     * 判断逻辑：查询申请记录，并检查该申请记录创建后是否有成功的邮件发送记录
      * @param email 邮箱地址
      * @return true-已申请并成功发送过验证邮件，false-已申请但未成功发送过验证邮件
      */
     public boolean hasEmailApplyAndSendSuccess(String email) {
+        // 1. 查询申请记录（利用uk_email唯一索引）
+        MailApplyRecord applyRecord = mailApplyRecordMapper.selectOne(
+                new LambdaQueryWrapper<MailApplyRecord>()
+                        .select(MailApplyRecord::getId, MailApplyRecord::getCreatedTime)
+                        .eq(MailApplyRecord::getApplicantEmail, email)
+        );
+        
+        // 无申请记录 → 返回false
+        if (applyRecord == null) {
+            return false;
+        }
+        
+        // 2. 查询"本次申请后"的成功发送记录
         LambdaQueryWrapper<MailSendRecord> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(MailSendRecord::getSendToEmail, email)
-                .eq(MailSendRecord::getStatus, 1);
-        return mailSendRecordService.count(queryWrapper) > 0;
+                .eq(MailSendRecord::getStatus, 1)
+                .ge(MailSendRecord::getCreatedTime, applyRecord.getCreatedTime())
+                .orderByDesc(MailSendRecord::getCreatedTime)
+                .last("LIMIT 1");
+        
+        return mailSendRecordMapper.selectCount(queryWrapper) > 0;
     }
 
 
