@@ -61,7 +61,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration cfg = new CorsConfiguration();
-        // 允许任意地址访问
+        // 允许访问API的地址
         cfg.setAllowedOriginPatterns(Collections.singletonList("*"));
         // 允许的请求方法
         cfg.setAllowedMethods(ListUtil.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));

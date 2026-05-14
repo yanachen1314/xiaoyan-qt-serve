@@ -16,18 +16,18 @@ xiaoyan:
   # 邮箱自定义配置
   mail:
     safety_limits:
-      daily_total_max: ${LIMITS_DAILY_TOTAL_MAX:100}       # 日发送上限总额
-      mail_daily_max: ${LIMITS_MAIL_DAILY_MAX:50}          # 单邮箱每天上限
-      mail_minute_rate: ${LIMITS_MAIL_MINUTE_RATE:5}       # 单邮箱每分钟 5 封
-      mail_bounce_rate: ${LIMITS_MAIL_BOUNCE_RATE:0.1}     # 单邮箱退信率 > 10% 立即禁用
+      daily_total_max: ${LIMITS_DAILY_TOTAL_MAX}       # 日发送上限总额
+      mail_daily_max: ${LIMITS_MAIL_DAILY_MAX}          # 单邮箱每天上限
+      mail_minute_rate: ${LIMITS_MAIL_MINUTE_RATE}       # 单邮箱每分钟 5 封
+      mail_bounce_rate: ${LIMITS_MAIL_BOUNCE_RATE}     # 单邮箱退信率 > 10% 立即禁用
     # 邮箱验证链接
     verify-link:
       # 链接长度
-      token-length: ${VERIFY_LINK_LENGTH:128}
+      token-length: ${VERIFY_LINK_LENGTH}
       # 链接有效期（天）
-      expire_time: ${VERIFY_LINK_EXPIRE_TIME:3}
+      expire_time: ${VERIFY_LINK_EXPIRE_TIME}
       # 链接校验基础路径
-      base_path: ${VERIFY_LINK_BASE_PATH:/api/public/verifyEmailLink}
+      base_path: ${VERIFY_LINK_BASE_PATH}
   # 安全配置
   security:
     # 卡密加密密钥
