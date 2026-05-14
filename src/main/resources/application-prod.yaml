@@ -2,17 +2,17 @@
 xiaoyan:
   webinfo:
     # 网站名称
-    name: ${WEB_NAME:小烟改写工具}
+    name: ${WEB_NAME}
     # 网站主站点
-    main_site: ${WEB_MAIN_SITE:https://xygo.cn}
+    main_site: ${WEB_MAIN_SITE}
     # 网站后台管理系统
-    admin_site: ${WEB_ADMIN_SITE:https://admin.xygo.cn}
+    admin_site: ${WEB_ADMIN_SITE}
     # 小烟改写工具 WEB端部署域名
-    writer_site: ${WEB_WRITER_SITE:https://writer.xygo.cn}
+    writer_site: ${WEB_WRITER_SITE}
     # 网站接口域名
-    api_site: ${API_SITE:https://api.xygo.cn}
+    api_site: ${API_SITE}
     # 商品购买地址
-    ldxp_url: ${WEB_LDXP_URL:https://pay.ldxp.cn/shop/xiaoyanai}
+    ldxp_url: ${WEB_LDXP_URL}
   # 邮箱自定义配置
   mail:
     safety_limits:
