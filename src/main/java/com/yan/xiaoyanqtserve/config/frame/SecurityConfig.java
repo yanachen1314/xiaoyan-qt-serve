@@ -3,6 +3,7 @@ package com.yan.xiaoyanqtserve.config.frame;
 import cn.hutool.core.collection.ListUtil;
 import com.yan.xiaoyanqtserve.common.enums.BizStatus;
 import com.yan.xiaoyanqtserve.common.enums.Role;
+import com.yan.xiaoyanqtserve.config.custome.CorsConfigProperties;
 import com.yan.xiaoyanqtserve.filter.ApiKeyAuthFilter;
 import com.yan.xiaoyanqtserve.filter.JwtAuthFilter;
 import com.yan.xiaoyanqtserve.common.utils.SecurityResponseUtil;
@@ -46,6 +47,8 @@ public class SecurityConfig {
     private ApiKeyAuthFilter apiKeyAuthFilter;
     @Resource
     private JwtAuthFilter jwtAuthFilter;
+    @Resource
+    private CorsConfigProperties corsConfigProperties;
 
 
     @Bean
@@ -58,21 +61,27 @@ public class SecurityConfig {
         return config.getAuthenticationManager();
     }
 
+    /**
+     * 创建 CORS 配置源
+     * 从 YAML 配置文件中读取 CORS 相关配置
+     *
+     * @return CorsConfigurationSource CORS 配置源
+     */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration cfg = new CorsConfiguration();
         // 允许访问API的地址
-        cfg.setAllowedOriginPatterns(Collections.singletonList("*"));
+        cfg.setAllowedOriginPatterns(corsConfigProperties.getAllowedOriginPatterns());
         // 允许的请求方法
-        cfg.setAllowedMethods(ListUtil.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        cfg.setAllowedMethods(corsConfigProperties.getAllowedMethods());
         // 允许的请求头
-        cfg.setAllowedHeaders(ListUtil.of("Authorization", "Content-Type", "X-Device", "X-Client-Version", "X-API-Key"));
+        cfg.setAllowedHeaders(corsConfigProperties.getAllowedHeaders());
         // 暴露响应头
-        cfg.setExposedHeaders(ListUtil.of("Authorization"));
+        cfg.setExposedHeaders(corsConfigProperties.getExposedHeaders());
         // 预检请求缓存时间（秒）
-        cfg.setMaxAge(3600L);
+        cfg.setMaxAge(corsConfigProperties.getMaxAge());
         // 是否允许携带 Cookie（使用 allowedOriginPatterns 时可设为 true）
-        cfg.setAllowCredentials(true);
+        cfg.setAllowCredentials(corsConfigProperties.getAllowCredentials());
         // 注册对所有路径都生效
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", cfg);

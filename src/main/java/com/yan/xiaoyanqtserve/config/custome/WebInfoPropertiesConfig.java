@@ -36,6 +36,6 @@ public class WebInfoPropertiesConfig {
     /**
      * 商品购买地址
      */
-    private String ldxpUrl = "captcha.cn-shanghai.aliyuncs.com";
+    private String ldxpUrl;
 
 }
