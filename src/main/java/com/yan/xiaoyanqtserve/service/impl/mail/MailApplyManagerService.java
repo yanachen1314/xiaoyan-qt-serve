@@ -3,7 +3,7 @@ package com.yan.xiaoyanqtserve.service.impl.mail;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.yan.xiaoyanqtserve.common.Constants;
 import com.yan.xiaoyanqtserve.common.dto.key.GenerateKeyDto;
-import com.yan.xiaoyanqtserve.common.enums.ApplyStatus;
+import com.yan.xiaoyanqtserve.common.enums.EmailApplyStatus;
 import com.yan.xiaoyanqtserve.common.exception.BizException;
 import com.yan.xiaoyanqtserve.config.custome.MailPropertiesConfig;
 import com.yan.xiaoyanqtserve.entity.KeyInfo;
@@ -73,7 +73,7 @@ public class MailApplyManagerService {
 
         // 2. 检查申请记录状态，终态不允许重试
         if (applyRecord.getApplyStatus() != null) {
-            ApplyStatus currentStatus = ApplyStatus.of(applyRecord.getApplyStatus());
+            EmailApplyStatus currentStatus = EmailApplyStatus.of(applyRecord.getApplyStatus());
             if (currentStatus != null && currentStatus.isTerminal()) {
                 log.debug("邮箱 {} 的申请状态为终态 {}，不允许重试", email, currentStatus.getMessage());
                 return false;

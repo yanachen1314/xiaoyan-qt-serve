@@ -11,9 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * <p>
- * 邮件账号配置表 前端控制器
- * </p>
+ * 邮件账号配置表
  *
  * @author 烟尘
  * @since 2026-04-24

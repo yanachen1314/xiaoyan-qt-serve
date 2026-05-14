@@ -4,7 +4,7 @@ import com.yan.xiaoyanqtserve.common.Constants;
 import com.yan.xiaoyanqtserve.common.annotaions.RateLimiter;
 import com.yan.xiaoyanqtserve.common.annotaions.VerifyCaptcha;
 import com.yan.xiaoyanqtserve.common.dto.EmailApplyDto;
-import com.yan.xiaoyanqtserve.common.enums.ApplyStatus;
+import com.yan.xiaoyanqtserve.common.enums.EmailApplyStatus;
 import com.yan.xiaoyanqtserve.common.enums.SceneIdEnum;
 import com.yan.xiaoyanqtserve.common.exception.BizException;
 import com.yan.xiaoyanqtserve.common.vo.EmailVerifyVo;
@@ -162,7 +162,7 @@ public class KeyPublicController {
             String verifyUrl = buildVerifyUrl(verifyLink, verifyToken);
             LocalDateTime expireTime = LocalDateTime.now().plusDays(expireTimeInDays);
             // 保存申请记录
-            MailApplyRecord record = MailApplyRecord.builder().applicantEmail(applicantEmail).verifyToken(verifyToken).applyStatus(ApplyStatus.PENDING.getCode()).clickCount(0).verifyExpireTime(expireTime).deviceType(deviceType).deviceId(deviceId).clientIp(clientIp).userAgent(userAgent).build();
+            MailApplyRecord record = MailApplyRecord.builder().applicantEmail(applicantEmail).verifyToken(verifyToken).applyStatus(EmailApplyStatus.PENDING.getCode()).clickCount(0).verifyExpireTime(expireTime).deviceType(deviceType).deviceId(deviceId).clientIp(clientIp).userAgent(userAgent).build();
             mailApplyRecordService.saveApplyRecord(record);
             // 异步发送验证邮件
             asyncSendVerifyEmail(applicantEmail, verifyUrl);
@@ -237,19 +237,19 @@ public class KeyPublicController {
             }
 
             // 2. 幂等性检查：验证是否已成功发放卡密，如果已经发放过则直接返回成功页面
-            if (Objects.equals(record.getApplyStatus(), ApplyStatus.SUCCESS.getCode())) {
+            if (Objects.equals(record.getApplyStatus(), EmailApplyStatus.SUCCESS.getCode())) {
                 return ResponseEntity.ok(renderVerifyEmailSuccessPage(record.getApplicantEmail(), record.getApplyApiKey()));
             }
 
             // 验证是否处于失败状态，允许重试
-            if (Objects.equals(record.getApplyStatus(), ApplyStatus.FAILED.getCode())) {
+            if (Objects.equals(record.getApplyStatus(), EmailApplyStatus.FAILED.getCode())) {
                 // 允许重试，继续执行后续流程
                 log.info("检测到失败状态，允许重试，邮箱: {}, 当前状态: {}", record.getApplicantEmail(), record.getApplyStatus());
             }
 
             // 3. 验证是否已过期（使用最新数据）
             if (record.getVerifyExpireTime().isBefore(LocalDateTime.now())) {
-                mailApplyRecordService.updateStatus(record.getId(), ApplyStatus.EXPIRED);
+                mailApplyRecordService.updateStatus(record.getId(), EmailApplyStatus.EXPIRED);
                 return ResponseEntity.ok(renderVerifyEmailFailurePage("验证链接已过期", "该验证链接已过期，申请已失效"));
             }
 
@@ -262,21 +262,21 @@ public class KeyPublicController {
 
             // 5. 增加点击次数，并修改状态为处理中
             mailApplyRecordService.increaseClickCountByToken(token);
-            mailApplyRecordService.updateStatus(record.getId(), ApplyStatus.PROCESSING);
+            mailApplyRecordService.updateStatus(record.getId(), EmailApplyStatus.PROCESSING);
 
             // 6. 从卡密池获取卡密
             String licenseKey;
             try {
                 // 判断今日是否已经发出指定数量的免费密钥
                 if (mailAccountManagerService.isTodayFreeKeyLimitReached()) {
-                    mailApplyRecordService.updateStatus(record.getId(), ApplyStatus.FAILED);
+                    mailApplyRecordService.updateStatus(record.getId(), EmailApplyStatus.FAILED);
                     throw new BizException("今日免费密钥已发完了，明天早点来哦！");
                 }
                 licenseKey = keyinfoManagerService.getUnusedFreeKeyFromPool();
             } catch (Exception keyEx) {
                 log.error("获取卡密失败，邮箱: {}, 原因: {}", record.getApplicantEmail(), keyEx.getMessage(), keyEx);
                 if (!(keyEx instanceof BizException)) {
-                    mailApplyRecordService.verifyApplyFail(record.getId(), ApplyStatus.FAILED, keyEx.getMessage());
+                    mailApplyRecordService.verifyApplyFail(record.getId(), EmailApplyStatus.FAILED, keyEx.getMessage());
                 }
                 throw keyEx;
             }
@@ -288,7 +288,7 @@ public class KeyPublicController {
                 // 事务回滚，将卡密归还到密钥池
                 keyinfoManagerService.returnFreeKeyToPool(licenseKey);
                 log.error("保存密钥记录失败，邮箱: {}, 卡密: {}, 原因: {}", record.getApplicantEmail(), licenseKey, saveEx.getMessage(), saveEx);
-                mailApplyRecordService.verifyApplyFail(record.getId(), ApplyStatus.FAILED, saveEx.getMessage());
+                mailApplyRecordService.verifyApplyFail(record.getId(), EmailApplyStatus.FAILED, saveEx.getMessage());
                 throw new BizException("获取卡密失败，请重新尝试！");
             }
 

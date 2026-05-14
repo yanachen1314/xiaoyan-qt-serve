@@ -1,6 +1,6 @@
 package com.yan.xiaoyanqtserve.validator;
 
-import com.yan.xiaoyanqtserve.common.enums.MailTemplateEnum;
+import com.yan.xiaoyanqtserve.common.enums.EmailTemplateEnum;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
@@ -22,12 +22,12 @@ public class MailTemplateValidator implements CommandLineRunner {
 
     /**
      * 校验邮件模板文件是否存在
-     * @see MailTemplateEnum 邮件模板枚举
+     * @see EmailTemplateEnum 邮件模板枚举
      * @throws IllegalStateException 如果模板文件不存在
      */
     private void validateTemplates() {
 
-        for (MailTemplateEnum template : MailTemplateEnum.values()) {
+        for (EmailTemplateEnum template : EmailTemplateEnum.values()) {
             String path = "classpath:templates/mail/" + template.getName() + ".html";
             Resource resource = resourceLoader.getResource(path);
             
@@ -38,6 +38,6 @@ public class MailTemplateValidator implements CommandLineRunner {
                 );
             }
         }
-        log.info("✅ 邮件模板名称一致性校验通过，共 {} 个模板。", MailTemplateEnum.values().length);
+        log.info("✅ 邮件模板名称一致性校验通过，共 {} 个模板。", EmailTemplateEnum.values().length);
     }
 }

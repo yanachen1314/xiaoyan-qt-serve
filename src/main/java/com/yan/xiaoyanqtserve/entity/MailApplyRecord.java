@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.yan.xiaoyanqtserve.common.enums.EmailApplyStatus;
 import lombok.*;
 
 import java.io.Serial;
@@ -64,7 +65,7 @@ public class MailApplyRecord implements Serializable {
 
     /**
      * 状态
-     * @see com.yan.xiaoyanqtserve.common.enums.ApplyStatus
+     * @see EmailApplyStatus
      */
     @TableField("apply_status")
     private Byte applyStatus;

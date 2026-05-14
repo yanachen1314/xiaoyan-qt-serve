@@ -1,7 +1,7 @@
 package com.yan.xiaoyanqtserve.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.yan.xiaoyanqtserve.common.enums.ApplyStatus;
+import com.yan.xiaoyanqtserve.common.enums.EmailApplyStatus;
 import com.yan.xiaoyanqtserve.entity.MailApplyRecord;
 import org.springframework.dao.DuplicateKeyException;
 
@@ -34,16 +34,16 @@ public interface MailApplyRecordService extends IService<MailApplyRecord> {
      * @param id 记录ID
      * @param status 新状态
      */
-    void updateStatus(Long id, ApplyStatus status);
+    void updateStatus(Long id, EmailApplyStatus status);
 
     /**
      * 验证领取失败，更新记录状态
      *
      * @param id          记录ID
-     * @param applyStatus 新状态
+     * @param emailApplyStatus 新状态
      * @param errMsg      错误信息
      */
-    void verifyApplyFail(Long id, ApplyStatus applyStatus, String errMsg);
+    void verifyApplyFail(Long id, EmailApplyStatus emailApplyStatus, String errMsg);
 
     /**
      * 验证领取成功，更新记录状态和 apiKey

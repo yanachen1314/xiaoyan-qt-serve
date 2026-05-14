@@ -1,7 +1,7 @@
 package com.yan.xiaoyanqtserve.service.impl.sys;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.yan.xiaoyanqtserve.common.enums.ApplyStatus;
+import com.yan.xiaoyanqtserve.common.enums.EmailApplyStatus;
 import com.yan.xiaoyanqtserve.common.exception.BizException;
 import com.yan.xiaoyanqtserve.entity.MailApplyRecord;
 import com.yan.xiaoyanqtserve.mapper.MailApplyRecordMapper;
@@ -58,7 +58,7 @@ public class MailApplyRecordServiceImpl extends ServiceImpl<MailApplyRecordMappe
      * @param status 新状态
      */
     @Override
-    public void updateStatus(Long id, ApplyStatus status) {
+    public void updateStatus(Long id, EmailApplyStatus status) {
         try {
             mailApplyRecordMapper.updateStatus(id, status.getCode(),status.getMessage());
         } catch (Exception e) {
@@ -70,16 +70,16 @@ public class MailApplyRecordServiceImpl extends ServiceImpl<MailApplyRecordMappe
      * 验证领取失败，更新记录状态
      *
      * @param id          记录ID
-     * @param applyStatus 新状态
+     * @param emailApplyStatus 新状态
      * @param errMsg      错误详情信息
      */
     @Override
-    public void verifyApplyFail(Long id, ApplyStatus applyStatus, String errMsg) {
-        String remark = applyStatus.getMessage();
+    public void verifyApplyFail(Long id, EmailApplyStatus emailApplyStatus, String errMsg) {
+        String remark = emailApplyStatus.getMessage();
         if (StringUtils.hasText(errMsg)) {
             remark += "，详情：" + errMsg;
         }
-        mailApplyRecordMapper.updateStatus(id, applyStatus.getCode(), remark);
+        mailApplyRecordMapper.updateStatus(id, emailApplyStatus.getCode(), remark);
     }
 
     /**
@@ -92,7 +92,7 @@ public class MailApplyRecordServiceImpl extends ServiceImpl<MailApplyRecordMappe
         MailApplyRecord updateRecord = new MailApplyRecord();
         updateRecord.setId(id);
         updateRecord.setApplyApiKey(apiKey);
-        updateRecord.setApplyStatus(ApplyStatus.SUCCESS.getCode());
+        updateRecord.setApplyStatus(EmailApplyStatus.SUCCESS.getCode());
         mailApplyRecordMapper.updateById(updateRecord);
     }
 

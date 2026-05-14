@@ -9,7 +9,7 @@ import lombok.Getter;
  * @since 2026/4/30 17:33
  */
 @Getter
-public enum ApplyStatus {
+public enum EmailApplyStatus {
     /** 待处理：记录已创建，等待用户点击验证链接 */
     PENDING((byte) 0, "待处理"),
     
@@ -29,18 +29,18 @@ public enum ApplyStatus {
 
     private final String message;
 
-    ApplyStatus(Byte code, String message) {
+    EmailApplyStatus(Byte code, String message) {
         this.code = code;
         this.message = message;
     }
 
     /**
-     * 根据状态码获取 ApplyStatus 枚举
+     * 根据状态码获取 EmailApplyStatus 枚举
      * @param code 状态码
-     * @return ApplyStatus 枚举，未找到返回 null
+     * @return EmailApplyStatus 枚举，未找到返回 null
      */
-    public static ApplyStatus of(Byte code) {
-        for (ApplyStatus status : ApplyStatus.values()) {
+    public static EmailApplyStatus of(Byte code) {
+        for (EmailApplyStatus status : EmailApplyStatus.values()) {
             if (status.getCode().equals(code)) {
                 return status;
             }

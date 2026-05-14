@@ -8,7 +8,7 @@ import lombok.Getter;
  * @since 2025/11/29 16:41
  */
 @Getter
-public enum MailTemplateEnum {
+public enum EmailTemplateEnum {
     // 验证码邮件通知模板
     VERIFY_CODE("VerifyCode"),
 
@@ -35,7 +35,7 @@ public enum MailTemplateEnum {
 
     private final String name;
 
-    MailTemplateEnum(String name) {
+    EmailTemplateEnum(String name) {
         this.name = name;
     }
 }

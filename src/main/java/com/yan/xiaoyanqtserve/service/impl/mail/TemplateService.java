@@ -1,7 +1,7 @@
 package com.yan.xiaoyanqtserve.service.impl.mail;
 
 import com.yan.xiaoyanqtserve.common.enums.EmailServiceProvider;
-import com.yan.xiaoyanqtserve.common.enums.MailTemplateEnum;
+import com.yan.xiaoyanqtserve.common.enums.EmailTemplateEnum;
 import com.yan.xiaoyanqtserve.config.custome.WebInfoPropertiesConfig;
 import com.yan.xiaoyanqtserve.entity.MailAccount;
 import jakarta.annotation.Resource;
@@ -34,7 +34,7 @@ public class TemplateService {
      * @param variables    模板参数,Map<String, Object>
      * @return HTML字符串
      */
-    public String generateHtmlContent(MailTemplateEnum templateName, Map<String, Object> variables) {
+    public String generateHtmlContent(EmailTemplateEnum templateName, Map<String, Object> variables) {
         Context context = new Context();
         context.setVariables(variables);
         return templateEngine.process(TEMPLATE_PATH + templateName.getName(), context);
@@ -55,7 +55,7 @@ public class TemplateService {
         context.setVariable("code", code);
         context.setVariable("validTime", validTime);
 
-        return templateEngine.process(TEMPLATE_PATH + MailTemplateEnum.VERIFY_CODE.getName(), context);
+        return templateEngine.process(TEMPLATE_PATH + EmailTemplateEnum.VERIFY_CODE.getName(), context);
     }
 
     /**
@@ -78,7 +78,7 @@ public class TemplateService {
         context.setVariable("now", LocalDate.now());
         context.setVariable("daysUntilExpiry", daysUntilExpiry);
 
-        return templateEngine.process(TEMPLATE_PATH + MailTemplateEnum.NETEASE_AUTH_CODE_RESET.getName(), context);
+        return templateEngine.process(TEMPLATE_PATH + EmailTemplateEnum.NETEASE_AUTH_CODE_RESET.getName(), context);
     }
 
     /**
@@ -95,7 +95,7 @@ public class TemplateService {
         context.setVariable("content", content);
         context.setVariable("website", webInfoPropertiesConfig.getApiSite());
 
-        return templateEngine.process(TEMPLATE_PATH + MailTemplateEnum.WELCOME.getName(), context);
+        return templateEngine.process(TEMPLATE_PATH + EmailTemplateEnum.WELCOME.getName(), context);
     }
 
     /**
@@ -112,7 +112,7 @@ public class TemplateService {
         context.setVariable("changeTime", changeTime);
         context.setVariable("loginUrl", webInfoPropertiesConfig.getApiSite()+"/api/login");
 
-        return templateEngine.process(TEMPLATE_PATH + MailTemplateEnum.PWD_RESET.getName(), context);
+        return templateEngine.process(TEMPLATE_PATH + EmailTemplateEnum.PWD_RESET.getName(), context);
     }
 
     /**
@@ -130,7 +130,7 @@ public class TemplateService {
         context.setVariable("website", webInfoPropertiesConfig.getApiSite());
         context.setVariable("shopUrl", webInfoPropertiesConfig.getLdxpUrl());
 
-        return templateEngine.process(TEMPLATE_PATH + MailTemplateEnum.FREE_LICENSE.getName(), context);
+        return templateEngine.process(TEMPLATE_PATH + EmailTemplateEnum.FREE_LICENSE.getName(), context);
     }
 
     /**
@@ -150,7 +150,7 @@ public class TemplateService {
         context.setVariable("website", webInfoPropertiesConfig.getApiSite());
         context.setVariable("shopUrl", webInfoPropertiesConfig.getLdxpUrl());
 
-        return templateEngine.process(TEMPLATE_PATH + MailTemplateEnum.EMAIL_VERIFY_LINK.getName(), context);
+        return templateEngine.process(TEMPLATE_PATH + EmailTemplateEnum.EMAIL_VERIFY_LINK.getName(), context);
     }
 
     /**
@@ -167,7 +167,7 @@ public class TemplateService {
         context.setVariable("licenseKey", licenseKey);
         context.setVariable("verifyTime", LocalDateTime.now().toString());
 
-        return templateEngine.process(TEMPLATE_PATH + MailTemplateEnum.VERIFY_EMAIL_SUCCESS.getName(), context);
+        return templateEngine.process(TEMPLATE_PATH + EmailTemplateEnum.VERIFY_EMAIL_SUCCESS.getName(), context);
     }
 
     /**
@@ -184,6 +184,6 @@ public class TemplateService {
         context.setVariable("websiteUrl", webInfoPropertiesConfig.getWriterSite());
         context.setVariable("errorTime", LocalDateTime.now().toString());
 
-        return templateEngine.process(TEMPLATE_PATH + MailTemplateEnum.VERIFY_EMAIL_FAILURE.getName(), context);
+        return templateEngine.process(TEMPLATE_PATH + EmailTemplateEnum.VERIFY_EMAIL_FAILURE.getName(), context);
     }
 }
