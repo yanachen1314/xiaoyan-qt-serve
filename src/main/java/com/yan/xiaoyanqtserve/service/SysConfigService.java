@@ -28,7 +28,7 @@ public interface SysConfigService extends IService<SysConfig> {
 
     /**
      * 获取验证码服务是否启用
-     * @return 验证码服务是否启用
+     * @return 验证码服务是否启用。true - 启用，false - 禁用
      */
     Boolean getCaptchaServiceEnabled();
 

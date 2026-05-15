@@ -48,6 +48,7 @@ public class Constants {
     // LINK3地址缓存KEY
     public static final String LINK3_KEY = "system.updateLink";
 
+
     // HTTPRequest的请求属性  请求日志相关
     // 日志请求ID
     public static final String ATTRIBUTE_REQUEST_ID = "REQUEST_ID";

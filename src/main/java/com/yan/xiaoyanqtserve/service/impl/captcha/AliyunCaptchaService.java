@@ -69,10 +69,10 @@ public class AliyunCaptchaService {
      * @return 验证结果（true=通过，false=不通过）
      */
     public boolean verifyCaptcha(SceneIdEnum sceneId, String captchaVerifyParam) {
-        // 服务禁用时直接通过验证
+        // 验证码服务禁用时直接通过验证
         if (!sysConfigService.getCaptchaServiceEnabled()) {
             log.debug("验证码服务已禁用，自动通过验证");
-            return handleServiceException(new BizException("验证码服务已禁用"));
+            return true;
         }
 
         if (client == null) {
