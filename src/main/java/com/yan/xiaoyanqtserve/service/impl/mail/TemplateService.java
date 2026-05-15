@@ -94,6 +94,7 @@ public class TemplateService {
         context.setVariable("userName", userName);
         context.setVariable("content", content);
         context.setVariable("website", webInfoPropertiesConfig.getApiSite());
+        context.setVariable("shopUrl", webInfoPropertiesConfig.getLdxpUrl());
 
         return templateEngine.process(TEMPLATE_PATH + EmailTemplateEnum.WELCOME.getName(), context);
     }
@@ -166,6 +167,8 @@ public class TemplateService {
         context.setVariable("email", email);
         context.setVariable("licenseKey", licenseKey);
         context.setVariable("verifyTime", LocalDateTime.now().toString());
+        context.setVariable("website", webInfoPropertiesConfig.getApiSite());
+        context.setVariable("shopUrl", webInfoPropertiesConfig.getLdxpUrl());
 
         return templateEngine.process(TEMPLATE_PATH + EmailTemplateEnum.VERIFY_EMAIL_SUCCESS.getName(), context);
     }

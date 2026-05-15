@@ -3,218 +3,45 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title th:text="${title}">验证码提醒</title>
-    <style lang="text/css">
-        /* 重置样式 */
-        body,
-        table,
-        td,
-        a {
-            -webkit-text-size-adjust: 100%;
-            -ms-text-size-adjust: 100%;
-        }
-
-        table,
-        td {
-            mso-table-lspace: 0;
-            mso-table-rspace: 0;
-        }
-
-        img {
-            -ms-interpolation-mode: bicubic;
-        }
-
-        /* 基础样式 */
-        body {
-            margin: 0;
-            padding: 0;
-            background-color: #f5f5f5;
-            font-family: Arial, 'Microsoft YaHei', sans-serif;
-            font-size: 14px;
-            line-height: 1.5;
-            color: #333333;
-        }
-
-        /* 容器样式 */
-        .container {
-            width: 100%;
-            max-width: 600px;
-            margin: 0 auto;
-            background-color: #ffffff;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-        }
-
-        /* 头部样式 */
-        .header {
-            background-color: #4a90e2;
-            color: #ffffff;
-            padding: 20px;
-            text-align: center;
-        }
-
-        .header h1 {
-            margin: 0;
-            font-size: 24px;
-            font-weight: bold;
-        }
-
-        /* 内容区域样式 */
-        .content {
-            padding: 30px;
-        }
-
-        .content p {
-            margin: 0 0 20px 0;
-        }
-
-        /* 验证码卡片样式 */
-        .code-card {
-            background-color: #f8f9fa;
-            border: 1px solid #e9ecef;
-            border-radius: 8px;
-            padding: 30px;
-            margin: 20px 0;
-            text-align: center;
-        }
-
-        .code-title {
-            font-size: 16px;
-            color: #666666;
-            margin-bottom: 15px;
-        }
-
-        .code-value {
-            font-size: 36px;
-            font-weight: bold;
-            color: #4a90e2;
-            letter-spacing: 4px;
-            margin: 15px 0;
-            font-family: 'Courier New', Courier, monospace;
-        }
-
-        .code-validity {
-            font-size: 14px;
-            color: #999999;
-        }
-
-        /* 操作步骤样式 */
-        .steps {
-            background-color: #e7f3ff;
-            border-left: 4px solid #4a90e2;
-            padding: 15px 20px;
-            margin: 20px 0;
-        }
-
-        .steps h3 {
-            margin: 0 0 10px 0;
-            font-size: 16px;
-            color: #4a90e2;
-        }
-
-        .steps ol {
-            margin: 0;
-            padding-left: 20px;
-        }
-
-        .steps li {
-            margin-bottom: 8px;
-        }
-
-        /* 安全提示样式 */
-        .security-tip {
-            background-color: #fff3cd;
-            border: 1px solid #ffeeba;
-            border-radius: 6px;
-            padding: 15px;
-            margin: 20px 0;
-            color: #856404;
-        }
-
-        .security-tip h3 {
-            margin: 0 0 10px 0;
-            font-size: 16px;
-        }
-
-        /* 底部样式 */
-        .footer {
-            background-color: #f5f5f5;
-            padding: 20px;
-            text-align: center;
-            color: #999999;
-            font-size: 12px;
-        }
-
-        /* 响应式设计 */
-        @media only screen and (max-width: 600px) {
-            .container {
-                width: 100% !important;
-                border-radius: 0;
-            }
-
-            .content {
-                padding: 20px;
-            }
-
-            .code-card {
-                padding: 20px;
-            }
-
-            .code-value {
-                font-size: 28px;
-            }
-            .security-tip ul{
-                padding-inline-start: 25px;
-            }
-        }
-    </style>
+    <th:block th:replace="mail/layout :: email_head(${title})"></th:block>
 </head>
 
 <body>
-<div class="container">
-    <!-- 头部 -->
-    <div class="header">
-        <h1>验证码通知</h1>
-    </div>
+    <div class="container">
+        <div class="header" style="background-color: #4a90e2;">
+            <h1>验证码通知</h1>
+        </div>
 
-    <!-- 内容区域 -->
-    <div class="content">
-        <p>尊敬的用户：</p>
+        <div class="content">
+            <p>尊敬的用户：</p>
 
-        <p>您好！您正在进行 <strong th:text="${module}"></strong> 操作，为了保障您的账号安全，需要进行验证码验证。</p>
+            <p>您好！您正在进行 <strong th:text="${module}"></strong> 操作，为了保障您的账号安全，需要进行验证码验证。</p>
 
-        <!-- 验证码卡片 -->
-        <div class="code-card">
-            <div class="code-title">您的验证码</div>
-            <div class="code-value" th:text="${code}">123456</div>
-            <div class="code-validity">
-                验证码有效期：<strong th:text="${validTime}">5</strong> 分钟
+            <div class="code-card">
+                <div class="code-title">您的验证码</div>
+                <div class="code-value" th:text="${code}">123456</div>
+                <div class="code-validity">
+                    验证码有效期：<strong th:text="${validTime}">5</strong> 分钟
+                </div>
             </div>
+
+            <div class="security-tip" style="background-color: #fff3cd; border: 1px solid #ffeeba; color: #856404;">
+                <h3>⚠️ 安全提示</h3>
+                <ul>
+                    <li>验证码仅用于本次验证，请勿泄露给他人</li>
+                    <li>如非本人操作，请立即修改账号密码</li>
+                    <li>验证码有效期为 <strong th:text="${validTime}">5</strong> 分钟，超时请重新获取</li>
+                    <li>请勿相信任何索要验证码的陌生电话或短信</li>
+                </ul>
+            </div>
+
+            <p>感谢您对我们服务的支持！</p>
+
+            <p>此致<br/>小烟AI系统团队</p>
         </div>
 
-        <!-- 安全提示 -->
-        <div class="security-tip">
-            <h3>⚠️ 安全提示</h3>
-            <ul>
-                <li>验证码仅用于本次验证，请勿泄露给他人</li>
-                <li>如非本人操作，请立即修改账号密码</li>
-                <li>验证码有效期为 <strong th:text="${validTime}">5</strong> 分钟，超时请重新获取</li>
-                <li>请勿相信任何索要验证码的陌生电话或短信</li>
-            </ul>
-        </div>
-
-        <p>感谢您对我们服务的支持！</p>
-
-        <p>此致<br/>小烟AI系统团队</p>
+        <div th:replace="mail/layout :: email_footer(false)"></div>
     </div>
-
-    <!-- 底部 -->
-    <div class="footer">
-        <p>© <span th:text="${#dates.year(#dates.createNow())}">2025</span> 小烟改写工具. 保留所有权利.</p>
-    </div>
-</div>
 </body>
 
 </html>

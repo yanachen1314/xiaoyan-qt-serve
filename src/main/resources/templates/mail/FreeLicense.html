@@ -3,268 +3,27 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title th:text="${title}">小烟改写工具——免费卡密</title>
-    <style lang="text/css">
-        /* 重置样式 */
-        body,
-        table,
-        td,
-        a {
-            -webkit-text-size-adjust: 100%;
-            -ms-text-size-adjust: 100%;
-        }
-        a{
-            text-decoration: none;
-            color: #333333;
-        }
-
-        table,
-        td {
-            mso-table-lspace: 0;
-            mso-table-rspace: 0;
-        }
-
-        img {
-            -ms-interpolation-mode: bicubic;
-        }
-
-        /* 基础样式 */
-        body {
-            margin: 0;
-            padding: 0;
-            background-color: #f5f5f5;
-            font-family: Arial, 'Microsoft YaHei', sans-serif;
-            font-size: 14px;
-            line-height: 1.5;
-            color: #333333;
-        }
-
-        /* 容器样式 */
-        .container {
-            width: 100%;
-            max-width: 600px;
-            margin: 0 auto;
-            background-color: #ffffff;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-        }
-
-        /* 头部样式 */
-        .header {
-            background-color: #67C23A;
-            color: #ffffff;
-            padding: 30px 20px;
-            text-align: center;
-        }
-
-        .header h1 {
-            margin: 0;
-            font-size: 28px;
-            font-weight: bold;
-        }
-
-        .header .subtitle {
-            margin: 10px 0 0 0;
-            font-size: 16px;
-            opacity: 0.9;
-        }
-
-        /* 内容区域样式 */
-        .content {
-            padding: 30px;
-        }
-
-        .content p {
-            margin: 0 0 20px 0;
-        }
-
-        /* 卡密卡片样式 */
-        .license-card {
-            background: linear-gradient(135deg, #f8f9fa 0%, #e8f5e9 100%);
-            border: 2px solid #67C23A;
-            border-radius: 12px;
-            padding: 30px;
-            margin: 25px 0;
-            text-align: center;
-        }
-
-        .license-card .card-title {
-            font-size: 18px;
-            color: #333333;
-            margin-bottom: 20px;
-            font-weight: bold;
-        }
-
-        .license-key {
-            font-size: 28px;
-            font-weight: bold;
-            color: #67C23A;
-            letter-spacing: 3px;
-            margin: 20px 0;
-            font-family: 'Courier New', Courier, monospace;
-            padding: 15px;
-            background-color: #ffffff;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(103, 194, 58, 0.2);
-        }
-
-        .license-tip {
-            font-size: 14px;
-            color: #666666;
-            margin-top: 15px;
-        }
-
-        /* 使用指南样式 */
-        .guide {
-            background-color: #e8f5e9;
-            border-left: 4px solid #67C23A;
-            padding: 20px;
-            margin: 25px 0;
-            border-radius: 4px;
-        }
-
-        .guide h3 {
-            margin: 0 0 15px 0;
-            font-size: 16px;
-            color: #67C23A;
-        }
-
-        .guide ol {
-            margin: 0;
-            padding-left: 20px;
-        }
-
-        .guide li {
-            margin-bottom: 10px;
-            line-height: 1.6;
-        }
-
-        /* 注意事项样式 */
-        .notice {
-            background-color: #fff3cd;
-            border: 1px solid #ffeeba;
-            border-radius: 8px;
-            padding: 20px;
-            margin: 25px 0;
-        }
-
-        .notice h3 {
-            margin: 0 0 12px 0;
-            font-size: 16px;
-            color: #856404;
-        }
-
-        .notice ul {
-            margin: 0;
-            padding-left: 20px;
-        }
-
-        .notice li {
-            margin-bottom: 8px;
-            color: #856404;
-            line-height: 1.6;
-        }
-
-        /* 行动按钮样式 */
-        .cta-button {
-            display: inline-block;
-            width: auto;
-            min-width: 180px;
-            margin: 25px auto;
-            padding: 15px 30px;
-            background-color: #67C23A;
-            text-align: center;
-            border-radius: 50px;
-            font-weight: bold;
-            font-size: 16px;
-            line-height: 1.2;
-            border: none;
-            cursor: pointer;
-            -webkit-text-size-adjust: none;
-            mso-hide: all;
-            display: inline-block;
-            text-decoration: none !important;
-            color: #ffffff !important;
-            background-image: none;
-            -moz-border-radius: 50px;
-            -webkit-border-radius: 50px;
-        }
-
-        .cta-button:hover {
-            background-color: #529b2e;
-        }
-
-        /* 底部样式 */
-        .footer {
-            background-color: #f5f5f5;
-            padding: 20px;
-            text-align: center;
-            color: #999999;
-            font-size: 12px;
-        }
-
-        .footer-links {
-            margin: 15px 0;
-        }
-
-        .footer-links a {
-            color: #67C23A;
-            text-decoration: none;
-            margin: 0 10px;
-            font-size: 12px;
-        }
-
-        /* 响应式设计 */
-        @media only screen and (max-width: 600px) {
-            .container {
-                width: 100% !important;
-                border-radius: 0;
-            }
-
-            .content {
-                padding: 20px;
-            }
-
-            .license-card {
-                padding: 20px;
-            }
-
-            .license-key {
-                font-size: 22px;
-                letter-spacing: 2px;
-            }
-
-            .cta-button {
-                width: 80%;
-            }
-        }
-    </style>
+    <th:block th:replace="mail/layout :: email_head(${title})"></th:block>
 </head>
 
 <body>
     <div class="container">
-        <!-- 头部 -->
-        <div class="header">
+        <div class="header" style="background-color: #67C23A;">
             <h1>免费卡密领取成功</h1>
             <div class="subtitle">恭喜您，已成功领取免费卡密</div>
         </div>
 
-        <!-- 内容区域 -->
         <div class="content">
             <p>尊敬的用户：</p>
 
             <p>您好！恭喜您成功领取了小烟改写工具免费卡密。您的专属卡密如下：</p>
 
-            <!-- 卡密卡片 -->
             <div class="license-card">
                 <div class="card-title">您的免费卡密</div>
                 <div class="license-key" th:text="${license}">XXXX-XXXX-XXXX-XXXX</div>
                 <div class="license-tip">请妥善保管此卡密，建议复制保存到安全的地方</div>
             </div>
 
-            <!-- 使用指南 -->
             <div class="guide">
                 <h3>使用指南</h3>
                 <ol>
@@ -275,8 +34,7 @@
                 </ol>
             </div>
 
-            <!-- 注意事项 -->
-            <div class="notice">
+            <div class="notice" style="background-color: #fff3cd; border: 1px solid #ffeeba; color: #856404;">
                 <h3>注意事项</h3>
                 <ul>
                     <li>卡密一经激活，将与您的账号绑定，不可转让</li>
@@ -287,24 +45,13 @@
                 </ul>
             </div>
 
-            <!-- 行动按钮 -->
             <div style="text-align: center; margin: 25px 0;">
                 <a href="#" class="cta-button" th:href="${website}">立即使用卡密</a>
             </div>
 
         </div>
 
-        <!-- 底部 -->
-        <div class="footer">
-            <div class="footer-links">
-                <a href="#" th:href="${website}">首页</a>
-                <a href="#" th:href="${website} + '/active'">激活/切换卡密</a>
-                <a href="#" th:href="${shopUrl}" target="_blank">购买卡密</a>
-                <a href="#" th:href="${website} + '/help'">使用说明</a>
-                <a href="#" th:href="${website} + '/privacy'">隐私协议</a>
-            </div>
-            <p>© <span th:text="${#dates.year(#dates.createNow())}">2025</span> 小烟改写工具. 保留所有权利. | ICP 备案号: XXXXXXXXXXX-X</p>
-        </div>
+        <div th:replace="mail/layout :: email_footer(true)"></div>
     </div>
 </body>
 

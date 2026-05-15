@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="zh-CN">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>验证失败 - 小烟改写工具</title>
-    <style>
+    <title th:text="${title}">验证失败 - 小烟改写工具</title>
+    <style type="text/css">
         body {
             margin: 0;
             padding: 0;
@@ -75,19 +76,21 @@
         }
     </style>
 </head>
+
 <body>
-<div class="container">
-    <div class="icon">✗</div>
-    <h1 th:text="${title}">验证失败</h1>
-    <div class="error-box">
-        <span th:text="${message}">验证过程中发生错误，请稍后重试。</span>
+    <div class="container">
+        <div class="icon">&#10007;</div>
+        <h1 th:text="${title}">验证失败</h1>
+        <div class="error-box">
+            <span th:text="${message}">验证过程中发生错误，请稍后重试。</span>
+        </div>
+        <p>PS: 请尝试重新点击验证链接或重新申请，若问题依旧存在，请联系客服。</p>
+        <a class="button" th:href="${websiteUrl}" href="#">前往官网</a>
+        <div class="footer">
+            <p>错误时间：<span th:text="${errorTime}">2026-01-01 00:00:00</span></p>
+            <p>&copy; 2025 小烟改写工具. 保留所有权利.</p>
+        </div>
     </div>
-    <p>PS: 请尝试重新点击验证链接或重新申请，若问题依旧存在，请联系客服。</p>
-    <a class="button" th:href="${websiteUrl}" href="#">前往官网</a>
-    <div class="footer">
-        <p>错误时间：<span th:text="${errorTime}">2026-01-01 00:00:00</span></p>
-        <p>© 2025 小烟改写工具. 保留所有权利.</p>
-    </div>
-</div>
 </body>
+
 </html>
