@@ -1,10 +1,7 @@
 package com.yan.xiaoyanqtserve.common;
 
-import cn.hutool.core.collection.ListUtil;
-
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 
 /**
  *
