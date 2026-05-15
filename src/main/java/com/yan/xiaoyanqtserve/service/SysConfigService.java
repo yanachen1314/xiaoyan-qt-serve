@@ -33,6 +33,13 @@ public interface SysConfigService extends IService<SysConfig> {
     Boolean getCaptchaServiceEnabled();
 
     /**
+     * 更新验证码服务状态
+     * @param captchaServiceStatus 验证码服务状态。true - 启用，false - 禁用
+     */
+    void updateCaptchaServiceStatus(Boolean captchaServiceStatus);
+
+
+    /**
      * 重新加载缓存（所有配置），可在修改后调用
      */
     void reloadCache();

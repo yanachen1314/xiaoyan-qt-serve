@@ -85,6 +85,20 @@ public class SysConfigServiceImpl extends ServiceImpl<SysConfigMapper, SysConfig
     public Boolean getCaptchaServiceEnabled() {
         return Boolean.parseBoolean(getValue(Constants.SYSTEM_CAPTCHA_ENABLED));
     }
+    /**
+     * 更新验证码服务状态
+     * @param captchaServiceStatus 验证码服务状态。true - 启用，false - 禁用
+     */
+    @Override
+    public void updateCaptchaServiceStatus(Boolean captchaServiceStatus) {
+        List<SysConfig> configList = getConfigByKey(Constants.SYSTEM_CAPTCHA_ENABLED, false);
+        if (configList == null || configList.isEmpty()) {
+            throw new BizException("配置不存在: " + Constants.SYSTEM_CAPTCHA_ENABLED);
+        }
+        SysConfig config = configList.get(0);
+        config.setConfigValue(String.valueOf(captchaServiceStatus));
+        update(config);
+    }
 
 
     /**
