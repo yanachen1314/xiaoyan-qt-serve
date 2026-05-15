@@ -2,6 +2,7 @@ package com.yan.xiaoyanqtserve.controller.publicApi;
 
 import com.yan.xiaoyanqtserve.common.enums.SceneIdEnum;
 import com.yan.xiaoyanqtserve.common.utils.ApiResponse;
+import com.yan.xiaoyanqtserve.service.SysConfigService;
 import com.yan.xiaoyanqtserve.service.impl.captcha.AliyunCaptchaService;
 import jakarta.annotation.Resource;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +24,9 @@ public class CaptchaController {
     @Resource
     private AliyunCaptchaService aliyunCaptchaService;
 
+    @Resource
+    private SysConfigService sysConfigService;
+
     /**
      * 获取验证码加密后的sceneId
      * @return 验证码加密后的sceneId
@@ -31,6 +35,15 @@ public class CaptchaController {
     public ApiResponse<String> getEncryptedSceneId(@PathVariable String sceneId){
         SceneIdEnum bySceneId = SceneIdEnum.getBySceneId(sceneId);
         return ApiResponse.success(aliyunCaptchaService.getEncryptedSceneId(bySceneId));
+    }
+
+    /**
+     * 获取验证码服务是否启用
+     * @return 验证码服务是否启用
+     */
+    @GetMapping("/isEnabled")
+    public ApiResponse<Boolean> isCaptchaEnabled() {
+        return ApiResponse.success(sysConfigService.getCaptchaServiceEnabled());
     }
 
 }
