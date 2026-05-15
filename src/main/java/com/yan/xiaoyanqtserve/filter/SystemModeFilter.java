@@ -119,7 +119,9 @@ public class SystemModeFilter implements Filter {
                 // 验证码接口
                 "/api/public/captcha/**",
                 // 验证链接校验的接口,/api/public/verifyEmailLink
-                mailPropertiesConfig.getVerifyLink().getBasePath()
+                mailPropertiesConfig.getVerifyLink().getBasePath(),
+                // 测试接口
+                "/api/public/test/**"
         };
         return MainUtil.isAllowedPath(allowedPatterns, requestUri);
     }
