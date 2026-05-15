@@ -87,8 +87,9 @@
         <p>PS: 请尝试重新点击验证链接或重新申请，若问题依旧存在，请联系客服。</p>
         <a class="button" th:href="${websiteUrl}" href="#">前往官网</a>
         <div class="footer">
-            <p>错误时间：<span th:text="${errorTime}">2026-01-01 00:00:00</span></p>
-            <p>&copy; 2025 小烟改写工具. 保留所有权利.</p>
+            <p>错误时间：<span th:text="${#temporals.format(errorTime, 'yyyy-MM-dd HH:mm:ss')}">2026-01-01 00:00:00</span></p>
+            <p>&copy; <span th:text="${#dates.year(#dates.createNow())}">2025</span> 小烟改写工具. 保留所有权利.
+                <span th:if="${icpRecord}"> | ICP 备案号: <span th:text="${icpRecord}"></span></span></p>
         </div>
     </div>
 </body>

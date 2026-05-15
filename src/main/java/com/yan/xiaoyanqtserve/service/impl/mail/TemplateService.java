@@ -112,7 +112,7 @@ public class TemplateService {
         context.setVariable("title", "用户密码变更提醒");
         context.setVariable("userName", userName);
         context.setVariable("changeTime", changeTime);
-        context.setVariable("loginUrl", webInfoPropertiesConfig.getApiSite()+"/api/login");
+        context.setVariable("loginUrl", webInfoPropertiesConfig.getWriterSite()+"/login");
 
         return templateEngine.process(TEMPLATE_PATH + EmailTemplateEnum.PWD_RESET.getName(), context);
     }
@@ -129,7 +129,7 @@ public class TemplateService {
         context.setVariable("title", "免费卡密");
         context.setVariable("to", to);
         context.setVariable("license", license);
-        context.setVariable("website", webInfoPropertiesConfig.getApiSite());
+        context.setVariable("website", webInfoPropertiesConfig.getWriterSite());
         context.setVariable("shopUrl", webInfoPropertiesConfig.getLdxpUrl());
         context.setVariable("icpRecord", webInfoPropertiesConfig.getIcpRecord());
 
@@ -150,7 +150,7 @@ public class TemplateService {
         context.setVariable("to", to);
         context.setVariable("verifyUrl", verifyUrl);
         context.setVariable("expireTime", expireTime);
-        context.setVariable("website", webInfoPropertiesConfig.getApiSite());
+        context.setVariable("website", webInfoPropertiesConfig.getWriterSite());
         context.setVariable("shopUrl", webInfoPropertiesConfig.getLdxpUrl());
         context.setVariable("icpRecord", webInfoPropertiesConfig.getIcpRecord());
 
@@ -170,7 +170,7 @@ public class TemplateService {
         context.setVariable("email", email);
         context.setVariable("licenseKey", licenseKey);
         context.setVariable("verifyTime", LocalDateTime.now().toString());
-        context.setVariable("website", webInfoPropertiesConfig.getApiSite());
+        context.setVariable("website", webInfoPropertiesConfig.getWriterSite());
         context.setVariable("shopUrl", webInfoPropertiesConfig.getLdxpUrl());
         context.setVariable("icpRecord", webInfoPropertiesConfig.getIcpRecord());
 
@@ -189,7 +189,8 @@ public class TemplateService {
         context.setVariable("title", title);
         context.setVariable("message", message);
         context.setVariable("websiteUrl", webInfoPropertiesConfig.getWriterSite());
-        context.setVariable("errorTime", LocalDateTime.now().toString());
+        context.setVariable("errorTime", LocalDateTime.now());
+        context.setVariable("icpRecord", webInfoPropertiesConfig.getIcpRecord());
 
         return templateEngine.process(TEMPLATE_PATH + EmailTemplateEnum.VERIFY_EMAIL_FAILURE.getName(), context);
     }
