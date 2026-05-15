@@ -20,7 +20,6 @@ public interface MailApplyRecordMapper extends BaseMapper<MailApplyRecord> {
      * @param token  邮件申请链接的token
      * @param number 点击次数
      */
-    @Update("UPDATE mail_apply_record SET click_count = click_count + #{number} WHERE verify_token = #{token}")
     void increaseClickCountByToken(@Param("token") String token, @Param("number") Integer number);
 
     /**
@@ -28,7 +27,9 @@ public interface MailApplyRecordMapper extends BaseMapper<MailApplyRecord> {
      * @param id     记录ID
      * @param status 新状态
      * @param remark 备注
+     * @param freeKeyValue 领取的卡密
      */
-    @Update("UPDATE mail_apply_record SET apply_status = #{status} , remark = #{remark} WHERE id = #{id}")
-    void updateStatus(@Param("id") Long id, @Param("status") Byte status, @Param("remark") String remark);
+    void updateStatusById(@Param("id") Long id, @Param("status") Byte status, @Param("remark") String remark,
+                          @Param("applyApiKey") String freeKeyValue);
+    void updateStatusById(@Param("id") Long id, @Param("status") Byte status, @Param("remark") String remark);
 }

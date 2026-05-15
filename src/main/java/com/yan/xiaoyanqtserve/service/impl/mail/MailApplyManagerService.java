@@ -170,7 +170,7 @@ public class MailApplyManagerService {
     @Transactional(rollbackFor = Exception.class)
     public void saveApiKeyAndUpdateApplyRecord(Long id, String freeKeyValue) {
         // 1、更新记录状态和卡密字段
-        mailApplyRecordService.verifyApplySuccess(id, freeKeyValue);
+        mailApplyRecordService.updateStatusSuccess(id, freeKeyValue);
 
         // 2、开始真正创建密钥对象的数据库记录
         try {

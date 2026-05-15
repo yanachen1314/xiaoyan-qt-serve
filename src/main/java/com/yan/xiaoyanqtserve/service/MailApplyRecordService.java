@@ -43,13 +43,13 @@ public interface MailApplyRecordService extends IService<MailApplyRecord> {
      * @param emailApplyStatus 新状态
      * @param errMsg      错误信息
      */
-    void verifyApplyFail(Long id, EmailApplyStatus emailApplyStatus, String errMsg);
+    void updateStatusFail(Long id, EmailApplyStatus emailApplyStatus, String errMsg);
 
     /**
      * 验证领取成功，更新记录状态和 apiKey
      * @param id 记录ID
      * @param apiKey 领取的卡密
      */
-    void verifyApplySuccess(Long id, String apiKey);
+    void updateStatusSuccess(Long id, String apiKey);
 
 }

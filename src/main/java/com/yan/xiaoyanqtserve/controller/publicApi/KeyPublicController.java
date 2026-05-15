@@ -244,7 +244,8 @@ public class KeyPublicController {
             if (record == null) {
                 return ResponseEntity.ok(renderVerifyEmailFailurePage("验证链接无效", "该验证链接不存在，请检查验证链接。"));
             }
-
+            // 增加点击次数
+            mailApplyRecordService.increaseClickCountByToken(token);
             // 2. 幂等性检查：验证是否已成功发放卡密，如果已经发放过则直接返回成功页面
             if (Objects.equals(record.getApplyStatus(), EmailApplyStatus.SUCCESS.getCode())) {
                 return ResponseEntity.ok(renderVerifyEmailSuccessPage(record.getApplicantEmail(), record.getApplyApiKey()));
@@ -269,8 +270,7 @@ public class KeyPublicController {
                 return ResponseEntity.ok(renderVerifyEmailFailurePage("正在处理中", "验证请求正在处理中，请勿重复提交，请稍后刷新页面。"));
             }
 
-            // 5. 增加点击次数，并修改状态为处理中
-            mailApplyRecordService.increaseClickCountByToken(token);
+            // 5. 修改状态为处理中
             mailApplyRecordService.updateStatus(record.getId(), EmailApplyStatus.PROCESSING);
 
             // 6. 从卡密池获取卡密
@@ -285,7 +285,7 @@ public class KeyPublicController {
             } catch (Exception keyEx) {
                 log.error("获取卡密失败，邮箱: {}, 原因: {}", record.getApplicantEmail(), keyEx.getMessage(), keyEx);
                 if (!(keyEx instanceof BizException)) {
-                    mailApplyRecordService.verifyApplyFail(record.getId(), EmailApplyStatus.FAILED, keyEx.getMessage());
+                    mailApplyRecordService.updateStatusFail(record.getId(), EmailApplyStatus.FAILED, keyEx.getMessage());
                 }
                 throw keyEx;
             }
@@ -297,7 +297,7 @@ public class KeyPublicController {
                 // 事务回滚，将卡密归还到密钥池
                 keyinfoManagerService.returnFreeKeyToPool(licenseKey);
                 log.error("保存密钥记录失败，邮箱: {}, 卡密: {}, 原因: {}", record.getApplicantEmail(), licenseKey, saveEx.getMessage(), saveEx);
-                mailApplyRecordService.verifyApplyFail(record.getId(), EmailApplyStatus.FAILED, saveEx.getMessage());
+                mailApplyRecordService.updateStatusFail(record.getId(), EmailApplyStatus.FAILED, saveEx.getMessage());
                 throw new BizException("获取卡密失败，请重新尝试！");
             }
 

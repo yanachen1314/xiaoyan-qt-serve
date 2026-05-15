@@ -60,7 +60,7 @@ public class MailApplyRecordServiceImpl extends ServiceImpl<MailApplyRecordMappe
     @Override
     public void updateStatus(Long id, EmailApplyStatus status) {
         try {
-            mailApplyRecordMapper.updateStatus(id, status.getCode(),status.getMessage());
+            mailApplyRecordMapper.updateStatusById(id, status.getCode(),status.getMessage());
         } catch (Exception e) {
             log.error("更新验证记录状态失败，id：{}，status：{}", id, status, e);
             throw new RuntimeException(e);
@@ -74,12 +74,12 @@ public class MailApplyRecordServiceImpl extends ServiceImpl<MailApplyRecordMappe
      * @param errMsg      错误详情信息
      */
     @Override
-    public void verifyApplyFail(Long id, EmailApplyStatus emailApplyStatus, String errMsg) {
+    public void updateStatusFail(Long id, EmailApplyStatus emailApplyStatus, String errMsg) {
         String remark = emailApplyStatus.getMessage();
         if (StringUtils.hasText(errMsg)) {
             remark += "，详情：" + errMsg;
         }
-        mailApplyRecordMapper.updateStatus(id, emailApplyStatus.getCode(), remark);
+        mailApplyRecordMapper.updateStatusById(id, emailApplyStatus.getCode(), remark);
     }
 
     /**
@@ -88,11 +88,12 @@ public class MailApplyRecordServiceImpl extends ServiceImpl<MailApplyRecordMappe
      * @param apiKey 领取的卡密
      */
     @Override
-    public void verifyApplySuccess(Long id, String apiKey) {
+    public void updateStatusSuccess(Long id, String apiKey) {
         MailApplyRecord updateRecord = new MailApplyRecord();
         updateRecord.setId(id);
         updateRecord.setApplyApiKey(apiKey);
         updateRecord.setApplyStatus(EmailApplyStatus.SUCCESS.getCode());
+        updateRecord.setRemark(EmailApplyStatus.SUCCESS.getMessage());
         mailApplyRecordMapper.updateById(updateRecord);
     }
 
