@@ -42,7 +42,7 @@ public class SystemModeFilter implements Filter {
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         HttpServletResponse httpResponse = (HttpServletResponse) response;
 
-        // 1. 白名单放行（如健康检查、静态资源），优先处理
+        // 1. 白名单放行（如健康检查、静态资源），跳过版本检测和维护期检查
         String requestURI = httpRequest.getRequestURI();
         if (isAllowedPath(requestURI)) {
             chain.doFilter(request, response);
@@ -115,7 +115,7 @@ public class SystemModeFilter implements Filter {
                 "/api/public/auth/**",
                 // 管理员运维接口
                 "/api/admin/**",
-                // 验证链接校验的接口
+                // 验证链接校验的接口,/api/public/verifyEmailLink
                 mailPropertiesConfig.getVerifyLink().getBasePath()
         };
         return MainUtil.isAllowedPath(allowedPatterns, requestUri);
