@@ -69,11 +69,6 @@ public class AliyunCaptchaService {
      * @return 验证结果（true=通过，false=不通过）
      */
     public boolean verifyCaptcha(SceneIdEnum sceneId, String captchaVerifyParam) {
-        // 验证码服务禁用时直接通过验证
-        if (!sysConfigService.getCaptchaServiceEnabled()) {
-            log.debug("验证码服务已禁用，自动通过验证");
-            return true;
-        }
 
         if (client == null) {
             log.error("阿里云Client未初始化，请检查配置");
