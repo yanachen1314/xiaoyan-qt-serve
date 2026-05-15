@@ -55,7 +55,7 @@ public class NetUtil {
     /**
      * 获取客户端类型
      * @param request HTTP请求对象
-     * @return 客户端类型，例如 web、app
+     * @return 客户端类型，{@link com.yan.xiaoyanqtserve.common.enums.ClientType}
      */
     @Nullable
     public static String getClientDeviceType(HttpServletRequest request) {

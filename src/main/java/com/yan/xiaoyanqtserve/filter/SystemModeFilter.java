@@ -3,6 +3,7 @@ package com.yan.xiaoyanqtserve.filter;
 import com.yan.xiaoyanqtserve.common.Constants;
 import com.yan.xiaoyanqtserve.common.dto.MaintenancePeriod;
 import com.yan.xiaoyanqtserve.common.enums.BizStatus;
+import com.yan.xiaoyanqtserve.common.enums.ClientType;
 import com.yan.xiaoyanqtserve.common.utils.MainUtil;
 import com.yan.xiaoyanqtserve.common.utils.NetUtil;
 import com.yan.xiaoyanqtserve.common.utils.SecurityResponseUtil;
@@ -105,7 +106,7 @@ public class SystemModeFilter implements Filter {
     private boolean isWebRequest(HttpServletRequest httpRequest){
         String deviceType = NetUtil.getClientDeviceType(httpRequest);
         String deviceId = NetUtil.getClientDeviceId(httpRequest);
-        return "WEB".equalsIgnoreCase(deviceType) && StringUtils.hasText(deviceId);
+        return ClientType.WEB.equals(deviceType) && StringUtils.hasText(deviceId);
     }
 
     // 白名单路径（按需扩展）
@@ -115,6 +116,8 @@ public class SystemModeFilter implements Filter {
                 "/api/public/auth/**",
                 // 管理员运维接口
                 "/api/admin/**",
+                // 验证码接口
+                "/api/public/captcha/**",
                 // 验证链接校验的接口,/api/public/verifyEmailLink
                 mailPropertiesConfig.getVerifyLink().getBasePath()
         };

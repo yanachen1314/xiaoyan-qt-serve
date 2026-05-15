@@ -10,14 +10,23 @@ import java.nio.charset.StandardCharsets;
  */
 public class Constants {
     // 定义Header名称常量
+    // 普通用户 API密钥 认证请求头
     public static final String HEADER_KEY_NAME = "X-API-Key";
-    public static final String HEADER_CLIENT_VERSION_NAME = "X-Client-Version";
-    public static final String HEADER_DEVICE_TYPE = "X-Device";
-    public static final String HEADER_DEVICE_ID = "X-Device-Id";
-    public static final String HEADER_CAPTCHA_VERIFY_PARAMS = "X-Captcha-Verify-Params";
+    // 管理员 JWT 认证请求头
     public static final String HEADER_AUTH_NAME = "Authorization";
-    // 定义Header前缀
+    // 定义Header 认证前缀
     public static final String HEADER_PREFIX = "Bearer ";
+
+    // 客户端版本
+    public static final String HEADER_CLIENT_VERSION_NAME = "X-Client-Version";
+    // 设备类型请求头 ClientType
+    public static final String HEADER_DEVICE_TYPE = "X-Device";
+    // 设备ID/设备指纹
+    public static final String HEADER_DEVICE_ID = "X-Device-Id";
+    // 验证码验证请求头
+    public static final String HEADER_CAPTCHA_VERIFY_PARAMS = "X-Captcha-Verify-Params";
+
+
 
     // 限流前缀Key
     public static final String RATE_LIMIT_PREFIX = "Rate_limit:";

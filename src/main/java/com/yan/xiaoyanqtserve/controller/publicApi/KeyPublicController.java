@@ -162,7 +162,16 @@ public class KeyPublicController {
             String verifyUrl = buildVerifyUrl(verifyLink, verifyToken);
             LocalDateTime expireTime = LocalDateTime.now().plusDays(expireTimeInDays);
             // 保存申请记录
-            MailApplyRecord record = MailApplyRecord.builder().applicantEmail(applicantEmail).verifyToken(verifyToken).applyStatus(EmailApplyStatus.PENDING.getCode()).clickCount(0).verifyExpireTime(expireTime).deviceType(deviceType).deviceId(deviceId).clientIp(clientIp).userAgent(userAgent).build();
+            MailApplyRecord record = MailApplyRecord.builder()
+                    .applicantEmail(applicantEmail)
+                    .verifyToken(verifyToken)
+                    .applyStatus(EmailApplyStatus.PENDING.getCode())
+                    .clickCount(0)
+                    .verifyExpireTime(expireTime)
+                    .deviceType(deviceType)
+                    .deviceId(deviceId)
+                    .clientIp(clientIp)
+                    .userAgent(userAgent).build();
             mailApplyRecordService.saveApplyRecord(record);
             // 异步发送验证邮件
             asyncSendVerifyEmail(applicantEmail, verifyUrl);
