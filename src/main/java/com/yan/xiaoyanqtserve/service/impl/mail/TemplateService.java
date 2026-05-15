@@ -93,8 +93,9 @@ public class TemplateService {
         context.setVariable("title", "欢迎邮件");
         context.setVariable("userName", userName);
         context.setVariable("content", content);
-        context.setVariable("website", webInfoPropertiesConfig.getApiSite());
+        context.setVariable("website", webInfoPropertiesConfig.getWriterSite());
         context.setVariable("shopUrl", webInfoPropertiesConfig.getLdxpUrl());
+        context.setVariable("icpRecord", webInfoPropertiesConfig.getIcpRecord());
 
         return templateEngine.process(TEMPLATE_PATH + EmailTemplateEnum.WELCOME.getName(), context);
     }
@@ -130,6 +131,7 @@ public class TemplateService {
         context.setVariable("license", license);
         context.setVariable("website", webInfoPropertiesConfig.getApiSite());
         context.setVariable("shopUrl", webInfoPropertiesConfig.getLdxpUrl());
+        context.setVariable("icpRecord", webInfoPropertiesConfig.getIcpRecord());
 
         return templateEngine.process(TEMPLATE_PATH + EmailTemplateEnum.FREE_LICENSE.getName(), context);
     }
@@ -150,6 +152,7 @@ public class TemplateService {
         context.setVariable("expireTime", expireTime);
         context.setVariable("website", webInfoPropertiesConfig.getApiSite());
         context.setVariable("shopUrl", webInfoPropertiesConfig.getLdxpUrl());
+        context.setVariable("icpRecord", webInfoPropertiesConfig.getIcpRecord());
 
         return templateEngine.process(TEMPLATE_PATH + EmailTemplateEnum.EMAIL_VERIFY_LINK.getName(), context);
     }
@@ -169,6 +172,7 @@ public class TemplateService {
         context.setVariable("verifyTime", LocalDateTime.now().toString());
         context.setVariable("website", webInfoPropertiesConfig.getApiSite());
         context.setVariable("shopUrl", webInfoPropertiesConfig.getLdxpUrl());
+        context.setVariable("icpRecord", webInfoPropertiesConfig.getIcpRecord());
 
         return templateEngine.process(TEMPLATE_PATH + EmailTemplateEnum.VERIFY_EMAIL_SUCCESS.getName(), context);
     }

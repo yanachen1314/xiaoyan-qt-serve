@@ -536,7 +536,8 @@
             <a href="#" th:href="${website} + '/help'">使用说明</a>
             <a href="#" th:href="${website} + '/privacy'">隐私协议</a>
         </div>
-        <p>&copy; <span th:text="${#dates.year(#dates.createNow())}">2025</span> 小烟改写工具. 保留所有权利.</p>
+        <p>&copy; <span th:text="${#dates.year(#dates.createNow())}">2025</span> 小烟改写工具. 保留所有权利.
+            <span th:if="${icpRecord}"> | ICP 备案号: <span th:text="${icpRecord}"></span></span></p>
     </div>
 </footer>
 

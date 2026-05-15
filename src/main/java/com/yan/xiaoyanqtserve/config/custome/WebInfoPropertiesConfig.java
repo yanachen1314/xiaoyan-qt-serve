@@ -38,4 +38,9 @@ public class WebInfoPropertiesConfig {
      */
     private String ldxpUrl;
 
+    /**
+     * ICP 备案号
+     */
+    private String icpRecord;
+
 }

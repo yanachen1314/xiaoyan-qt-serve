@@ -13,6 +13,8 @@ xiaoyan:
     api_site: ${API_SITE}
     # 商品购买地址
     ldxp_url: ${WEB_LDXP_URL}
+    # 网站备案号
+    icp_record: ${ICP_RECORD}
   # 邮箱自定义配置
   mail:
     safety_limits:
