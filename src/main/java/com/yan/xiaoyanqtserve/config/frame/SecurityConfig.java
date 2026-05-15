@@ -1,6 +1,5 @@
 package com.yan.xiaoyanqtserve.config.frame;
 
-import cn.hutool.core.collection.ListUtil;
 import com.yan.xiaoyanqtserve.common.enums.BizStatus;
 import com.yan.xiaoyanqtserve.common.enums.Role;
 import com.yan.xiaoyanqtserve.config.custome.CorsConfigProperties;
@@ -30,7 +29,6 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import java.util.Collections;
 
 /**
  * Spring Security 配置
