@@ -41,7 +41,7 @@ public class MybatisAutoGenerator {
     /**
      * 要生成的数据库表名，按需要修改
      */
-    public static final String[] tableNameList = {"product_type"};
+    public static final String[] tableNameList = {"mail_account","mail_send_record"};
     /**
      * 设置父包名
      */

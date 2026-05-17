@@ -11,7 +11,7 @@ import com.yan.xiaoyanqtserve.common.utils.SecurityContextUtil;
 import com.yan.xiaoyanqtserve.entity.KeyInfo;
 import com.yan.xiaoyanqtserve.common.utils.ApiResponse;
 import com.yan.xiaoyanqtserve.entity.RequestLog;
-import com.yan.xiaoyanqtserve.service.impl.ApiKeyInfoService;
+import com.yan.xiaoyanqtserve.service.impl.apikey.ApiKeyInfoService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -45,7 +45,7 @@ public class ApiKeyController {
      * @param aigcRequestDto AI处理参数
      * @return 处理结果
      */
-    @RateLimiter(key = "active", time = 1, count = 2, limitBy = RateLimiterType.API_KEY)
+    @RateLimiter(key = "active", time = 1, count = 1, limitBy = RateLimiterType.API_KEY)
     @PostMapping("/deal/text")
     public ApiResponse<AigcResponseVo> aigcDealText(
             HttpServletRequest request, @Valid @RequestBody AigcRequestDto aigcRequestDto) {

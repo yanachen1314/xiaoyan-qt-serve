@@ -10,7 +10,7 @@
     </parent>
     <groupId>com.yan</groupId>
     <artifactId>xiaoyanqt-serve</artifactId>
-    <version>1.1.1</version>
+    <version>3.0.0</version>
     <name>xiaoyanqt-serve</name>
     <description>xiaoyanqt-serve</description>
 
@@ -44,6 +44,29 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
+        </dependency>
+        <!-- fastjson2 -->
+        <dependency>
+            <groupId>com.alibaba.fastjson2</groupId>
+            <artifactId>fastjson2</artifactId>
+            <version>2.0.61</version>
+        </dependency>
+
+        <!-- 阿里云验证码 -->
+        <dependency>
+            <groupId>com.aliyun</groupId>
+            <artifactId>captcha20230305</artifactId>
+            <version>1.2.0</version>
+        </dependency>
+
+        <!-- ========================= 邮箱验证、thymeleaf ========================= -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-thymeleaf</artifactId>
         </dependency>
 
         <!-- ========================= AI 相关的工具 ========================= -->
@@ -131,6 +154,12 @@
         <dependency>
             <groupId>org.springframework.retry</groupId>
             <artifactId>spring-retry</artifactId>
+        </dependency>
+        <!-- pom.xml -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-configuration-processor</artifactId>
+            <optional>true</optional>
         </dependency>
 
 

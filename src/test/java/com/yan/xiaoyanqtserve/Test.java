@@ -1,5 +1,8 @@
 package com.yan.xiaoyanqtserve;
 
+import java.security.SecureRandom;
+import java.util.Base64;
+
 /**
  *
  * @author yanchen
@@ -7,18 +10,16 @@ package com.yan.xiaoyanqtserve;
  */
 public class Test {
     public static void main(String[] args) {
-        System.out.println(convertEquityTime(null));
-        System.out.println(convertEquityTime(0));
-        System.out.println(convertEquityTime(59));
-        System.out.println(convertEquityTime(60));
-        System.out.println(convertEquityTime(61));
-        System.out.println(convertEquityTime(1439));
-        System.out.println(convertEquityTime(1440));
-        System.out.println(convertEquityTime(1441));
-        System.out.println(convertEquityTime(2879));
-        System.out.println(convertEquityTime(2880));
-        System.out.println(convertEquityTime(2881));
-        System.out.println(convertEquityTime(2981));
+       for (int i = 0; i < 10; i++) {
+           System.out.println(generateSecureToken());
+       }
+    }
+
+    // 生成更安全的token
+    public static String generateSecureToken() {
+        byte[] randomBytes = new byte[64];
+        new SecureRandom().nextBytes(randomBytes);
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(randomBytes);
     }
 
     /**

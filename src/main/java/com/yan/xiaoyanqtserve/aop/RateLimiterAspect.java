@@ -68,6 +68,7 @@ public class RateLimiterAspect {
         return switch (rateLimiter.limitBy()) {
             case IP -> NetUtil.getClientIpAddress(request);
             case API_KEY -> getCurrentApiKey(); // 从 SecurityContext 获取 API Key
+            case DEVICE_ID -> NetUtil.getClientDeviceId(request);
         };
     }
 

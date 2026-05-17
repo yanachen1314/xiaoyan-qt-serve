@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <th:block th:replace="mail/layout :: email_head(${title})"></th:block>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header" style="background-color: #67C23A;">
+            <h1>免费卡密领取成功</h1>
+            <div class="subtitle">恭喜您，已成功领取免费卡密</div>
+        </div>
+
+        <div class="content">
+            <p>尊敬的用户：</p>
+
+            <p>您好！恭喜您成功领取了小烟改写工具免费卡密。您的专属卡密如下：</p>
+
+            <div class="license-card">
+                <div class="card-title">您的免费卡密</div>
+                <div class="license-key" th:text="${license}">XXXX-XXXX-XXXX-XXXX</div>
+                <div class="license-tip">请妥善保管此卡密，建议复制保存到安全的地方</div>
+            </div>
+
+            <div class="guide">
+                <h3>使用指南</h3>
+                <ol>
+                    <li>打开小烟改写工具客户端或访问官方网站，进入"卡密管理"页面</li>
+                    <li>点击"激活卡密"或"切换卡密"功能</li>
+                    <li>输入上方卡密，完成激活即可使用</li>
+                    <li>激活成功后，即可享受相应的服务权益</li>
+                </ol>
+            </div>
+
+            <div class="notice" style="background-color: #fff3cd; border: 1px solid #ffeeba; color: #856404;">
+                <h3>注意事项</h3>
+                <ul>
+                    <li>卡密一经激活，将与您的账号绑定，不可转让</li>
+                    <li>请妥善保管卡密，不要泄露给他人</li>
+                    <li>如卡密已被使用或无法激活，请联系客服处理</li>
+                    <li>免费卡密可能存在有效期限制，请尽快使用</li>
+                    <li>如有任何疑问，欢迎随时联系我们的客服团队</li>
+                </ul>
+            </div>
+
+            <div style="text-align: center; margin: 25px 0;">
+                <a href="#" class="cta-button" th:href="${website}">立即使用卡密</a>
+            </div>
+
+        </div>
+
+        <div th:replace="mail/layout :: email_footer(true)"></div>
+    </div>
+</body>
+
+</html>

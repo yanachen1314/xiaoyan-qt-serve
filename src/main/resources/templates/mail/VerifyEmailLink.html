@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <th:block th:replace="mail/layout :: email_head(${title})"></th:block>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header" style="background-color: #409EFF;">
+            <h1>邮箱验证</h1>
+            <div class="subtitle">验证您的邮箱以获取免费卡密</div>
+        </div>
+
+        <div class="content">
+            <p>尊敬的用户：</p>
+
+            <p>您好！感谢您申请小烟改写工具免费卡密。请点击下方按钮验证您的邮箱地址：</p>
+
+            <div class="tip-card">
+                <div class="card-title">邮箱验证</div>
+                <div class="card-content">
+                    <p>请点击下方"立即验证"按钮，完成邮箱验证后，系统将自动发送卡密。</p>
+                    <p style="color: #E6A23C; margin-top: 15px; font-weight: bold;">
+                        验证链接有效期：<span th:text="${expireTime}">3</span>天
+                    </p>
+                </div>
+            </div>
+
+            <div style="text-align: center; margin: 25px 0;">
+                <a href="#" class="cta-button" th:href="${verifyUrl}">立即验证</a>
+            </div>
+
+            <div class="notice" style="background-color: #fff3cd; border: 1px solid #ffeeba; color: #856404;">
+                <h3>注意事项</h3>
+                <ul>
+                    <li>请在验证链接有效期<span th:text="${expireTime}">3</span>天内完成验证并使用，逾期将无法使用</li>
+                    <li>请勿将此验证链接泄露给他人</li>
+                    <li>如有任何疑问，欢迎随时联系我们的客服团队</li>
+                </ul>
+            </div>
+
+            <div class="notice">
+                如非本人操作，请忽略此邮件
+            </div>
+        </div>
+
+        <div th:replace="mail/layout :: email_footer(true)"></div>
+    </div>
+</body>
+
+</html>

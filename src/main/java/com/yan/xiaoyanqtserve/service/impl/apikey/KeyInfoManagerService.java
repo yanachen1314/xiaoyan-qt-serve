@@ -1,4 +1,4 @@
-package com.yan.xiaoyanqtserve.service.impl;
+package com.yan.xiaoyanqtserve.service.impl.apikey;
 
 import com.yan.xiaoyanqtserve.common.Constants;
 import com.yan.xiaoyanqtserve.common.dto.key.GenerateKeyDto;
@@ -7,23 +7,27 @@ import com.yan.xiaoyanqtserve.common.dto.key.ValidationResult;
 import com.yan.xiaoyanqtserve.common.enums.BizStatus;
 import com.yan.xiaoyanqtserve.common.utils.LicenseKeyGenerator;
 import com.yan.xiaoyanqtserve.common.utils.RedisLockUtil;
+import com.yan.xiaoyanqtserve.common.utils.RedisUtil;
 import com.yan.xiaoyanqtserve.entity.KeyInfo;
 import com.yan.xiaoyanqtserve.common.exception.BizException;
 import com.yan.xiaoyanqtserve.entity.ProductType;
 import com.yan.xiaoyanqtserve.service.KeyInfoService;
 import com.yan.xiaoyanqtserve.service.ProductTypeService;
+import com.yan.xiaoyanqtserve.task.MailRecordSyncTask;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 /**
- * 请求处理服务
+ * APIKEY请求处理服务
  * @author yanchen
  * @since 2026/2/3 18:18
  */
@@ -35,6 +39,9 @@ public class KeyInfoManagerService {
     private final LicenseKeyGenerator licenseKeyGenerator;
     private final KeyInfoService keyInfoService;
     private final ProductTypeService productTypeService;
+    private final RedisUtil redisUtil;
+
+    private final MailRecordSyncTask mailRecordSyncTask;
 
     private final RedisLockUtil redisLockUtil;
 
@@ -314,13 +321,15 @@ public class KeyInfoManagerService {
 
     /**
      * 构建密钥信息
+     * <br>
+     * 生产密钥对象的辅助函数
      * @param key 密钥
      * @param operator 操作员
      * @param generateKeyDto 密钥生成参数
      * @param productType 产品类型
      * @return 密钥信息
      */
-    private KeyInfo buildKeyInfo(String key, Long operator, GenerateKeyDto generateKeyDto, ProductType productType) {
+    public KeyInfo buildKeyInfo(String key, Long operator, GenerateKeyDto generateKeyDto, ProductType productType) {
         KeyInfo keyInfo = new KeyInfo();
 
         keyInfo.setKeyValue(key);
@@ -382,6 +391,68 @@ public class KeyInfoManagerService {
             }
         } finally {
             redisLockUtil.unlock(lockKey);
+        }
+    }
+
+
+    /**
+     * 从密钥池中获取一个未使用的免费密钥
+     * @return 未使用的免费密钥
+     */
+    public String getUnusedFreeKeyFromPool() {
+        // 从redis中的免费密钥池获取一个未使用的密钥值
+        Object freeKeyValueObj = redisUtil.sPop(Constants.FREE_KEY_POOL);
+        // 如果为空，尝试一次补充免费密钥池
+        if (freeKeyValueObj == null) {
+            log.warn("免费密钥池已空，开始自动补充");
+            try {
+                mailRecordSyncTask.replenishFreeKeyPool();
+            } catch (Exception e) {
+                throw new BizException("补充免费密钥池失败，请联系客服！");
+            }
+
+            // 再次尝试从Redis池中获取
+            freeKeyValueObj = redisUtil.sPop(Constants.FREE_KEY_POOL);
+
+            // 再次检查是否为空
+            if (freeKeyValueObj == null) {
+                throw new BizException("免费密钥池补充后仍无可用密钥，请联系客服！");
+            }
+        }
+
+        // 从密钥池中获取一个未使用的免费密钥
+        String freeKeyValue = freeKeyValueObj.toString();
+
+        // 增加今日发放计数
+        String today = LocalDate.now().toString();
+        String countKey = Constants.FREE_KEY_DAILY_COUNT + today;
+        redisUtil.incr(countKey, 1);
+
+        return freeKeyValue;
+    }
+
+
+    /**
+     * 将卡密归还到密钥池，并递减今日发放计数
+     * <p>
+     * 用于在保存密钥记录事务回滚时，将已弹出的卡密恢复到池中
+     * </p>
+     * @param freeKeyValue 要归还的卡密值
+     */
+    public void returnFreeKeyToPool(String freeKeyValue) {
+        if(!StringUtils.hasText(freeKeyValue)) {
+            return;
+        }
+        try {
+            // 将卡密重新添加到池中
+            redisUtil.sAdd(Constants.FREE_KEY_POOL, freeKeyValue);
+            // 递减今日发放计数
+            String today = LocalDate.now().toString();
+            String countKey = Constants.FREE_KEY_DAILY_COUNT + today;
+            redisUtil.decr(countKey, 1);
+            log.info("卡密已归还到密钥池: {}", freeKeyValue);
+        } catch (Exception returnEx) {
+            log.error("卡密归还池中失败，卡密: {}, 原因: {}", freeKeyValue , returnEx.getMessage(), returnEx);
         }
     }
 }

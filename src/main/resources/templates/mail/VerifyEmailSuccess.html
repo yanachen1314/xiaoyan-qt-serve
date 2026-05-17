@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <th:block th:replace="mail/layout :: email_head(${title})"></th:block>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header" style="background-color: #67C23A;">
+            <h1>验证成功</h1>
+            <div class="subtitle">邮箱验证已完成</div>
+        </div>
+
+        <div class="content">
+            <p>尊敬的用户：</p>
+
+            <div class="success-card">
+                <div class="card-icon">&#10003;</div>
+                <div class="card-title">邮箱验证已通过</div>
+                <div class="card-content">
+                    <p>恭喜您！邮箱验证已成功完成。</p>
+                    <div class="email" th:text="${email}">example@example.com</div>
+                </div>
+            </div>
+
+            <div class="license-card">
+                <div class="card-title">您的专属密钥</div>
+                <div class="license-key-box">
+                    <div class="license-key-value" id="licenseKey" th:text="${licenseKey}">XXXX-XXXX-XXXX-XXXX</div>
+                </div>
+                <button class="copy-btn" id="copyBtn" onclick="copyKey()">复制密钥</button>
+            </div>
+
+            <div class="notice" style="background-color: #fff3cd; border: 1px solid #ffeeba; color: #856404;">
+                <h3>注意事项</h3>
+                <ul>
+                    <li>请妥善保管您的密钥，切勿泄露给他人</li>
+                    <li>密钥可用于激活小烟改写工具的全部功能</li>
+                    <li>如密钥丢失，请联系客服进行找回</li>
+                </ul>
+            </div>
+
+            <div class="notice">
+                如非本人操作，请忽略此邮件
+            </div>
+
+        </div>
+
+        <div th:replace="mail/layout :: email_footer(true)"></div>
+    </div>
+
+    <script>
+        function copyKey() {
+            var text = document.getElementById('licenseKey').innerText;
+            navigator.clipboard.writeText(text).then(function () {
+                var btn = document.getElementById('copyBtn');
+                btn.innerText = '已复制';
+                btn.classList.add('done');
+                setTimeout(function () {
+                    btn.innerText = '复制密钥';
+                    btn.classList.remove('done');
+                }, 2000);
+            });
+        }
+    </script>
+</body>
+
+</html>

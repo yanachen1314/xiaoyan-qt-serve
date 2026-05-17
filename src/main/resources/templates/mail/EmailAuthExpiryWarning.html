@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <th:block th:replace="mail/layout :: email_head(${title})"></th:block>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header" style="background-color: #4a90e2;">
+            <h1 th:text="${emailServiceProvider} + '授权密码提醒'">邮箱授权密码提醒</h1>
+        </div>
+
+        <div class="content">
+            <p>尊敬的系统管理员：</p>
+
+            <p>您好！系统检测到<span th:text="${emailServiceProvider}"></span>授权密码即将过期或已过期，请及时处理。以下是详细信息：</p>
+
+            <div class="info-card">
+                <div class="info-item">
+                    <span class="info-label">授权密码启用时间：</span>
+                    <span class="info-value" th:text="${#temporals.format(activeDate, 'yyyy-MM-dd')}">2024-01-01</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">授权密码过期时间：</span>
+                    <span class="info-value" th:text="${#temporals.format(expiryDate, 'yyyy-MM-dd')}">2024-06-30</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">当前检测时间：</span>
+                    <span class="info-value" th:text="${#temporals.format(now, 'yyyy-MM-dd')}">2024-06-25</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">剩余有效天数：</span>
+                    <span class="info-value" th:text="${daysUntilExpiry}">5</span>
+                </div>
+            </div>
+
+            <div class="warning" style="background-color: #fff3cd; border: 1px solid #ffeeba; color: #856404;"
+                th:if="${daysUntilExpiry <= 0}">
+                <h3>⚠️ 紧急提醒</h3>
+                <p>授权密码已过期！请立即更新授权密码，否则系统将无法正常发送邮件。</p>
+            </div>
+
+            <div class="warning" style="background-color: #fff3cd; border: 1px solid #ffeeba; color: #856404;"
+                th:if="${daysUntilExpiry > 0 && daysUntilExpiry <= 30}">
+                <h3>⚠️ 重要提醒</h3>
+                <p>授权密码将在 <span th:text="${daysUntilExpiry}">5</span> 天后过期，请尽快更新授权密码。</p>
+            </div>
+
+            <div class="info-card">
+                <h3 style="font-weight: bold;margin: 0 0 10px;">✨更新步骤</h3>
+
+                <div th:if="${emailServiceProvider == '网易邮箱'}">
+                    <ol>
+                        <li><a th:href="@{https://mail.163.com}" target="_blank">前往登录</a>网易邮箱网页版</li>
+                        <li>进入「设置」-「POP3/SMTP/IMAP」-「客户端授权密码」</li>
+                        <li>重新生成授权密码</li>
+                        <li>更新系统配置中的授权密码</li>
+                    </ol>
+                </div>
+
+                <div th:if="${emailServiceProvider == '腾讯邮箱'}">
+                    <ol>
+                        <li><a th:href="@{https://mail.qq.com}" target="_blank">前往登录</a>QQ邮箱网页版</li>
+                        <li>进入「设置」-「账户」-「POP3/IMAP/SMTP/Exchange/CardDAV/CalDAV服务」</li>
+                        <li>开启「POP3/SMTP服务」并生成授权码</li>
+                        <li>更新系统配置中的授权密码</li>
+                    </ol>
+                </div>
+
+                <div th:if="${emailServiceProvider == '微软邮箱'}">
+                    <ol>
+                        <li><a th:href="@{https://outlook.live.com}" target="_blank">前往登录</a>Outlook网页版</li>
+                        <li>进入「设置」-「查看所有 Outlook 设置」-「邮件」-「同步电子邮件」</li>
+                        <li>确保「允许使用 POP3」和「允许使用 IMAP」已开启</li>
+                        <li>如需应用密码，请在Microsoft账户安全设置中生成应用密码</li>
+                        <li>更新系统配置中的授权密码</li>
+                    </ol>
+                </div>
+
+                <div th:if="${emailServiceProvider == 'Gmail'}">
+                    <ol>
+                        <li><a th:href="@{https://mail.google.com}" target="_blank">前往登录</a>Gmail网页版</li>
+                        <li>进入「设置」-「查看所有设置」-「转发和POP/IMAP」</li>
+                        <li>启用POP或IMAP</li>
+                        <li>如需应用密码，请在Google账户安全设置中开启两步验证并生成应用密码</li>
+                        <li>更新系统配置中的授权密码</li>
+                    </ol>
+                </div>
+
+                <div th:if="${emailServiceProvider != '网易邮箱' &&
+                          emailServiceProvider != '腾讯邮箱' &&
+                          emailServiceProvider != '微软邮箱' &&
+                          emailServiceProvider != 'Gmail'}">
+                    <ol>
+                        <li>登录<span th:text="${emailServiceProvider}"></span>网页版</li>
+                        <li>进入「设置」-「账户」或「安全设置」</li>
+                        <li>查找「POP3/IMAP/SMTP」或「客户端授权密码」相关设置</li>
+                        <li>重新生成授权密码</li>
+                        <li>更新系统配置中的授权密码</li>
+                    </ol>
+                    <p style="margin-top: 10px; color: #888;">
+                        <small>注：不同邮箱服务商的设置路径可能略有差异，请参考服务商官方帮助文档</small>
+                    </p>
+                </div>
+            </div>
+
+            <div class="warning" style="background-color: #fff3cd; border: 1px solid #ffeeba; color: #856404;">
+                如非本人操作，请忽略此邮件
+            </div>
+
+        </div>
+
+        <div th:replace="mail/layout :: email_footer(false)"></div>
+    </div>
+</body>
+
+</html>

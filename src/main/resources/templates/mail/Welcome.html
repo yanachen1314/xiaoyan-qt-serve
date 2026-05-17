@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <th:block th:replace="mail/layout :: email_head(${title})"></th:block>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header" style="background-color: #4a90e2;">
+            <h1>欢迎加入小烟AI</h1>
+            <div class="subtitle">智能服务，触手可及</div>
+        </div>
+
+        <div class="content">
+            <p>亲爱的用户：</p>
+
+            <div class="welcome-section">
+                <div class="user-name" th:text="${userName}">张三</div>
+                <div class="welcome-content" th:text="${content}">
+                    欢迎加入小烟AI平台！我们很高兴您成为我们的一员。小烟AI是一个集成多种AI能力的智能服务平台，为您提供高效、智能的解决方案。
+                </div>
+            </div>
+
+            <p>在小烟AI平台，您可以体验到多种强大的AI功能，帮助您提升工作效率，实现智能化办公。</p>
+
+            <div class="features">
+                <h3>平台核心功能</h3>
+                <div class="feature-grid">
+                    <div class="feature-item">
+                        <div class="feature-icon">🤖</div>
+                        <div class="feature-title">智能对话</div>
+                        <div class="feature-desc">支持多模型AI对话，提供精准的智能回复</div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">📄</div>
+                        <div class="feature-title">文件处理</div>
+                        <div class="feature-desc">支持多种文件格式的智能处理和转换</div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">💡</div>
+                        <div class="feature-title">创意生成</div>
+                        <div class="feature-desc">AI辅助创意生成，激发无限灵感</div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">🔍</div>
+                        <div class="feature-title">智能分析</div>
+                        <div class="feature-desc">数据智能分析，提供专业洞察报告</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="guide">
+                <h3>快速上手指南</h3>
+                <ol>
+                    <li>完善个人资料，设置偏好选项</li>
+                    <li>浏览功能模块，了解平台能力</li>
+                    <li>尝试智能对话，体验AI服务</li>
+                    <li>上传文件，体验智能处理功能</li>
+                    <li>查看帮助中心，获取更多使用技巧</li>
+                </ol>
+            </div>
+
+            <div style="text-align: center; margin: 25px 0;">
+                <a href="#" class="cta-button" th:href="${website}">立即开始使用</a>
+            </div>
+
+            <p>如果您在使用过程中遇到任何问题，欢迎随时联系我们的客服团队，我们将竭诚为您服务。</p>
+
+            <p>祝您在小烟AI平台度过愉快的时光！</p>
+        </div>
+
+        <div th:replace="mail/layout :: email_footer(true)"></div>
+    </div>
+</body>
+
+</html>

@@ -1,8 +1,8 @@
-# ===================== 自定义配置 =======================
-xiaoyan:
-  license:
-    # 卡密加密密钥
-    key: ${LICENSE_KEY:P9X7M2K4ZQ8F1T6W3R5N0A8L2Y7B4C9D6E1H5J3U8V2S4}
+
+server:
+  # HTTP请求、响应头信息的最大大小
+  port: ${SERVER_PORT:8080}
+  max-http-request-header-size: 102400
 
 # ===================== spring 配置 =======================
 spring:
@@ -21,10 +21,19 @@ spring:
     date-format: yyyy-MM-dd HH:mm:ss
     time-zone: GMT+8
 
-server:
-  # HTTP请求、响应头信息的最大大小
-  port: ${SERVER_PORT:8080}
-  max-http-request-header-size: 102400
+  # ======= 系统邮箱配置 =======
+  mail:
+    host: smtp.qq.com
+    username: 2742015729@qq.com
+    password: gvbwhicjgyqvddfh
+    port: 465
+    protocol: smtp
+    properties:
+      mail:
+        smtp:
+          auth: true
+          ssl:
+            enable: true
 
 # ===================== mybatis-plus 配置 =======================
 mybatis-plus:

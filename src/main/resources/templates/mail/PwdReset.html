@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <th:block th:replace="mail/layout :: email_head(${title})"></th:block>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header" style="background-color: #4a90e2;">
+            <h1>密码变更提醒</h1>
+        </div>
+
+        <div class="content">
+            <p>亲爱的用户：</p>
+
+            <div class="change-card">
+                <div class="user-info">
+                    <div class="user-name" th:text="${userName}">张三</div>
+                    <div class="change-time">变更时间：<span th:text="${changeTime}">2024-01-01 12:00:00</span></div>
+                </div>
+
+                <p>我们检测到您的小烟AI账号密码已发生变更。</p>
+            </div>
+
+            <div class="action-suggestions">
+                <h3>操作建议</h3>
+                <div class="suggestion-item">
+                    <strong>如果是您本人操作：</strong><br>
+                    请忽略此通知，您的账号安全。
+                </div>
+                <div class="suggestion-item">
+                    <strong>如果非您本人操作：</strong><br>
+                    您的账号可能存在安全风险，请立即采取措施保护账号安全。
+                </div>
+            </div>
+
+            <div style="text-align: center; margin: 25px 0;">
+                <a href="#" class="emergency-button" th:href="${loginUrl}">立即修改密码</a>
+            </div>
+
+            <div class="security-tip" style="background-color: #fff3cd; border: 1px solid #ffeeba; color: #856404;">
+                <h3>⚠️ 安全建议</h3>
+                <ul>
+                    <li>定期更换密码，使用包含字母、数字和特殊字符的强密码</li>
+                    <li>不要在多个网站使用相同的密码</li>
+                    <li>不要相信任何索要密码或验证码的陌生电话或短信</li>
+                </ul>
+            </div>
+
+            <p>如果您有任何疑问或需要帮助，请随时联系我们的客服团队。</p>
+
+            <p>此致<br />小烟AI系统团队</p>
+        </div>
+
+        <div th:replace="mail/layout :: email_footer(false)"></div>
+    </div>
+</body>
+
+</html>

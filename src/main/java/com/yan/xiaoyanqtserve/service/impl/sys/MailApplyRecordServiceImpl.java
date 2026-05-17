@@ -1,0 +1,100 @@
+package com.yan.xiaoyanqtserve.service.impl.sys;
+
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.yan.xiaoyanqtserve.common.enums.EmailApplyStatus;
+import com.yan.xiaoyanqtserve.common.exception.BizException;
+import com.yan.xiaoyanqtserve.entity.MailApplyRecord;
+import com.yan.xiaoyanqtserve.mapper.MailApplyRecordMapper;
+import com.yan.xiaoyanqtserve.service.MailApplyRecordService;
+import jakarta.annotation.Resource;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DuplicateKeyException;
+import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
+
+/**
+ * 免费领取卡密记录服务实现类
+ * @author yanchen
+ * @since 2026/4/22
+ */
+@Slf4j
+@Service
+public class MailApplyRecordServiceImpl extends ServiceImpl<MailApplyRecordMapper, MailApplyRecord> implements MailApplyRecordService {
+
+    @Resource
+    private MailApplyRecordMapper mailApplyRecordMapper;
+
+    /**
+     * 记录领取信息
+     * <p>利用数据库唯一索引 uk_email 防止重复领取，捕获 DuplicateKeyException</p>
+     *
+     * @param record 领取记录实体
+     * @throws DuplicateKeyException 如果该邮箱已领取过
+     */
+    @Override
+    public void saveApplyRecord(MailApplyRecord record) {
+        try {
+            mailApplyRecordMapper.insert(record);
+        } catch (DuplicateKeyException e) {
+            throw new BizException("该邮箱已领取过");
+        } catch (Exception e) {
+            throw new RuntimeException("保存领取记录失败", e);
+        }
+    }
+
+    /**
+     * 增加验证链接点击次数
+     *
+     * @param token     验证链接token
+     */
+    public void increaseClickCountByToken(String token) {
+        mailApplyRecordMapper.increaseClickCountByToken(token, 1);
+    }
+
+    /**
+     * 更新验证记录状态
+     *
+     * @param id 记录ID
+     * @param status 新状态
+     */
+    @Override
+    public void updateStatus(Long id, EmailApplyStatus status) {
+        try {
+            mailApplyRecordMapper.updateStatusById(id, status.getCode(),status.getMessage());
+        } catch (Exception e) {
+            log.error("更新验证记录状态失败，id：{}，status：{}", id, status, e);
+            throw new RuntimeException(e);
+        }
+    }
+    /**
+     * 验证领取失败，更新记录状态
+     *
+     * @param id          记录ID
+     * @param emailApplyStatus 新状态
+     * @param errMsg      错误详情信息
+     */
+    @Override
+    public void updateStatusFail(Long id, EmailApplyStatus emailApplyStatus, String errMsg) {
+        String remark = emailApplyStatus.getMessage();
+        if (StringUtils.hasText(errMsg)) {
+            remark += "，详情：" + errMsg;
+        }
+        mailApplyRecordMapper.updateStatusById(id, emailApplyStatus.getCode(), remark);
+    }
+
+    /**
+     * 验证领取成功，更新记录状态和 apiKey
+     * @param id 记录ID
+     * @param apiKey 领取的卡密
+     */
+    @Override
+    public void updateStatusSuccess(Long id, String apiKey) {
+        MailApplyRecord updateRecord = new MailApplyRecord();
+        updateRecord.setId(id);
+        updateRecord.setApplyApiKey(apiKey);
+        updateRecord.setApplyStatus(EmailApplyStatus.SUCCESS.getCode());
+        updateRecord.setRemark(EmailApplyStatus.SUCCESS.getMessage());
+        mailApplyRecordMapper.updateById(updateRecord);
+    }
+
+}

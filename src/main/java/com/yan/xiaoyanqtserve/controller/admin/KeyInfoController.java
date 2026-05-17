@@ -9,7 +9,7 @@ import com.yan.xiaoyanqtserve.common.vo.KeyInfoVo;
 import com.yan.xiaoyanqtserve.entity.KeyInfo;
 import com.yan.xiaoyanqtserve.security.AdminUserDetails;
 import com.yan.xiaoyanqtserve.service.KeyInfoService;
-import com.yan.xiaoyanqtserve.service.impl.KeyInfoManagerService;
+import com.yan.xiaoyanqtserve.service.impl.apikey.KeyInfoManagerService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

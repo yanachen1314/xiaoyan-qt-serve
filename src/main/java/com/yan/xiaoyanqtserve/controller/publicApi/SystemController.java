@@ -1,24 +1,19 @@
-package com.yan.xiaoyanqtserve.controller;
+package com.yan.xiaoyanqtserve.controller.publicApi;
 
 import com.yan.xiaoyanqtserve.common.Constants;
-import com.yan.xiaoyanqtserve.common.annotaions.RateLimiter;
 import com.yan.xiaoyanqtserve.common.dto.adminUser.AdminUserLoginRequest;
 import com.yan.xiaoyanqtserve.common.dto.adminUser.AdminUserResponse;
 import com.yan.xiaoyanqtserve.common.dto.adminUser.PasswordResetRequest;
-import com.yan.xiaoyanqtserve.common.dto.key.KeyActiveDto;
-import com.yan.xiaoyanqtserve.common.enums.RateLimiterType;
-import com.yan.xiaoyanqtserve.common.utils.*;
-import com.yan.xiaoyanqtserve.common.vo.KeyActiveVo;
+import com.yan.xiaoyanqtserve.common.utils.ApiResponse;
+import com.yan.xiaoyanqtserve.common.utils.JwtUtil;
+import com.yan.xiaoyanqtserve.common.utils.VersionCheckUtil;
 import com.yan.xiaoyanqtserve.common.vo.VersionCheckVo;
 import com.yan.xiaoyanqtserve.common.vo.VersionComparisonResult;
 import com.yan.xiaoyanqtserve.entity.AdminUser;
-import com.yan.xiaoyanqtserve.entity.KeyInfo;
 import com.yan.xiaoyanqtserve.filter.SystemModeFilter;
 import com.yan.xiaoyanqtserve.security.AdminUserDetails;
 import com.yan.xiaoyanqtserve.service.AdminUserService;
 import com.yan.xiaoyanqtserve.service.SysConfigService;
-import com.yan.xiaoyanqtserve.service.impl.KeyInfoManagerService;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,10 +24,11 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 
 /**
- * 公开控制器
+ * 系统公开控制器
  * @author yanchen
  * @since 2026/3/10 15:11
  */
@@ -41,68 +37,24 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/public")
 @RequiredArgsConstructor
-public class PublicController {
+public class SystemController {
     private final AdminUserService adminUserService;
 
     private final AuthenticationManager authenticationManager;
 
     private final JwtUtil jwtUtil;
 
-    private final KeyInfoManagerService managerService;
-
     private final SysConfigService sysConfigService;
 
+
     /**
-     * 密钥激活接口
-     * <p>
-     * 一个IP地址每秒只能请求10次
-     * @param keyActiveDto 激活密钥参数
-     * @return 激活结果
+     * 获取可申请的邮箱后缀
+     *
+     * @return 可申请的邮箱后缀JSON字符串
      */
-    @RateLimiter(key = "active", time = 1, count = 10, limitBy = RateLimiterType.IP)
-    @PostMapping("/active")
-    public ApiResponse<KeyActiveVo> activateKey(@Valid @RequestBody KeyActiveDto keyActiveDto,
-                                                HttpServletRequest request) {
-        String apiKeyFromHeader = MainUtil.extractApiKeyFromHeader(request);
-        if(apiKeyFromHeader == null){
-            return ApiResponse.fail("API密钥不能为空");
-        }
-        // 调用 KeyInfoService 的 activateKey 方法激活密钥
-        KeyInfo keyInfo = managerService.activateKey(keyActiveDto,apiKeyFromHeader);
-
-        // 激活成功
-        Integer totalUses = keyInfo.getTotalUses();
-        Integer remainingUses = keyInfo.getRemainingUses();
-        Integer activationsNum = keyInfo.getActivationsNum();
-        Integer remainingActiveNum = keyInfo.getRemainingActiveNum();
-
-        String residualUsageView;
-        if (totalUses > 0 && remainingUses > 0) {
-            residualUsageView = remainingUses + "次";
-        } else if (totalUses > 0 && remainingUses == 0) {
-            residualUsageView = "已用完";
-        } else {
-            residualUsageView = "无限制";
-        }
-
-        String remainingActiveNumView;
-        if (activationsNum > 0 && remainingActiveNum > 0) {
-            remainingActiveNumView = remainingActiveNum + "次";
-        } else if (activationsNum > 0 && remainingActiveNum == 0) {
-            remainingActiveNumView = "已用完";
-        } else {
-            remainingActiveNumView = "无限制";
-        }
-        return ApiResponse.success("密钥激活成功", KeyActiveVo.builder()
-                .apiKey(keyInfo.getKeyValue())
-                .devices(keyInfo.getActivationDevice())
-                .expireTime(keyInfo.getExpiryTime())
-                .totalUsage(totalUses == 0 ? "无限制" : totalUses + "次")
-                .residualUsage(residualUsageView)
-                .activationNums(activationsNum == 0 ? "无限制" : activationsNum + "次")
-                .remainingActiveNum(remainingActiveNumView)
-                .build()
-        );
+    @GetMapping("/email/apply-suffix")
+    public ApiResponse<List<String>> applyEmailSuffix() {
+        return ApiResponse.success(sysConfigService.getEmailSuffixList());
     }
 
     /**
@@ -152,10 +104,9 @@ public class PublicController {
      * @return 系统维护状态。 false 示系统正常运行，true 示系统维护中
      */
     @GetMapping("/check/maintenance")
-    public ApiResponse<Map<String,Object>> checkMaintenance() {
+    public ApiResponse<Map<String, Object>> checkMaintenance() {
         return ApiResponse.success("系统运行正常", Map.of("status", false));
     }
-
 
     /**
      * 管理员登录接口

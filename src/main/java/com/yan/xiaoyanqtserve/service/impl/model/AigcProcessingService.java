@@ -1,4 +1,4 @@
-package com.yan.xiaoyanqtserve.service.impl;
+package com.yan.xiaoyanqtserve.service.impl.model;
 
 import com.yan.xiaoyanqtserve.common.dto.aigc.AigcModelResultDto;
 import com.yan.xiaoyanqtserve.common.dto.aigc.AigcResponseDto;

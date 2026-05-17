@@ -1,10 +1,7 @@
 package com.yan.xiaoyanqtserve.common;
 
-import cn.hutool.core.collection.ListUtil;
-
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 
 /**
  *
@@ -12,25 +9,24 @@ import java.util.List;
  * @since 2026/2/3 17:14
  */
 public class Constants {
-    // 前端域名（测试环境、灰度、正式环境等） 白名单
-    public static final List<String> ORIGINS_WHITE_LIST = ListUtil.of(
-            "http://119.29.228.36:9999",
-            "https://119.29.228.36:9999",
-            "http://119.29.228.36",
-            "https://119.29.228.36",
-            "http://xygo.cn",
-            "https://xygo.cn",
-            "http://localhost:8070",
-            "http://127.0.0.1:8070");
-    // 是否允许CORS跨域携带 Cookie
-    public static final Boolean CORS_allowCredentials = true;
-
     // 定义Header名称常量
+    // 普通用户 API密钥 认证请求头
     public static final String HEADER_KEY_NAME = "X-API-Key";
-    public static final String HEADER_CLIENT_VERSION_NAME = "X-Client-Version";
+    // 管理员 JWT 认证请求头
     public static final String HEADER_AUTH_NAME = "Authorization";
-    // 定义Header前缀
+    // 定义Header 认证前缀
     public static final String HEADER_PREFIX = "Bearer ";
+
+    // 客户端版本
+    public static final String HEADER_CLIENT_VERSION_NAME = "X-Client-Version";
+    // 设备类型请求头 ClientType
+    public static final String HEADER_DEVICE_TYPE = "X-Device";
+    // 设备ID/设备指纹
+    public static final String HEADER_DEVICE_ID = "X-Device-Id";
+    // 验证码验证请求头
+    public static final String HEADER_CAPTCHA_VERIFY_PARAMS = "X-Captcha-Verify-Params";
+
+
 
     // 限流前缀Key
     public static final String RATE_LIMIT_PREFIX = "Rate_limit:";
@@ -58,6 +54,7 @@ public class Constants {
     // LINK3地址缓存KEY
     public static final String LINK3_KEY = "system.updateLink";
 
+
     // HTTPRequest的请求属性  请求日志相关
     // 日志请求ID
     public static final String ATTRIBUTE_REQUEST_ID = "REQUEST_ID";
@@ -69,4 +66,30 @@ public class Constants {
     public static final String ATTRIBUTE_BIZ_CODE = "BIZ_CODE";
     // 响应消息
     public static final String ATTRIBUTE_RESPONSE_MESSAGE = "RESPONSE_MESSAGE";
+
+    // 邮件账号发送统计前缀: mail:send:count:{date}:{emailAddress}
+    public static final String MAIL_SEND_COUNT_PREFIX = "mail:send:count:";
+    // 邮件账号发送成功统计前缀
+    public static final String MAIL_SEND_SUCCESS_PREFIX = "mail:send:success:";
+    // 邮件账号发送失败统计前缀
+    public static final String MAIL_SEND_FAIL_PREFIX = "mail:send:fail:";
+    // 邮件账号轮询索引Key
+    public static final String MAIL_ACCOUNT_ROUND_ROBIN_KEY = "mail:account:round_robin";
+
+    // 邮箱免费密钥池（存储免费密钥ID的Set集合，公共池）
+    public static final String FREE_KEY_POOL = "free_key:pool";
+    // 今日免费密钥发放数量统计
+    public static final String FREE_KEY_DAILY_COUNT = "free_key:daily_count:";
+    // 邮件申请，验证邮箱链接前缀
+    public static final String FREE_KEY_VERIFY_EMAIL_LINK = "free_key:verifyEmailLink:";
+    // 邮箱免费密钥的使用场景标识
+    public static final String FREE_KEY_USAGE_TYPE = "apikey.usageType.emailFree";
+    // 邮箱免费密钥的产品码
+    public static final String FREE_KEY_PRODUCT_CODE = "EMAIL_FREE_KEY";
+
+    // 邮箱免费密钥的后缀（系统配置Config-Key，不能修改）
+    public static final String SYSTEM_EMAIL_SUFFIX_KEY = "email.applyKey.suffix";
+    // 系统验证码服务是否开启
+    public static final String SYSTEM_CAPTCHA_ENABLED = "system.captcha.enabled";
+
 }

@@ -1,9 +1,8 @@
-package com.yan.xiaoyanqtserve.config;
+package com.yan.xiaoyanqtserve.config.frame;
 
-import cn.hutool.core.collection.ListUtil;
-import com.yan.xiaoyanqtserve.common.Constants;
 import com.yan.xiaoyanqtserve.common.enums.BizStatus;
 import com.yan.xiaoyanqtserve.common.enums.Role;
+import com.yan.xiaoyanqtserve.config.custome.CorsConfigProperties;
 import com.yan.xiaoyanqtserve.filter.ApiKeyAuthFilter;
 import com.yan.xiaoyanqtserve.filter.JwtAuthFilter;
 import com.yan.xiaoyanqtserve.common.utils.SecurityResponseUtil;
@@ -12,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -29,6 +29,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+
 /**
  * Spring Security 配置
  */
@@ -45,6 +46,8 @@ public class SecurityConfig {
     private ApiKeyAuthFilter apiKeyAuthFilter;
     @Resource
     private JwtAuthFilter jwtAuthFilter;
+    @Resource
+    private CorsConfigProperties corsConfigProperties;
 
 
     @Bean
@@ -57,17 +60,27 @@ public class SecurityConfig {
         return config.getAuthenticationManager();
     }
 
+    /**
+     * 创建 CORS 配置源
+     * 从 YAML 配置文件中读取 CORS 相关配置
+     *
+     * @return CorsConfigurationSource CORS 配置源
+     */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration cfg = new CorsConfiguration();
-        // 允许前端地址
-        cfg.setAllowedOrigins(Constants.ORIGINS_WHITE_LIST);
+        // 允许访问API的地址
+        cfg.setAllowedOriginPatterns(corsConfigProperties.getAllowedOriginPatterns());
         // 允许的请求方法
-        cfg.setAllowedMethods(ListUtil.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        cfg.setAllowedMethods(corsConfigProperties.getAllowedMethods());
         // 允许的请求头
-        cfg.setAllowedHeaders(ListUtil.of("Authorization", "Content-Type", "*"));
-        // 是否允许携带 Cookie
-        cfg.setAllowCredentials(Constants.CORS_allowCredentials);
+        cfg.setAllowedHeaders(corsConfigProperties.getAllowedHeaders());
+        // 暴露响应头
+        cfg.setExposedHeaders(corsConfigProperties.getExposedHeaders());
+        // 预检请求缓存时间（秒）
+        cfg.setMaxAge(corsConfigProperties.getMaxAge());
+        // 是否允许携带 Cookie（使用 allowedOriginPatterns 时可设为 true）
+        cfg.setAllowCredentials(corsConfigProperties.getAllowCredentials());
         // 注册对所有路径都生效
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", cfg);
@@ -85,6 +98,12 @@ public class SecurityConfig {
         http
                 // 启用 WebMvc Cors 配置
                 .cors(cors -> {
+                    cors.configurationSource(corsConfigurationSource());
+                })
+
+                // 放行OPTIONS预检请求
+                .authorizeHttpRequests(auth -> {
+                    auth.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll();
                 })
 
                 // 禁用 表单登录/登出、session管理、csrf防护、匿名身份等默认配置，如果不disable。会默认创建默认filter

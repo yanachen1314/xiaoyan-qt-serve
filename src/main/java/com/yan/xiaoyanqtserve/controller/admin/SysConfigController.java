@@ -25,6 +25,15 @@ public class SysConfigController {
 
     private final SysConfigService sysConfigService;
 
+    /**
+     * 更新验证码服务状态
+     * @param captchaServiceStatus 验证码服务状态
+     */
+    @PostMapping("/updateCaptchaServiceStatus")
+    public ApiResponse<String> updateCaptchaServiceStatus(@RequestParam Boolean captchaServiceStatus) {
+        sysConfigService.updateCaptchaServiceStatus(captchaServiceStatus);
+        return ApiResponse.success("更新成功");
+    }
 
     /**
      * 从系统配置中获取卡密的使用场景

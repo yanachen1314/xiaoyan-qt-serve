@@ -18,6 +18,27 @@ import java.util.List;
  * @since 2026-03-10
  */
 public interface SysConfigService extends IService<SysConfig> {
+
+
+    /**
+     * 获取邮箱后缀列表
+     * @return  邮箱后缀列表
+     */
+    List<String> getEmailSuffixList();
+
+    /**
+     * 获取验证码服务是否启用
+     * @return 验证码服务是否启用。true - 启用，false - 禁用
+     */
+    Boolean getCaptchaServiceEnabled();
+
+    /**
+     * 更新验证码服务状态
+     * @param captchaServiceStatus 验证码服务状态。true - 启用，false - 禁用
+     */
+    void updateCaptchaServiceStatus(Boolean captchaServiceStatus);
+
+
     /**
      * 重新加载缓存（所有配置），可在修改后调用
      */

@@ -1,18 +1,14 @@
 package com.yan.xiaoyanqtserve.common.utils;
 
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintValidatorContext;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
-import org.springframework.lang.Nullable;
 import org.springframework.util.AntPathMatcher;
-import org.springframework.util.StringUtils;
 
+import java.net.URI;
 import java.util.*;
 
-import static com.yan.xiaoyanqtserve.common.Constants.HEADER_KEY_NAME;
-import static com.yan.xiaoyanqtserve.common.Constants.HEADER_PREFIX;
 
 /**
  * 项目通用工具类
@@ -26,37 +22,60 @@ public class MainUtil {
 
     /**
      * 判断路径是否在允许的路径中
-     * <p>Spring 框架， 详见：{@link AntPathMatcher}</p>
+     * <p>支持传入完整 URL 地址，自动提取路径部分进行匹配</p>
      * @param allowedPatterns 允许的路径数组，支持通配符配置
-     * @param path 要判断的路径
+     * @param path 要判断的路径或完整URL地址
      * @return 是否在允许的路径中
      */
     public static boolean isAllowedPath(String[] allowedPatterns, String path) {
+        String extractedPath = extractPath(path);
         for (String pattern : allowedPatterns) {
-            if (ANT_PATH_MATCHER.match(pattern, path)) {
-                return true;
-            }
-        }
-        return false;
-    }
-    public static boolean isAllowedPath(List<String> allowedPatterns, String path) {
-        for (String pattern : allowedPatterns) {
-            if (ANT_PATH_MATCHER.match(pattern, path)) {
+            if (ANT_PATH_MATCHER.match(pattern, extractedPath)) {
                 return true;
             }
         }
         return false;
     }
 
-    @Nullable
-    public static String extractApiKeyFromHeader(HttpServletRequest request) {
-        String header = request.getHeader(HEADER_KEY_NAME);
-        if (StringUtils.hasText(header) && header.startsWith(HEADER_PREFIX)) {
-            // 返回 header 值
-            return header.substring(HEADER_PREFIX.length()).trim();
+    /**
+     * 判断路径是否在允许的路径中
+     * <p>支持传入完整 URL 地址，自动提取路径部分进行匹配</p>
+     * @param allowedPatterns 允许的路径列表，支持通配符配置
+     * @param path 要判断的路径或完整URL地址
+     * @return 是否在允许的路径中
+     */
+    public static boolean isAllowedPath(List<String> allowedPatterns, String path) {
+        String extractedPath = extractPath(path);
+        for (String pattern : allowedPatterns) {
+            if (ANT_PATH_MATCHER.match(pattern, extractedPath)) {
+                return true;
+            }
         }
-        return null;
+        return false;
     }
+
+    /**
+     * 从路径或完整 URL 地址中提取路径部分
+     * <p>例如：http://example.com/api/users -> /api/users</p>
+     * <p>如果不是完整 URL，则原样返回</p>
+     * @param path 路径或完整 URL 地址
+     * @return 提取后的路径
+     */
+    private static String extractPath(String path) {
+        if (path == null || path.isEmpty()) {
+            return path;
+        }
+        try {
+            URI uri = new URI(path);
+            if (uri.getScheme() != null) {
+                String extractedPath = uri.getPath();
+                return (extractedPath != null && !extractedPath.isEmpty()) ? extractedPath : "/";
+            }
+        } catch (Exception ignored) {
+        }
+        return path;
+    }
+
 
 
     /**

@@ -101,6 +101,26 @@ public class KeyInfoServiceImpl extends ServiceImpl<KeyInfoMapper, KeyInfo> impl
     }
 
     /**
+     * 根据密钥值更新密钥是否售出状态
+     * @param keyValue 密钥值
+     * @param selled 是否售出，true 表示已售出，false 表示未售出
+     */
+    @Override
+    public void updateKeyInfoSelledByValue(String keyValue, boolean selled) {
+        LambdaQueryWrapper<KeyInfo> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(KeyInfo::getKeyValue, keyValue);
+        
+        KeyInfo updateKeyInfo = new KeyInfo();
+        updateKeyInfo.setSelled((byte) (selled ? 1 : 0));
+        
+        boolean success = this.update(updateKeyInfo, queryWrapper);
+        if (!success) {
+            throw new RuntimeException("更新密钥售出状态失败或密钥不存在: " + keyValue);
+        }
+    }
+
+
+    /**
      * 根据密钥ID获取密钥详情
      * @param keyId 密钥ID
      * @return 密钥详情

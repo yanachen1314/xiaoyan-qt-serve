@@ -3,12 +3,15 @@ package com.yan.xiaoyanqtserve.filter;
 import com.yan.xiaoyanqtserve.common.Constants;
 import com.yan.xiaoyanqtserve.common.dto.MaintenancePeriod;
 import com.yan.xiaoyanqtserve.common.enums.BizStatus;
+import com.yan.xiaoyanqtserve.common.enums.ClientType;
 import com.yan.xiaoyanqtserve.common.utils.MainUtil;
+import com.yan.xiaoyanqtserve.common.utils.NetUtil;
 import com.yan.xiaoyanqtserve.common.utils.SecurityResponseUtil;
 import com.yan.xiaoyanqtserve.common.vo.VersionCheckVo;
+import com.yan.xiaoyanqtserve.config.custome.MailPropertiesConfig;
 import com.yan.xiaoyanqtserve.service.SysConfigService;
-import com.yan.xiaoyanqtserve.service.impl.ClientVersionService;
-import com.yan.xiaoyanqtserve.service.impl.MaintenanceService;
+import com.yan.xiaoyanqtserve.service.impl.system.ClientVersionService;
+import com.yan.xiaoyanqtserve.service.impl.system.MaintenanceService;
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -31,6 +34,7 @@ public class SystemModeFilter implements Filter {
     private final MaintenanceService maintenanceService;
     private final SecurityResponseUtil securityResponseUtil;
     private final SysConfigService sysConfigService;
+    private final MailPropertiesConfig mailPropertiesConfig;
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response,
@@ -39,16 +43,18 @@ public class SystemModeFilter implements Filter {
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         HttpServletResponse httpResponse = (HttpServletResponse) response;
 
-        // 1. 白名单放行（如健康检查、静态资源），优先处理
+        // 1. 白名单放行（如健康检查、静态资源），跳过版本检测和维护期检查
         String requestURI = httpRequest.getRequestURI();
         if (isAllowedPath(requestURI)) {
             chain.doFilter(request, response);
             return;
         }
 
-        // 2. 检查是否更新版本（检查维护状态的接口不做处理）
-        if(!requestURI.equals("/api/public/check/maintenance")){
-            String clientVersion = httpRequest.getHeader(Constants.HEADER_CLIENT_VERSION_NAME);
+        // 2. 检查是否更新版本，以下两种情况中任意一种出现均不做处理，直接跳过版本检查
+        // （1）客户端维护状态的心跳检测接口
+        // （2）WEB 端所有接口
+        if(!isMaintenanceRequest(requestURI) && !isWebRequest(httpRequest)){
+            String clientVersion = NetUtil.getClientVersion(httpRequest);
             if (!StringUtils.hasText(clientVersion)) {
                 securityResponseUtil.writeError(httpResponse,
                         HttpStatus.OK.value(),
@@ -91,6 +97,17 @@ public class SystemModeFilter implements Filter {
         // 正常流程放行
         chain.doFilter(request, response);
     }
+    // 判断是否为维护请（心跳检测）
+    private boolean isMaintenanceRequest(String requestUri) {
+        return requestUri.equals("/api/public/check/maintenance");
+    }
+
+    // 判断是否为WEB请求
+    private boolean isWebRequest(HttpServletRequest httpRequest){
+        String deviceType = NetUtil.getClientDeviceType(httpRequest);
+        String deviceId = NetUtil.getClientDeviceId(httpRequest);
+        return ClientType.WEB.equals(deviceType) && StringUtils.hasText(deviceId);
+    }
 
     // 白名单路径（按需扩展）
     private boolean isAllowedPath(String requestUri) {
@@ -99,10 +116,12 @@ public class SystemModeFilter implements Filter {
                 "/api/public/auth/**",
                 // 管理员运维接口
                 "/api/admin/**",
-                "/actuator/**",
-                "/favicon.ico",
-                "/static/**",
-                "/resources/**"
+                // 验证码接口
+                "/api/public/captcha/**",
+                // 验证链接校验的接口,/api/public/verifyEmailLink
+                mailPropertiesConfig.getVerifyLink().getBasePath(),
+                // 测试接口
+                "/api/public/test/**"
         };
         return MainUtil.isAllowedPath(allowedPatterns, requestUri);
     }

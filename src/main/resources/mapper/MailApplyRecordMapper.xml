@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yan.xiaoyanqtserve.mapper.MailApplyRecordMapper">
+
+    <select id="increaseClickCountByToken">
+        UPDATE mail_apply_record
+        SET click_count = click_count + #{number}
+        WHERE verify_token = #{token}
+    </select>
+
+
+    <update id="updateStatusById">
+        update mail_apply_record
+        <set>
+            <if test="status != null">
+                status = #{status},
+            </if>
+            <if test="remark != null">
+                remark = #{remark},
+            </if>
+            <if test="applyApiKey != null">
+                apply_api_key = #{applyApiKey}
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+</mapper>

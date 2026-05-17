@@ -40,6 +40,12 @@ public interface KeyInfoService extends IService<KeyInfo> {
      */
     void updateKeyInfo(KeyInfo keyInfo);
 
+    /**
+     * 根据密钥值更新密钥是否售出状态
+     * @param keyValue 密钥值
+     * @param selled 是否售出
+     */
+    void updateKeyInfoSelledByValue(String keyValue, boolean selled);
 
     /**
      * 获取密钥详情

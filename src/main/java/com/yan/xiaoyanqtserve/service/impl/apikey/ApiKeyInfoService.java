@@ -1,8 +1,9 @@
-package com.yan.xiaoyanqtserve.service.impl;
+package com.yan.xiaoyanqtserve.service.impl.apikey;
 
 import com.yan.xiaoyanqtserve.common.dto.aigc.AigcRequestDto;
 import com.yan.xiaoyanqtserve.common.dto.aigc.AigcResponseDto;
 import com.yan.xiaoyanqtserve.entity.KeyInfo;
+import com.yan.xiaoyanqtserve.service.impl.model.AigcProcessingService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

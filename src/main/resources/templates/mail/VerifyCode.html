@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <th:block th:replace="mail/layout :: email_head(${title})"></th:block>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header" style="background-color: #4a90e2;">
+            <h1>验证码通知</h1>
+        </div>
+
+        <div class="content">
+            <p>尊敬的用户：</p>
+
+            <p>您好！您正在进行 <strong th:text="${module}"></strong> 操作，为了保障您的账号安全，需要进行验证码验证。</p>
+
+            <div class="code-card">
+                <div class="code-title">您的验证码</div>
+                <div class="code-value" th:text="${code}">123456</div>
+                <div class="code-validity">
+                    验证码有效期：<strong th:text="${validTime}">5</strong> 分钟
+                </div>
+            </div>
+
+            <div class="security-tip" style="background-color: #fff3cd; border: 1px solid #ffeeba; color: #856404;">
+                <h3>⚠️ 安全提示</h3>
+                <ul>
+                    <li>验证码仅用于本次验证，请勿泄露给他人</li>
+                    <li>如非本人操作，请立即修改账号密码</li>
+                    <li>验证码有效期为 <strong th:text="${validTime}">5</strong> 分钟，超时请重新获取</li>
+                    <li>请勿相信任何索要验证码的陌生电话或短信</li>
+                </ul>
+            </div>
+
+            <p>感谢您对我们服务的支持！</p>
+
+            <p>此致<br/>小烟AI系统团队</p>
+        </div>
+
+        <div th:replace="mail/layout :: email_footer(false)"></div>
+    </div>
+</body>
+
+</html>

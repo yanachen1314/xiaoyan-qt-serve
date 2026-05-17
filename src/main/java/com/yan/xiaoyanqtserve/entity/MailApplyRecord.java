@@ -1,0 +1,116 @@
+package com.yan.xiaoyanqtserve.entity;
+
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.yan.xiaoyanqtserve.common.enums.EmailApplyStatus;
+import lombok.*;
+
+import java.io.Serial;
+import java.io.Serializable;
+import java.time.LocalDateTime;
+
+/**
+ * <p>
+ * 免费领取卡密记录表
+ * </p>
+ *
+ * @author yanchen
+ * @since 2026-04-22
+ */
+@Getter
+@Setter
+@ToString
+@TableName("mail_apply_record")
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
+public class MailApplyRecord implements Serializable {
+
+    @Serial
+    private static final long serialVersionUID = 1L;
+
+    /**
+     * 主键ID
+     */
+    @TableId(value = "id", type = IdType.AUTO)
+    private Long id;
+
+    /**
+     * 领取邮箱
+     */
+    @TableField("applicant_email")
+    private String applicantEmail;
+
+    /**
+     * 邮箱验证token
+     */
+    @TableField("verify_token")
+    private String verifyToken;
+
+    /**
+     * 验证链接过期时间
+     */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    @TableField("verify_expire_time")
+    private LocalDateTime verifyExpireTime;
+
+    /**
+     * 校验链接点击次数
+     */
+    @TableField("click_count")
+    private Integer clickCount;
+
+    /**
+     * 状态
+     * @see EmailApplyStatus
+     */
+    @TableField("apply_status")
+    private Byte applyStatus;
+
+    /**
+     * 领取的卡密（验证通过后分配）
+     */
+    @TableField("apply_api_key")
+    private String applyApiKey;
+
+    /**
+     * 备注
+     */
+    @TableField("remark")
+    private String remark;
+
+
+    /**
+     * 设备类型（web：网页端，app：win APP端）
+     */
+    @TableField("device_type")
+    private String deviceType;
+
+    /**
+     * 设备ID/设备指纹
+     */
+    @TableField("device_id")
+    private String deviceId;
+
+    /**
+     * 领取时的客户端IP地址（支持IPv4/IPv6）
+     */
+    @TableField("client_ip")
+    private String clientIp;
+
+    /**
+     * 用户代理信息（浏览器/客户端标识）
+     */
+    @TableField("user_agent")
+    private String userAgent;
+
+    /**
+     * 领取时间
+     */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    @TableField("created_time")
+    private LocalDateTime createdTime;
+}
