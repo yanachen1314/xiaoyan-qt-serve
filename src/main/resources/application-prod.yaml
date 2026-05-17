@@ -66,21 +66,18 @@ aliyun:
     read-timeout: ${CAPTCHA_READ_TIMEOUT}
     ekey: ${CAPTCHA_EKEY}
 
-host:
-  # 直接通过服务器本机访问：MySQL、Redis
-  localhost: 127.0.0.1
 
 spring:
   # ======================= 数据源配置 (开发环境) =======================
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://${host.localhost}:${MYSQL_PORT}/${MYSQL_DATABASE}?useSSL=true&useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
+    url: jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT}/${MYSQL_DATABASE}?useSSL=true&useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
     username: ${MYSQL_USERNAME} # 从环境变量获取
     password: ${MYSQL_PASSWORD} # 从环境变量获取
   data:
     # ===================== Redis 配置 (开发环境) =======================
     redis:
-      host: ${host.localhost}
+      host: ${REDIS_HOST}
       port: ${REDIS_PORT}
       password: ${REDIS_PASSWORD} # 从环境变量获取
       database: 0
