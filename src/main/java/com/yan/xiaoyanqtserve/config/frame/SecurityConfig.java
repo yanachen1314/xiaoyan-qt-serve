@@ -8,6 +8,7 @@ import com.yan.xiaoyanqtserve.filter.JwtAuthFilter;
 import com.yan.xiaoyanqtserve.common.utils.SecurityResponseUtil;
 import jakarta.annotation.Resource;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -33,6 +34,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 /**
  * Spring Security 配置
  */
+@Slf4j
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
@@ -68,6 +70,8 @@ public class SecurityConfig {
      */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
+        log.info("============ CORS 配置 ===========");
+        log.debug("{}", corsConfigProperties);
         CorsConfiguration cfg = new CorsConfiguration();
         // 允许访问API的地址
         cfg.setAllowedOriginPatterns(corsConfigProperties.getAllowedOriginPatterns());
