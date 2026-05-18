@@ -54,7 +54,7 @@ xiaoyan:
     # 预检请求缓存时间（秒）
     max-age: ${CORS_MAX_AGE:3600}
     # 是否允许携带 Cookie
-    allow-credentials: ${CORS_ALLOW_CREDENTIALS:true}
+    allow-credentials: ${CORS_ALLOW_CREDENTIALS:false}
 
 # 阿里云配置
 aliyun:
