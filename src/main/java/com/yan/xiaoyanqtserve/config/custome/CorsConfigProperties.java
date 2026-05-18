@@ -32,7 +32,7 @@ public class CorsConfigProperties {
      * 允许的请求头列表
      * 示例: ["Authorization", "Content-Type", "X-Device"]
      */
-    private List<String> allowedHeaders = List.of("Authorization", "Content-Type", "X-Device", "X-Client-Version", "X-API-Key");
+    private List<String> allowedHeaders = List.of("*");
 
     /**
      * 允许暴露的响应头列表
@@ -48,5 +48,5 @@ public class CorsConfigProperties {
     /**
      * 是否允许携带 Cookie
      */
-    private Boolean allowCredentials = true;
+    private Boolean allowCredentials = false;
 }
