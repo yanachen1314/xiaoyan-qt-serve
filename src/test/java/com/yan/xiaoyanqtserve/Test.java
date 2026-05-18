@@ -1,5 +1,7 @@
 package com.yan.xiaoyanqtserve;
 
+import com.yan.xiaoyanqtserve.common.enums.RequestType;
+
 import java.security.SecureRandom;
 import java.util.Base64;
 
@@ -10,9 +12,6 @@ import java.util.Base64;
  */
 public class Test {
     public static void main(String[] args) {
-       for (int i = 0; i < 10; i++) {
-           System.out.println(generateSecureToken());
-       }
     }
 
     // 生成更安全的token

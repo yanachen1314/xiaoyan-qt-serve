@@ -1,5 +1,6 @@
 package com.yan.xiaoyanqtserve.filter;
 
+import com.yan.xiaoyanqtserve.common.enums.RequestType;
 import com.yan.xiaoyanqtserve.common.utils.NetUtil;
 import com.yan.xiaoyanqtserve.security.AdminUserDetailsService;
 import com.yan.xiaoyanqtserve.common.utils.JwtUtil;
@@ -37,8 +38,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         final String requestURI = request.getRequestURI();
 
-        // 如果是 /admin/** 路径，才尝试处理 JWT
-        if (requestURI.startsWith("/api/admin/")) {
+        // 如果是 /api/admin/** 路径，才尝试处理 JWT
+        if (RequestType.getByUrl(requestURI) == RequestType.ADMIN_REQUEST) {
             final String header = NetUtil.getAuthHeader(request);
             String username = null;
             String jwtToken = null;

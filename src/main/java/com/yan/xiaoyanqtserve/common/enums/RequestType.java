@@ -40,11 +40,14 @@ public enum RequestType {
      */
     public static RequestType getByUrl(String url) {
         for (RequestType type : RequestType.values()) {
-            if (url.startsWith(type.urlPrefix)) {
+            if (type == UNKNOWN) continue;
+            String prefix = type.urlPrefix;
+            if (url.equals(prefix) ||
+                    (url.startsWith(prefix) && url.charAt(prefix.length()) == '/')) {
                 return type;
             }
         }
-        return RequestType.UNKNOWN;
+        return UNKNOWN;
     }
 
     /**
@@ -52,26 +55,16 @@ public enum RequestType {
      * @param code 请求类型编码
      * @return 是否为未知请求类型
      */
-    public static Boolean isUnknownByCode(String code) {
-        for (RequestType type : RequestType.values()) {
-            if (type.code.equals(code) && !type.equals(RequestType.UNKNOWN)) {
-                return false;
-            }
-        }
-        return RequestType.UNKNOWN.code.equals(code);
+    public static boolean isUnknownByCode(String code) {
+        return UNKNOWN.code.equals(code);
     }
 
     /**
      * 判断是否为未知请求类型
-     * @param urlPrefix url前缀
+     * @param url url
      * @return 是否为未知请求类型
      */
-    public static Boolean isUnknownByUrlPrefix(String urlPrefix) {
-        for (RequestType type : RequestType.values()) {
-            if (type.urlPrefix.equals(urlPrefix) && !type.equals(RequestType.UNKNOWN)) {
-                return false;
-            }
-        }
-        return RequestType.UNKNOWN.urlPrefix.equals(urlPrefix);
+    public static boolean isUnknown(String url) {
+        return getByUrl(url) == UNKNOWN;
     }
 }

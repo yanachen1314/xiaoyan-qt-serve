@@ -4,6 +4,7 @@ import com.yan.xiaoyanqtserve.common.Constants;
 import com.yan.xiaoyanqtserve.common.dto.MaintenancePeriod;
 import com.yan.xiaoyanqtserve.common.enums.BizStatus;
 import com.yan.xiaoyanqtserve.common.enums.ClientType;
+import com.yan.xiaoyanqtserve.common.enums.RequestType;
 import com.yan.xiaoyanqtserve.common.utils.MainUtil;
 import com.yan.xiaoyanqtserve.common.utils.NetUtil;
 import com.yan.xiaoyanqtserve.common.utils.SecurityResponseUtil;
@@ -48,16 +49,27 @@ public class SystemModeFilter implements Filter {
             chain.doFilter(request, response);
             return;
         }
-        // 2. 白名单放行（如健康检查、静态资源），跳过版本检测和维护期检查
+
+        // 2. 如果是异常请求路径，直接拒绝
+        if (RequestType.isUnknown(httpRequest.getRequestURI())) {
+            securityResponseUtil.writeError(httpResponse,
+                    HttpStatus.NOT_FOUND.value(),
+                    BizStatus.NOT_FOUND,
+                    "请求路径不存在",
+                    null);
+            return;
+        }
+
+        // 3. 白名单放行（如健康检查、静态资源），跳过版本检测和维护期检查
         String requestURI = httpRequest.getRequestURI();
         if (isAllowedPath(requestURI)) {
             chain.doFilter(request, response);
             return;
         }
 
-        // 3. 检查是否更新版本，以下两种情况中任意一种出现均不做处理，直接跳过版本检查
+        // 4. 检查是否更新版本，以下两种情况中任意一种出现均不做处理，直接跳过版本检查
         // （1）客户端维护状态的心跳检测接口
-        // （2）WEB 端所有接口
+        // （2）用户WEB 端所有接口
         if(!isMaintenanceRequest(requestURI) && !isWebRequest(httpRequest)){
             String clientVersion = NetUtil.getClientVersion(httpRequest);
             if (!StringUtils.hasText(clientVersion)) {
@@ -87,9 +99,8 @@ public class SystemModeFilter implements Filter {
         }
 
 
-        // 4. 检查是否在维护期
+        // 5. 检查是否在维护期，如果是返回维护提示
         if (maintenanceService.isSystemInMaintenance()) {
-            // 4. 返回维护提示
             MaintenancePeriod maintenancePeriod = maintenanceService.getMaintenancePeriod();
             securityResponseUtil.writeError(httpResponse,
                     HttpStatus.OK.value(),
@@ -99,19 +110,31 @@ public class SystemModeFilter implements Filter {
             return;
         }
 
-        // 正常流程放行
+        // 6. 正常流程放行
         chain.doFilter(request, response);
     }
-    // 判断是否为维护请（心跳检测）
+
+    /**
+     * 判断是否为维护请求（心跳检测）
+     * <br></br>
+     * 检测维护状态接口：{@link com.yan.xiaoyanqtserve.controller.publicApi.SystemController#checkMaintenance}
+     * @param requestUri 请求路径
+     * @return 是否为维护请求
+     */
     private boolean isMaintenanceRequest(String requestUri) {
         return requestUri.equals("/api/public/check/maintenance");
     }
 
+    /**
+     * 判断是否为WEB请求
+     * @param httpRequest 请求对象
+     * @return 是否为WEB请求
+     */
     // 判断是否为WEB请求
     private boolean isWebRequest(HttpServletRequest httpRequest){
         String deviceType = NetUtil.getClientDeviceType(httpRequest);
         String deviceId = NetUtil.getClientDeviceId(httpRequest);
-        return ClientType.WEB.equals(deviceType) && StringUtils.hasText(deviceId);
+        return ClientType.of(deviceType) == ClientType.WEB && StringUtils.hasText(deviceId);
     }
 
     // 白名单路径（按需扩展）

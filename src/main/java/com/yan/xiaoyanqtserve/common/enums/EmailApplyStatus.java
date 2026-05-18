@@ -1,6 +1,7 @@
 package com.yan.xiaoyanqtserve.common.enums;
 
 import lombok.Getter;
+import org.springframework.lang.Nullable;
 
 /**
  * 邮箱领取卡密状态枚举
@@ -39,6 +40,7 @@ public enum EmailApplyStatus {
      * @param code 状态码
      * @return EmailApplyStatus 枚举，未找到返回 null
      */
+    @Nullable
     public static EmailApplyStatus of(Byte code) {
         for (EmailApplyStatus status : EmailApplyStatus.values()) {
             if (status.getCode().equals(code)) {

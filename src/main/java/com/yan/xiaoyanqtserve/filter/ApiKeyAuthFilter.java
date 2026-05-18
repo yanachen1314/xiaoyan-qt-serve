@@ -2,6 +2,7 @@ package com.yan.xiaoyanqtserve.filter;
 
 import com.yan.xiaoyanqtserve.common.dto.key.ValidationResult;
 import com.yan.xiaoyanqtserve.common.enums.BizStatus;
+import com.yan.xiaoyanqtserve.common.enums.RequestType;
 import com.yan.xiaoyanqtserve.common.enums.Role;
 import com.yan.xiaoyanqtserve.common.utils.NetUtil;
 import com.yan.xiaoyanqtserve.common.utils.RedisUtil;
@@ -46,8 +47,8 @@ public class ApiKeyAuthFilter extends OncePerRequestFilter {
     protected void doFilterInternal(@NonNull HttpServletRequest request,
                                     @NonNull HttpServletResponse response,
                                     @NonNull FilterChain filterChain) throws ServletException, IOException {
-
-        if (!request.getRequestURI().startsWith("/api/key")) {
+        // 如果不是 /api/key 路径，继续执行后续过滤器链
+        if (RequestType.getByUrl(request.getRequestURI()) != RequestType.APIKEY_REQUEST) {
             filterChain.doFilter(request, response);
             return;
         }

@@ -7,13 +7,13 @@ package com.yan.xiaoyanqtserve.common.enums;
  */
 public enum ClientType {
     /**
+     * 未知客户端
+     */
+    UNKNOWN,
+    /**
      * WEB管理端
      */
     ADMIN,
-    /**
-     * 后台服务
-     */
-    SERVER,
 
     /**
      * 用户 WEB 端
@@ -22,7 +22,7 @@ public enum ClientType {
     /**
      * windows客户端
      */
-    WINDOWS,
+    WIN,
     /**
      * 手机端
      */
@@ -32,15 +32,18 @@ public enum ClientType {
      */
     MINI_PROGRAM;
 
+
     /**
-     * 判断是否为该类型，忽略大小写
-     * @param type 客户端类型
-     * @return 是否为该类型
+     * 根据名称获取 ClientType 枚举
+     * @param name 客户端类型名称
+     * @return ClientType 枚举，未找到返回 {@link ClientType#UNKNOWN}
      */
-    public boolean equals(String type) {
-        if (type == null || type.isEmpty()) {
-            return false;
+    public static ClientType of(String name) {
+        for (ClientType status : ClientType.values()) {
+            if (status.name().equalsIgnoreCase(name)) {
+                return status;
+            }
         }
-        return this.name().equalsIgnoreCase(type);
+        return UNKNOWN;
     }
 }
