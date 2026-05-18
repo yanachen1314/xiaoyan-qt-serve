@@ -43,14 +43,19 @@ public class SystemModeFilter implements Filter {
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         HttpServletResponse httpResponse = (HttpServletResponse) response;
 
-        // 1. 白名单放行（如健康检查、静态资源），跳过版本检测和维护期检查
+        // 1. 显式跳过 OPTIONS 请求
+        if ("OPTIONS".equalsIgnoreCase(httpRequest.getMethod())) {
+            chain.doFilter(request, response);
+            return;
+        }
+        // 2. 白名单放行（如健康检查、静态资源），跳过版本检测和维护期检查
         String requestURI = httpRequest.getRequestURI();
         if (isAllowedPath(requestURI)) {
             chain.doFilter(request, response);
             return;
         }
 
-        // 2. 检查是否更新版本，以下两种情况中任意一种出现均不做处理，直接跳过版本检查
+        // 3. 检查是否更新版本，以下两种情况中任意一种出现均不做处理，直接跳过版本检查
         // （1）客户端维护状态的心跳检测接口
         // （2）WEB 端所有接口
         if(!isMaintenanceRequest(requestURI) && !isWebRequest(httpRequest)){
@@ -82,9 +87,9 @@ public class SystemModeFilter implements Filter {
         }
 
 
-        // 3. 检查是否在维护期
+        // 4. 检查是否在维护期
         if (maintenanceService.isSystemInMaintenance()) {
-            // 3. 返回维护提示
+            // 4. 返回维护提示
             MaintenancePeriod maintenancePeriod = maintenanceService.getMaintenancePeriod();
             securityResponseUtil.writeError(httpResponse,
                     HttpStatus.OK.value(),
