@@ -104,4 +104,4 @@ spring:
 # ===================== 日志配置 =======================
 logging:
   level:
-    com.yan.xiaoyanqtserve: info
+    com.yan.xiaoyanqtserve: ${LOG_LEVEL:info}
