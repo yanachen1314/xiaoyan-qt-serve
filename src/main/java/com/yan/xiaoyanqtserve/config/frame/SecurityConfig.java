@@ -71,7 +71,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         log.info("============ CORS 配置 ===========");
-        log.debug("{}", corsConfigProperties);
+        log.info("{}", corsConfigProperties);
         CorsConfiguration cfg = new CorsConfiguration();
         // 允许访问API的地址
         cfg.setAllowedOriginPatterns(corsConfigProperties.getAllowedOriginPatterns());
