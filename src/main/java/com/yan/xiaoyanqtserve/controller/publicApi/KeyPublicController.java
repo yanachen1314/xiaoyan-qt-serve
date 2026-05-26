@@ -39,7 +39,7 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * 密钥公开控制器
+ * 【公开接口】密钥处理控制器
  * @author yanchen
  * @since 2026/3/10 15:11
  */

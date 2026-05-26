@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
 
 /**
- * 管理员用户控制器
+ * 【管理后台】用户控制器
  * 处理管理员登录、注册、修改、删除等认证相关请求
  *
  * @author 烟尘

@@ -14,7 +14,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * API 请求日志表 前端控制器
+ * 【管理后台】API 请求日志表
  * 提供请求日志的分页查询功能
  *
  * @author 烟尘

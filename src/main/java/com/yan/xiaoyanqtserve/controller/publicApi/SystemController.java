@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 系统公开控制器
+ * 【公开接口】系统信息控制器
  * @author yanchen
  * @since 2026/3/10 15:11
  */

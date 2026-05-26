@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * 密钥信息表 前端控制器
+ * 【管理后台】密钥信息表
  *
  * @author 烟尘
  * @since 2026-02-03

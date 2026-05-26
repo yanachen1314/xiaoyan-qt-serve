@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 
 /**
- * 验证码相关控制器
+ * 【公开接口】验证码相关控制器
  * @author yanchen
  * @since 2026/4/25 19:18
  */

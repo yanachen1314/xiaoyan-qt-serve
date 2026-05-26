@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.Objects;
 
 /**
- * API密钥服务处理接口
+ * 【用户端】API密钥服务处理接口
  * @author yanchen
  * @since 2026/2/3 16:59
  */

@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 邮件发送记录控制器
+ * 【管理后台】邮件发送记录控制器
  * 提供邮件发送日志的分页查询和统计功能
  *
  * @author 烟尘

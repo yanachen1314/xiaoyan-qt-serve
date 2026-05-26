@@ -16,7 +16,7 @@ import jakarta.validation.Valid;
 import java.time.LocalDateTime;
 
 /**
- * 免费领取卡密记录控制器
+ * 【管理后台】免费卡密领取记录控制器
  * 提供邮箱申领日志的分页查询功能
  *
  * @author 烟尘

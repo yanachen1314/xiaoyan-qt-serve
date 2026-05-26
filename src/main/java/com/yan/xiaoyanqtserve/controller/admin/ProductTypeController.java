@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * 产品信息表
+ * 【管理后台】产品信息表
  *
  * @author 烟尘
  * @since 2026-03-14
