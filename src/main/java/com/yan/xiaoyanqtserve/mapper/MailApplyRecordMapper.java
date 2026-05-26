@@ -30,5 +30,10 @@ public interface MailApplyRecordMapper extends BaseMapper<MailApplyRecord> {
      */
     void updateStatusById(@Param("id") Long id, @Param("status") Byte status, @Param("remark") String remark,
                           @Param("applyApiKey") String freeKeyValue);
-    void updateStatusById(@Param("id") Long id, @Param("status") Byte status, @Param("remark") String remark);
+    // 这个直接调用上面的方法，不会映射到 XML
+    default void updateStatusById(@Param("id") Long id,
+                                  @Param("status") Byte status,
+                                  @Param("remark") String remark) {
+        updateStatusById(id, status, remark, null);
+    }
 }
