@@ -13,7 +13,7 @@
         update mail_apply_record
         <set>
             <if test="status != null">
-                status = #{status},
+                apply_status = #{status},
             </if>
             <if test="remark != null">
                 remark = #{remark},
