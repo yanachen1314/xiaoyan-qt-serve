@@ -113,7 +113,7 @@ public class AigcProcessingService {
         // 整合结果
         String outputText = modelResults.stream()
                 .map(AigcModelResultDto::getOutputText)
-                .collect(Collectors.joining("\n\n"));
+                .collect(Collectors.joining("\n"));
 
         int totalInputTokens = modelResults.stream()
                 .mapToInt(AigcModelResultDto::getInputTokens)
