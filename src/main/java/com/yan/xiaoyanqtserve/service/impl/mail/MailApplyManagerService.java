@@ -135,6 +135,22 @@ public class MailApplyManagerService {
         return mailSendRecordMapper.selectCount(queryWrapper) > 0;
     }
 
+    /**
+     * 检查邮箱是否已验证成功
+     * @param applicantEmail 邮箱地址
+     * @return 验证成功返回卡密，否则返回null
+     */
+    public String hasVerifySuccess(String applicantEmail) {
+        LambdaQueryWrapper<MailApplyRecord> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(MailApplyRecord::getApplicantEmail, applicantEmail)
+                .eq(MailApplyRecord::getApplyStatus, EmailApplyStatus.SUCCESS.getCode());
+        MailApplyRecord record = mailApplyRecordMapper.selectOne(queryWrapper);
+        if (record != null) {
+            return record.getApplyApiKey();
+        }
+        return null;
+    }
+
 
     /**
      * 根据token查询验证记录

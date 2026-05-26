@@ -146,6 +146,14 @@ public class KeyPublicController {
 
             // 3.1 已申请且已成功发送过验证邮件，直接返回
             if (mailApplyManagerService.hasEmailApplyAndSendSuccess(applicantEmail)) {
+
+                // 如果已经校验成功的，可以直接返回卡密
+                String verifyApiKey = mailApplyManagerService.hasVerifySuccess(applicantEmail);
+                if (StringUtils.hasText(verifyApiKey)) {
+                    return buildApplySuccessResponse(applicantEmail,"您的卡密已经成功生成，请点击邮件查看");
+                }
+
+                // 未校验的
                 return buildApplySuccessResponse(applicantEmail, expireTimeInDays, "验证邮件请勿重复发送");
             }
 
@@ -220,6 +228,9 @@ public class KeyPublicController {
     private ApiResponse<EmailVerifyVo> buildApplySuccessResponse(String email, int expireDays, String preHint) {
         String hint = StringUtils.hasText(preHint) ? preHint + "，" : "";
         String message = hint + "请检查邮箱并在" + expireDays + "天内完成验证";
+        return buildApplySuccessResponse(email, message);
+    }
+    private ApiResponse<EmailVerifyVo> buildApplySuccessResponse(String email, String message) {
         return ApiResponse.success(message, EmailVerifyVo.builder().email(email).message(message).build());
     }
 
