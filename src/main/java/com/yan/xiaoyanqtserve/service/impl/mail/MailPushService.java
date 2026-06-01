@@ -91,7 +91,7 @@ public class MailPushService {
      * @param userName 用户名
      */
     public void sendPwdResetTemplate(String to, String userName) {
-        String htmlContent = templateService.generatePwdResetTemplate(userName,LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        String htmlContent = templateService.generatePwdResetTemplate(userName, LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
         sendHtmlMail(null, to, "用户密码变更提醒", htmlContent);
     }
 
@@ -102,7 +102,7 @@ public class MailPushService {
      * @return CompletableFuture，包含实际使用的发送账号邮箱地址
      */
     public CompletableFuture<String> sendFreeLicenseEmail(String to, String license) {
-        String htmlContent = templateService.generateFreeLicenseTemplate(to,license);
+        String htmlContent = templateService.generateFreeLicenseTemplate(to, license);
         return sendHtmlMailWithAccount(null, to, "【小烟改写工具】免费卡密赠送", htmlContent);
     }
 
@@ -260,13 +260,14 @@ public class MailPushService {
             helper.setSubject(subject);
             helper.setText(htmlContent, true);
             sender.send(message);
-            
+
             // 记录发送成功统计
             mailAccountManagerService.recordSuccess(from, today);
             mailApplyManagerService.saveEmailSendRecordAsync(from, to, 1, "邮件发送成功");
             log.debug("【邮件推送】邮件发送成功: {} -> {}", from, to);
         } catch (Exception e) {
-            log.error("【邮件推送】发送邮件异常: {}", e.getMessage());
+            log.error("【邮件推送】发送邮件异常: {} ——》{}， {}", from, to, e.getMessage());
+            log.debug("【邮件推送】（详细异常信息）发送邮件异常: {} ", e.getMessage(), e);
             mailApplyManagerService.saveEmailSendRecordAsync(from, to, 0, "发送邮件异常: " + e.getMessage());
             if (e.getMessage().contains("550") || e.getMessage().contains("non-existent account")) {
                 throw new BizException("请检查收件人邮箱账号是否正确");
