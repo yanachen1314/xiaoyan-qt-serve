@@ -135,19 +135,17 @@ tool:verify:fail:{deviceIdHash}
 
 ## 浏览器指纹
 
-前端生成 `X-Device-Id` 时使用浏览器指纹。
+前端生成 `X-Device-Id` 时使用浏览器指纹。指纹生成优先使用成熟前端库，不手写浏览器特征采集逻辑，降低维护成本和浏览器兼容风险。
 
-建议新增 `browserFingerprint` 工具函数，采集稳定但不敏感的浏览器环境信息，进行 SHA-256 摘要后作为设备 ID：
+建议实现方式：
 
-- `userAgent`
-- `language`
-- `platform`
-- `screen.width`、`screen.height`、`colorDepth`
-- `timezone`
-- `hardwareConcurrency`
-- 可选 canvas 指纹摘要
+- 如果项目中已存在同类指纹库，直接复用已有库。
+- 如果当前依赖中没有指纹库，新增 `@fingerprintjs/fingerprintjs`，使用其 `visitorId` 作为浏览器指纹来源。
+- 将库返回的指纹值作为 `X-Device-Id`；如需进一步脱敏，可在前端对 `visitorId` 再做 SHA-256 摘要。
+- 指纹结果缓存到 `localStorage`，减少重复计算。
+- 若指纹库加载失败，则回退到本地随机 UUID，并保存到 `localStorage`。
 
-前端只发送摘要值，不发送原始指纹字段。若浏览器环境不支持 Web Crypto，则回退到本地随机 UUID，并保存到 `localStorage`。
+前端只发送最终指纹标识或摘要，不发送原始浏览器特征字段。
 
 ## API 草案
 
@@ -257,4 +255,3 @@ xiaoyan:
 - 验证成功后用返回的 `toolToken` 调用 Spring Boot 工具接口。
 - 不再存在固定 `1234` 前端校验。
 - 请求头包含 `X-Device=WEB`、`X-Device-Id`。
-
