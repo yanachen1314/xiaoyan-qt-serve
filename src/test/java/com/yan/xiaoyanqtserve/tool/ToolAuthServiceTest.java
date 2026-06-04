@@ -1,7 +1,5 @@
 package com.yan.xiaoyanqtserve.tool;
 
-import com.yan.xiaoyanqtserve.common.dto.tool.ToolTokenState;
-import com.yan.xiaoyanqtserve.common.dto.tool.ToolVerificationCode;
 import com.yan.xiaoyanqtserve.common.dto.tool.ToolVerifyResponse;
 import com.yan.xiaoyanqtserve.common.exception.BizException;
 import com.yan.xiaoyanqtserve.common.utils.RedisUtil;
@@ -12,6 +10,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.springframework.data.redis.serializer.SerializationException;
 
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
@@ -52,7 +51,7 @@ class ToolAuthServiceTest {
 
         verify(redisUtil).set(
                 eq("tool:wechat:code:doubao:123456"),
-                any(ToolVerificationCode.class),
+                any(String.class),
                 eq(5L),
                 eq(TimeUnit.MINUTES)
         );
@@ -62,7 +61,9 @@ class ToolAuthServiceTest {
     @DisplayName("正确验证码可以换取一次性工具 JWT")
     void verifyCodeAndIssueToken() {
         when(redisUtil.get("tool:wechat:code:doubao:123456"))
-                .thenReturn(new ToolVerificationCode("doubao", "openid-hash", 1717488000000L));
+                .thenReturn("""
+                        {"toolCode":"doubao","openIdHash":"openid-hash","createdAt":1717488000000}
+                        """);
 
         ToolVerifyResponse response = toolAuthService.verifyAndIssueToken(
                 "doubao",
@@ -78,11 +79,23 @@ class ToolAuthServiceTest {
         ArgumentCaptor<String> tokenKeyCaptor = ArgumentCaptor.forClass(String.class);
         verify(redisUtil).set(
                 tokenKeyCaptor.capture(),
-                any(ToolTokenState.class),
+                any(String.class),
                 eq(10L),
                 eq(TimeUnit.MINUTES)
         );
         assertTrue(tokenKeyCaptor.getValue().startsWith("tool:token:jti:"));
+    }
+
+    @Test
+    @DisplayName("Redis 中缺少类型信息的旧验证码不会冒泡为未知运行时异常")
+    void redisDeserializeFailureIsHandledAsInvalidCode() {
+        when(redisUtil.get("tool:wechat:code:doubao:123456"))
+                .thenThrow(new SerializationException("missing type id property '@class'"));
+
+        BizException exception = assertThrows(BizException.class, () ->
+                toolAuthService.verifyAndIssueToken("doubao", "123456", "browser-fingerprint"));
+
+        assertTrue(exception.getMessage().contains("验证码"));
     }
 
     @Test
@@ -106,9 +119,10 @@ class ToolAuthServiceTest {
                 "jti-once",
                 Duration.ofMinutes(10)
         );
-        ToolTokenState state = new ToolTokenState("doubao", deviceIdHash, "openid-hash", 1);
         when(redisUtil.getAndDelete("tool:token:jti:jti-once"))
-                .thenReturn(state)
+                .thenReturn("""
+                        {"toolCode":"doubao","deviceIdHash":"%s","openIdHash":"openid-hash","remainingUses":1}
+                        """.formatted(deviceIdHash))
                 .thenReturn(null);
 
         toolAuthService.consumeToolToken("doubao", "browser-fingerprint", token);

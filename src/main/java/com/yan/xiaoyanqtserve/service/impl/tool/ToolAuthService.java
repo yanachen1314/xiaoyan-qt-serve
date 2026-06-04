@@ -1,5 +1,7 @@
 package com.yan.xiaoyanqtserve.service.impl.tool;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yan.xiaoyanqtserve.common.dto.tool.ToolTokenState;
 import com.yan.xiaoyanqtserve.common.dto.tool.ToolVerificationCode;
 import com.yan.xiaoyanqtserve.common.dto.tool.ToolVerifyResponse;
@@ -9,6 +11,7 @@ import com.yan.xiaoyanqtserve.common.utils.RedisUtil;
 import com.yan.xiaoyanqtserve.config.custome.ToolAuthPropertiesConfig;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.serializer.SerializationException;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -34,6 +37,7 @@ public class ToolAuthService {
     private final RedisUtil redisUtil;
     private final ToolJwtService toolJwtService;
     private final ToolAuthPropertiesConfig properties;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     /**
      * 保存微信公众号返回给用户的工具验证码。
@@ -52,12 +56,7 @@ public class ToolAuthService {
                 sha256(openId),
                 System.currentTimeMillis()
         );
-        redisUtil.set(
-                codeKey(toolCode, code),
-                verificationCode,
-                properties.getCodeExpireMinutes(),
-                TimeUnit.MINUTES
-        );
+        redisUtil.set(codeKey(toolCode, code), toJson(verificationCode), properties.getCodeExpireMinutes(), TimeUnit.MINUTES);
     }
 
     /**
@@ -76,9 +75,8 @@ public class ToolAuthService {
         String deviceIdHash = sha256(deviceId);
         ensureDeviceNotLocked(deviceIdHash);
 
-        Object cached = redisUtil.get(codeKey(toolCode, code));
-        if (!(cached instanceof ToolVerificationCode verificationCode)
-                || !toolCode.equals(verificationCode.toolCode())) {
+        ToolVerificationCode verificationCode = readVerificationCode(toolCode, code, deviceIdHash);
+        if (verificationCode == null || !toolCode.equals(verificationCode.toolCode())) {
             recordVerifyFailure(deviceIdHash);
             throw new BizException(BizStatus.BAD_REQUEST, "验证码无效或已过期");
         }
@@ -97,7 +95,7 @@ public class ToolAuthService {
 
         redisUtil.set(
                 tokenKey(jti),
-                new ToolTokenState(toolCode, deviceIdHash, verificationCode.openIdHash(), tokenUses),
+                toJson(new ToolTokenState(toolCode, deviceIdHash, verificationCode.openIdHash(), tokenUses)),
                 properties.getTokenExpireMinutes(),
                 TimeUnit.MINUTES
         );
@@ -126,8 +124,8 @@ public class ToolAuthService {
             throw new BizException(BizStatus.UNAUTHORIZED, "工具令牌与当前设备不匹配");
         }
 
-        Object stateObject = redisUtil.getAndDelete(tokenKey(claims.jti()));
-        if (!(stateObject instanceof ToolTokenState state)
+        ToolTokenState state = readTokenState(claims.jti());
+        if (state == null
                 || state.remainingUses() <= 0
                 || !expectedToolCode.equals(state.toolCode())
                 || !deviceIdHash.equals(state.deviceIdHash())
@@ -174,6 +172,62 @@ public class ToolAuthService {
             return Long.parseLong(text);
         }
         return 0L;
+    }
+
+    private ToolVerificationCode readVerificationCode(String toolCode, String code, String deviceIdHash) {
+        try {
+            Object cached = redisUtil.get(codeKey(toolCode, code));
+            if (cached == null) {
+                return null;
+            }
+            return fromJson(cached, ToolVerificationCode.class);
+        } catch (SerializationException e) {
+            log.warn("读取工具验证码 Redis 值失败，将按验证码无效处理: toolCode={}, deviceIdHash={}, reason={}",
+                    toolCode, shortHash(deviceIdHash), e.getMessage());
+            return null;
+        }
+    }
+
+    private ToolTokenState readTokenState(String jti) {
+        try {
+            Object stateObject = redisUtil.getAndDelete(tokenKey(jti));
+            if (stateObject == null) {
+                return null;
+            }
+            return fromJson(stateObject, ToolTokenState.class);
+        } catch (SerializationException e) {
+            log.warn("读取工具令牌 Redis 状态失败，将按令牌无效处理: jti={}, reason={}", jti, e.getMessage());
+            return null;
+        }
+    }
+
+    private String toJson(Object value) {
+        try {
+            return objectMapper.writeValueAsString(value);
+        } catch (JsonProcessingException e) {
+            throw new BizException(BizStatus.ERROR, "工具校验数据序列化失败", e);
+        }
+    }
+
+    private <T> T fromJson(Object value, Class<T> targetClass) {
+        try {
+            if (targetClass.isInstance(value)) {
+                return targetClass.cast(value);
+            }
+            if (value instanceof String text && StringUtils.hasText(text)) {
+                return objectMapper.readValue(text, targetClass);
+            }
+            return objectMapper.convertValue(value, targetClass);
+        } catch (IllegalArgumentException | JsonProcessingException e) {
+            throw new BizException(BizStatus.ERROR, "工具校验数据反序列化失败", e);
+        }
+    }
+
+    private String shortHash(String hash) {
+        if (!StringUtils.hasText(hash)) {
+            return "";
+        }
+        return hash.length() <= 12 ? hash : hash.substring(0, 12);
     }
 
     private void requireText(String value, String message) {
