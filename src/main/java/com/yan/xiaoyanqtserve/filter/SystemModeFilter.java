@@ -148,6 +148,8 @@ public class SystemModeFilter implements Filter {
                 "/api/public/captcha/**",
                 // 验证链接校验的接口,/api/public/verifyEmailLink
                 mailPropertiesConfig.getVerifyLink().getBasePath(),
+                // 微信公众号服务器回调接口
+                "/api/wechat/**",
                 // 测试接口
                 "/api/public/test/**"
         };

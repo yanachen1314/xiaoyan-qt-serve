@@ -130,13 +130,33 @@ public class SecurityConfig {
     }
 
     /**
-     *  公共接口链（最高优先级）
+     * 微信公众号回调接口链。
+     * <p>
+     * 微信服务器无法携带系统 JWT/API Key，因此该链只保留基础安全配置并放行回调路径。
+     *
      * @param http HttpSecurity
      * @return SecurityFilterChain
      * @throws Exception 抛出
      */
     @Bean
     @Order(1)
+    public SecurityFilterChain wechatChain(HttpSecurity http) throws Exception {
+        baseConfig(http);
+        http
+                .securityMatcher("/api/wechat/**")
+                .authorizeHttpRequests(auth ->
+                        auth.anyRequest().permitAll());
+        return http.build();
+    }
+
+    /**
+     *  公共接口链
+     * @param http HttpSecurity
+     * @return SecurityFilterChain
+     * @throws Exception 抛出
+     */
+    @Bean
+    @Order(2)
     public SecurityFilterChain publicChain(HttpSecurity http) throws Exception {
         baseConfig(http);
         http
@@ -153,7 +173,7 @@ public class SecurityConfig {
      * @throws Exception 抛出
      */
     @Bean
-    @Order(2)
+    @Order(3)
     public SecurityFilterChain apiChain(HttpSecurity http) throws Exception {
         baseConfig(http);
         http
@@ -180,7 +200,7 @@ public class SecurityConfig {
      * @throws Exception 抛出
      */
     @Bean
-    @Order(3)
+    @Order(4)
     public SecurityFilterChain adminChain(HttpSecurity http) throws Exception {
         baseConfig(http);
         http
