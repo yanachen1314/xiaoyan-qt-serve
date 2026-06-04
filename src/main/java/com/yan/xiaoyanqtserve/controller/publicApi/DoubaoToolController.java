@@ -1,8 +1,10 @@
 package com.yan.xiaoyanqtserve.controller.publicApi;
 
 import com.yan.xiaoyanqtserve.common.Constants;
+import com.yan.xiaoyanqtserve.common.annotaions.RateLimiter;
 import com.yan.xiaoyanqtserve.common.dto.tool.DoubaoAnalyzeRequest;
 import com.yan.xiaoyanqtserve.common.enums.BizStatus;
+import com.yan.xiaoyanqtserve.common.enums.RateLimiterType;
 import com.yan.xiaoyanqtserve.common.exception.BizException;
 import com.yan.xiaoyanqtserve.common.utils.ApiResponse;
 import com.yan.xiaoyanqtserve.service.impl.tool.DoubaoToolProxyService;
@@ -22,6 +24,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/public/tools/doubao")
 public class DoubaoToolController {
     private static final String TOOL_CODE = "doubao";
+    private static final String ANALYZE_RATE_LIMIT_KEY = "doubaoAnalyze";
 
     private final ToolAuthService toolAuthService;
     private final DoubaoToolProxyService proxyService;
@@ -34,6 +37,13 @@ public class DoubaoToolController {
      * @param request 解析请求
      * @return Flask 图片解析响应
      */
+    @RateLimiter(
+            key = ANALYZE_RATE_LIMIT_KEY,
+            time = 60,
+            count = 10,
+            message = "解析请求过于频繁，请稍后再试",
+            limitBy = RateLimiterType.DEVICE_ID
+    )
     @PostMapping(value = "/images/analyze", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> analyzeImages(
             @RequestHeader(value = Constants.HEADER_DEVICE_ID, required = false) String deviceId,
@@ -50,6 +60,13 @@ public class DoubaoToolController {
      * @param request 解析请求
      * @return Flask 视频解析响应
      */
+    @RateLimiter(
+            key = ANALYZE_RATE_LIMIT_KEY,
+            time = 60,
+            count = 10,
+            message = "解析请求过于频繁，请稍后再试",
+            limitBy = RateLimiterType.DEVICE_ID
+    )
     @PostMapping(value = "/videos/analyze", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> analyzeVideos(
             @RequestHeader(value = Constants.HEADER_DEVICE_ID, required = false) String deviceId,

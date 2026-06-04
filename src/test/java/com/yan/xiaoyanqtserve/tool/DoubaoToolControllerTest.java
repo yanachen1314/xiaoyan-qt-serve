@@ -1,6 +1,9 @@
 package com.yan.xiaoyanqtserve.tool;
 
 import com.yan.xiaoyanqtserve.common.Constants;
+import com.yan.xiaoyanqtserve.common.annotaions.RateLimiter;
+import com.yan.xiaoyanqtserve.common.dto.tool.DoubaoAnalyzeRequest;
+import com.yan.xiaoyanqtserve.common.enums.RateLimiterType;
 import com.yan.xiaoyanqtserve.common.exception.BizException;
 import com.yan.xiaoyanqtserve.controller.publicApi.DoubaoToolController;
 import com.yan.xiaoyanqtserve.service.impl.tool.DoubaoToolProxyService;
@@ -13,6 +16,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import java.lang.reflect.Method;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -32,6 +39,13 @@ class DoubaoToolControllerTest {
         toolAuthService = mock(ToolAuthService.class);
         proxyService = mock(DoubaoToolProxyService.class);
         mockMvc = MockMvcBuilders.standaloneSetup(new DoubaoToolController(toolAuthService, proxyService)).build();
+    }
+
+    @Test
+    @DisplayName("图片和视频解析接口会按设备指纹共用限流配置")
+    void analyzeEndpointsUseDeviceRateLimiter() throws Exception {
+        assertAnalyzeRateLimiter("analyzeImages");
+        assertAnalyzeRateLimiter("analyzeVideos");
     }
 
     @Test
@@ -139,5 +153,22 @@ class DoubaoToolControllerTest {
                                 """))
                 .andExpect(status().isBadGateway())
                 .andExpect(jsonPath("$.message").value("豆包解析服务请求失败"));
+    }
+
+    private void assertAnalyzeRateLimiter(String methodName) throws NoSuchMethodException {
+        Method method = DoubaoToolController.class.getDeclaredMethod(
+                methodName,
+                String.class,
+                String.class,
+                DoubaoAnalyzeRequest.class
+        );
+        RateLimiter rateLimiter = method.getAnnotation(RateLimiter.class);
+
+        assertNotNull(rateLimiter);
+        assertEquals("doubaoAnalyze", rateLimiter.key());
+        assertEquals(60, rateLimiter.time());
+        assertEquals(10, rateLimiter.count());
+        assertEquals("解析请求过于频繁，请稍后再试", rateLimiter.message());
+        assertEquals(RateLimiterType.DEVICE_ID, rateLimiter.limitBy());
     }
 }
