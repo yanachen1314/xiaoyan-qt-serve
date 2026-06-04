@@ -25,6 +25,8 @@ public class Constants {
     public static final String HEADER_DEVICE_ID = "X-Device-Id";
     // 验证码验证请求头
     public static final String HEADER_CAPTCHA_VERIFY_PARAMS = "X-Captcha-Verify-Params";
+    // 工具一次性 JWT 请求头
+    public static final String HEADER_TOOL_TOKEN = "X-Tool-Token";
 
 
 

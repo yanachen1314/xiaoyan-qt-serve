@@ -85,6 +85,13 @@ public class RedisUtil {
     }
 
     /**
+     * 获取字符串键值并立即删除，用于一次性票据消费。
+     */
+    public Object getAndDelete(String key) {
+        return redisTemplate.opsForValue().getAndDelete(key);
+    }
+
+    /**
      * 递增数值（用于计数器等）
      */
     public Long incr(String key, long delta) {
