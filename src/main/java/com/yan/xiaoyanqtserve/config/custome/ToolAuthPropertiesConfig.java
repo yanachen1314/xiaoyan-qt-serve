@@ -17,7 +17,7 @@ public class ToolAuthPropertiesConfig {
     private int codeExpireMinutes = 5;
 
     /**
-     * 工具 JWT 有效期，单位：分钟。
+     * 工具 JWT 有效期（7天），单位：分钟。
      */
     private int tokenExpireMinutes = 10080;
 

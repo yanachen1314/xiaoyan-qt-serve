@@ -63,7 +63,7 @@ xiaoyan:
     encoding-aes-key: ${WECHAT_ENCODING_AES_KEY:}
   tool-auth:
     code-expire-minutes: ${TOOL_AUTH_CODE_EXPIRE_MINUTES:5}
-    token-expire-minutes: ${TOOL_AUTH_TOKEN_EXPIRE_MINUTES:10080}
+    token-expire-minutes: ${TOOL_AUTH_TOKEN_EXPIRE_MINUTES:1}
     token-uses: ${TOOL_AUTH_TOKEN_USES:0}
     verify-fail-limit: ${TOOL_AUTH_VERIFY_FAIL_LIMIT:5}
     verify-lock-minutes: ${TOOL_AUTH_VERIFY_LOCK_MINUTES:10}
