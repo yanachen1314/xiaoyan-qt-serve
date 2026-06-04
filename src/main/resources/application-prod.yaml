@@ -56,6 +56,28 @@ xiaoyan:
     # 是否允许携带 Cookie
     allow-credentials: ${CORS_ALLOW_CREDENTIALS:false}
 
+  # ===================== 微信公众号配置 =======================
+  wechat:
+    # 微信公众号服务器配置 Token，生产环境建议通过 WECHAT_TOKEN 环境变量覆盖
+    token: ${WECHAT_TOKEN}
+    # 微信公众号 AppID，安全模式下用于校验解密消息归属
+    app-id: ${WECHAT_APP_ID:}
+    # 微信公众号 AppSecret，安全模式下用于获取访问令牌
+    app-secret: ${WECHAT_APP_SECRET:}
+    # 微信公众号 EncodingAESKey，安全模式下用于消息体加解密
+    encoding-aes-key: ${WECHAT_ENCODING_AES_KEY:}
+  tool-auth:
+    code-expire-minutes: ${TOOL_AUTH_CODE_EXPIRE_MINUTES:5}
+    token-expire-minutes: ${TOOL_AUTH_TOKEN_EXPIRE_MINUTES:10080}
+    token-uses: ${TOOL_AUTH_TOKEN_USES:0}
+    verify-fail-limit: ${TOOL_AUTH_VERIFY_FAIL_LIMIT:5}
+    verify-lock-minutes: ${TOOL_AUTH_VERIFY_LOCK_MINUTES:10}
+  tools:
+    doubao:
+      base-url: ${DOUBAO_TOOL_BASE_URL:http://127.0.0.1:5000/api/doubao}
+      connect-timeout-millis: ${DOUBAO_TOOL_CONNECT_TIMEOUT_MILLIS:5000}
+      read-timeout-millis: ${DOUBAO_TOOL_READ_TIMEOUT_MILLIS:30000}
+
 # 阿里云配置
 aliyun:
   captcha:
