@@ -19,7 +19,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * 工具 JWT 服务，专门用于站点工具一次性授权令牌。
+ * 工具 JWT 服务，专门用于站点工具授权令牌。
  */
 @Service
 public class ToolJwtService {

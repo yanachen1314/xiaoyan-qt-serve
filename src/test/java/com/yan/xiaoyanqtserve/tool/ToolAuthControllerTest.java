@@ -32,7 +32,7 @@ class ToolAuthControllerTest {
     @DisplayName("验证码正确时返回工具 JWT")
     void verifyCodeSuccess() throws Exception {
         when(toolAuthService.verifyAndIssueToken("doubao", "123456", "browser-fingerprint"))
-                .thenReturn(new ToolVerifyResponse("jwt-token", 600, 1));
+                .thenReturn(new ToolVerifyResponse("jwt-token", 604800, 0));
 
         mockMvc.perform(post("/api/public/tool-auth/verify")
                         .header(Constants.HEADER_DEVICE_ID, "browser-fingerprint")
@@ -46,8 +46,8 @@ class ToolAuthControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
                 .andExpect(jsonPath("$.data.toolToken").value("jwt-token"))
-                .andExpect(jsonPath("$.data.expiresIn").value(600))
-                .andExpect(jsonPath("$.data.remainingUses").value(1));
+                .andExpect(jsonPath("$.data.expiresIn").value(604800))
+                .andExpect(jsonPath("$.data.remainingUses").value(0));
     }
 
     @Test

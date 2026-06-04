@@ -15,6 +15,7 @@ import org.springframework.data.redis.serializer.SerializationException;
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -22,6 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -37,8 +39,8 @@ class ToolAuthServiceTest {
         toolJwtService = new ToolJwtService();
         ToolAuthPropertiesConfig properties = new ToolAuthPropertiesConfig();
         properties.setCodeExpireMinutes(5);
-        properties.setTokenExpireMinutes(10);
-        properties.setTokenUses(1);
+        properties.setTokenExpireMinutes(10080);
+        properties.setTokenUses(0);
         properties.setVerifyFailLimit(5);
         properties.setVerifyLockMinutes(10);
         toolAuthService = new ToolAuthService(redisUtil, toolJwtService, properties);
@@ -58,7 +60,7 @@ class ToolAuthServiceTest {
     }
 
     @Test
-    @DisplayName("正确验证码可以换取一次性工具 JWT")
+    @DisplayName("正确验证码可以换取 7 天有效的工具 JWT")
     void verifyCodeAndIssueToken() {
         when(redisUtil.get("tool:wechat:code:doubao:123456"))
                 .thenReturn("""
@@ -72,15 +74,15 @@ class ToolAuthServiceTest {
         );
 
         assertNotNull(response.toolToken());
-        assertEquals(600, response.expiresIn());
-        assertEquals(1, response.remainingUses());
+        assertEquals(604800, response.expiresIn());
+        assertEquals(0, response.remainingUses());
         verify(redisUtil).delete("tool:wechat:code:doubao:123456");
 
         ArgumentCaptor<String> tokenKeyCaptor = ArgumentCaptor.forClass(String.class);
         verify(redisUtil).set(
                 tokenKeyCaptor.capture(),
                 any(String.class),
-                eq(10L),
+                eq(10080L),
                 eq(TimeUnit.MINUTES)
         );
         assertTrue(tokenKeyCaptor.getValue().startsWith("tool:token:jti:"));
@@ -109,30 +111,29 @@ class ToolAuthServiceTest {
     }
 
     @Test
-    @DisplayName("同一个工具 JWT 只能消费一次")
-    void consumeTokenOnlyOnce() {
+    @DisplayName("同一个工具 JWT 在有效期内可以重复使用")
+    void validateTokenCanBeReusedWithinExpireTime() {
         String deviceIdHash = ToolAuthService.sha256("browser-fingerprint");
         String token = toolJwtService.generateToolToken(
                 "doubao",
                 deviceIdHash,
                 "openid-hash",
-                "jti-once",
-                Duration.ofMinutes(10)
+                "jti-reusable",
+                Duration.ofDays(7)
         );
-        when(redisUtil.getAndDelete("tool:token:jti:jti-once"))
+        when(redisUtil.get("tool:token:jti:jti-reusable"))
                 .thenReturn("""
-                        {"toolCode":"doubao","deviceIdHash":"%s","openIdHash":"openid-hash","remainingUses":1}
-                        """.formatted(deviceIdHash))
-                .thenReturn(null);
+                        {"toolCode":"doubao","deviceIdHash":"%s","openIdHash":"openid-hash","remainingUses":0}
+                        """.formatted(deviceIdHash));
 
-        toolAuthService.consumeToolToken("doubao", "browser-fingerprint", token);
+        assertDoesNotThrow(() -> toolAuthService.consumeToolToken("doubao", "browser-fingerprint", token));
+        assertDoesNotThrow(() -> toolAuthService.consumeToolToken("doubao", "browser-fingerprint", token));
 
-        assertThrows(BizException.class,
-                () -> toolAuthService.consumeToolToken("doubao", "browser-fingerprint", token));
+        verify(redisUtil, times(2)).get("tool:token:jti:jti-reusable");
     }
 
     @Test
-    @DisplayName("设备指纹不一致时拒绝消费工具 JWT")
+    @DisplayName("设备指纹不一致时拒绝校验工具 JWT")
     void rejectDeviceMismatch() {
         String deviceIdHash = ToolAuthService.sha256("browser-fingerprint");
         String token = toolJwtService.generateToolToken(
@@ -140,7 +141,7 @@ class ToolAuthServiceTest {
                 deviceIdHash,
                 "openid-hash",
                 "jti-device",
-                Duration.ofMinutes(10)
+                Duration.ofDays(7)
         );
 
         assertThrows(BizException.class,

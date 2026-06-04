@@ -35,7 +35,7 @@ class DoubaoToolControllerTest {
     }
 
     @Test
-    @DisplayName("图片解析接口会先消费工具 JWT 再代理到 Flask")
+    @DisplayName("图片解析接口会先校验工具 JWT 再代理到 Flask")
     void analyzeImagesConsumesTokenAndProxyToFlask() throws Exception {
         when(proxyService.analyzeImages("https://www.doubao.com/thread/demo"))
                 .thenReturn(ResponseEntity.ok()

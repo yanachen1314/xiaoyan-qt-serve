@@ -19,12 +19,12 @@ public class ToolAuthPropertiesConfig {
     /**
      * 工具 JWT 有效期，单位：分钟。
      */
-    private int tokenExpireMinutes = 10;
+    private int tokenExpireMinutes = 10080;
 
     /**
-     * 单个工具 JWT 可使用次数。
+     * 单个工具 JWT 可使用次数，0 表示有效期内不限制次数。
      */
-    private int tokenUses = 1;
+    private int tokenUses = 0;
 
     /**
      * 同一设备在锁定窗口内允许失败的最大次数。

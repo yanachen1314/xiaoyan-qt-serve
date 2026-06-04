@@ -24,7 +24,7 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 /**
- * 站点工具使用校验服务，负责微信验证码、工具 JWT 与一次性消费状态。
+ * 站点工具使用校验服务，负责微信验证码、工具 JWT 与授权状态。
  */
 @Slf4j
 @Service
@@ -60,7 +60,7 @@ public class ToolAuthService {
     }
 
     /**
-     * 使用验证码换取一次性工具 JWT。
+     * 使用验证码换取工具 JWT。
      *
      * @param toolCode 工具编码
      * @param code 验证码
@@ -83,7 +83,7 @@ public class ToolAuthService {
 
         redisUtil.delete(codeKey(toolCode, code));
         String jti = UUID.randomUUID().toString();
-        int tokenUses = Math.max(1, properties.getTokenUses());
+        int tokenUses = Math.max(0, properties.getTokenUses());
         Duration ttl = Duration.ofMinutes(properties.getTokenExpireMinutes());
         String token = toolJwtService.generateToolToken(
                 toolCode,
@@ -105,7 +105,7 @@ public class ToolAuthService {
     }
 
     /**
-     * 校验并消费一次性工具 JWT。
+     * 校验工具 JWT。
      *
      * @param expectedToolCode 期望访问的工具编码
      * @param deviceId 浏览器指纹
@@ -126,7 +126,7 @@ public class ToolAuthService {
 
         ToolTokenState state = readTokenState(claims.jti());
         if (state == null
-                || state.remainingUses() <= 0
+                || state.remainingUses() < 0
                 || !expectedToolCode.equals(state.toolCode())
                 || !deviceIdHash.equals(state.deviceIdHash())
                 || !claims.openIdHash().equals(state.openIdHash())) {
@@ -190,7 +190,7 @@ public class ToolAuthService {
 
     private ToolTokenState readTokenState(String jti) {
         try {
-            Object stateObject = redisUtil.getAndDelete(tokenKey(jti));
+            Object stateObject = redisUtil.get(tokenKey(jti));
             if (stateObject == null) {
                 return null;
             }

@@ -15,7 +15,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * 豆包工具网关接口，负责校验一次性工具 JWT 后代理到 Flask 解析服务。
+ * 豆包工具网关接口，负责校验工具 JWT 后代理到 Flask 解析服务。
  */
 @RestController
 @RequiredArgsConstructor

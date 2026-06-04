@@ -15,7 +15,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * 公开工具校验接口，用于将微信公众号验证码换成一次性工具 JWT。
+ * 公开工具校验接口，用于将微信公众号验证码换成工具 JWT。
  */
 @RestController
 @RequiredArgsConstructor
