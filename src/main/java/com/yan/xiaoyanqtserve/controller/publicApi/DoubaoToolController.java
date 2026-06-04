@@ -38,8 +38,7 @@ public class DoubaoToolController {
     public ResponseEntity<?> analyzeImages(
             @RequestHeader(value = Constants.HEADER_DEVICE_ID, required = false) String deviceId,
             @RequestHeader(value = Constants.HEADER_TOOL_TOKEN, required = false) String toolToken,
-            @RequestBody DoubaoAnalyzeRequest request
-    ) {
+            @RequestBody DoubaoAnalyzeRequest request) {
         return analyze(deviceId, toolToken, request, true);
     }
 
@@ -55,8 +54,7 @@ public class DoubaoToolController {
     public ResponseEntity<?> analyzeVideos(
             @RequestHeader(value = Constants.HEADER_DEVICE_ID, required = false) String deviceId,
             @RequestHeader(value = Constants.HEADER_TOOL_TOKEN, required = false) String toolToken,
-            @RequestBody DoubaoAnalyzeRequest request
-    ) {
+            @RequestBody DoubaoAnalyzeRequest request) {
         return analyze(deviceId, toolToken, request, false);
     }
 
