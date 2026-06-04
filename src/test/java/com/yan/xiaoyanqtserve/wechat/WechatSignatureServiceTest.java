@@ -39,6 +39,18 @@ class WechatSignatureServiceTest {
         assertFalse(service.verifySignature("bad-signature", "1234567890", "nonce-value"));
     }
 
+    @Test
+    @DisplayName("按微信安全模式规则生成消息体签名")
+    void buildMessageSignature() {
+        WechatSignatureService service = new WechatSignatureService(properties("asdhjksfdgdfg"));
+
+        String signature = service.buildMessageSignature("encrypt-value", "1234567890", "nonce-value");
+
+        assertEquals("488135950a6104dea6491bba6401507a762fae26", signature);
+        assertTrue(service.verifyMessageSignature(signature, "encrypt-value", "1234567890", "nonce-value"));
+        assertFalse(service.verifyMessageSignature("bad-signature", "encrypt-value", "1234567890", "nonce-value"));
+    }
+
     private WechatPropertiesConfig properties(String token) {
         WechatPropertiesConfig properties = new WechatPropertiesConfig();
         properties.setToken(token);

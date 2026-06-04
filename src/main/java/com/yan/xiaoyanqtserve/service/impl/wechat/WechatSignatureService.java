@@ -33,6 +33,20 @@ public class WechatSignatureService {
     }
 
     /**
+     * 按微信安全模式规则生成消息体签名。
+     *
+     * @param encrypt 微信 XML 中的 Encrypt 密文
+     * @param timestamp 微信回调 timestamp 参数
+     * @param nonce 微信回调 nonce 参数
+     * @return 十六进制 SHA1 消息体签名
+     */
+    public String buildMessageSignature(String encrypt, String timestamp, String nonce) {
+        String[] parts = {wechatPropertiesConfig.getToken(), timestamp, nonce, encrypt};
+        Arrays.sort(parts);
+        return sha1(String.join("", parts));
+    }
+
+    /**
      * 校验微信回调请求中的签名是否可信。
      *
      * @param signature 微信回调 signature 参数
@@ -49,6 +63,28 @@ public class WechatSignatureService {
 
         byte[] expected = buildSignature(timestamp, nonce).getBytes(StandardCharsets.UTF_8);
         byte[] actual = signature.toLowerCase().getBytes(StandardCharsets.UTF_8);
+        return MessageDigest.isEqual(expected, actual);
+    }
+
+    /**
+     * 校验微信安全模式回调请求中的消息体签名是否可信。
+     *
+     * @param msgSignature 微信回调 msg_signature 参数
+     * @param encrypt 微信 XML 中的 Encrypt 密文
+     * @param timestamp 微信回调 timestamp 参数
+     * @param nonce 微信回调 nonce 参数
+     * @return true 表示消息体签名可信
+     */
+    public boolean verifyMessageSignature(String msgSignature, String encrypt, String timestamp, String nonce) {
+        if (!StringUtils.hasText(msgSignature)
+                || !StringUtils.hasText(encrypt)
+                || !StringUtils.hasText(timestamp)
+                || !StringUtils.hasText(nonce)) {
+            return false;
+        }
+
+        byte[] expected = buildMessageSignature(encrypt, timestamp, nonce).getBytes(StandardCharsets.UTF_8);
+        byte[] actual = msgSignature.toLowerCase().getBytes(StandardCharsets.UTF_8);
         return MessageDigest.isEqual(expected, actual);
     }
 

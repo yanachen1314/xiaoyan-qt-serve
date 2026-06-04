@@ -55,3 +55,9 @@ xiaoyan:
   wechat:
     # 微信公众号服务器配置 Token，生产环境建议通过 WECHAT_TOKEN 环境变量覆盖
     token: ${WECHAT_TOKEN:asdhjksfdgdfg}
+    # 微信公众号 AppID，安全模式下用于校验解密消息归属
+    app-id: ${WECHAT_APP_ID:}
+    # 微信公众号 AppSecret，安全模式下用于获取访问令牌
+    app-secret: ${WECHAT_APP_SECRET:}
+    # 微信公众号 EncodingAESKey，安全模式下用于消息体加解密
+    encoding-aes-key: ${WECHAT_ENCODING_AES_KEY:}
