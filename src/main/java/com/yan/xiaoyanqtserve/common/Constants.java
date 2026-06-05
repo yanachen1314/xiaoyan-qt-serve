@@ -57,6 +57,13 @@ public class Constants {
     public static final String LINK3_KEY = "system.updateLink";
     // 微信公众号关注后自动回复内容
     public static final String WECHAT_SUBSCRIBE_REPLY_KEY = "wechat.subscribe.reply";
+    // 微信公众号菜单关键字匹配规则
+    public static final String WECHAT_MENU_REPLY_RULES_KEY = "wechat.menu.reply.rules";
+    // 微信公众号菜单回复内容
+    public static final String WECHAT_MENU_REPLY_1_KEY = "wechat.menu.reply.1";
+    public static final String WECHAT_MENU_REPLY_2_KEY = "wechat.menu.reply.2";
+    public static final String WECHAT_MENU_REPLY_3_KEY = "wechat.menu.reply.3";
+    public static final String WECHAT_MENU_REPLY_4_KEY = "wechat.menu.reply.4";
 
 
     // HTTPRequest的请求属性  请求日志相关

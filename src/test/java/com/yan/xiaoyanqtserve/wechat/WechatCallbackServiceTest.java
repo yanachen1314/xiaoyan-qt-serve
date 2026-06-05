@@ -70,8 +70,8 @@ class WechatCallbackServiceTest {
 
         String reply = service.handleCallback(message);
 
-        assertTrue(reply.contains("https://pan.baidu.com/s/5Y5SjbcfkQfF6w1Lvvd1LLg"));
-        assertTrue(reply.contains("https://pay.ldxp.cn/shop/xiaoyanai"));
+        assertTrue(reply.contains("欢迎关注【云辰小烟】公众号"));
+        assertTrue(reply.contains("【0】重新查看功能菜单"));
         verifyNoInteractions(toolAuthService);
     }
 
@@ -92,6 +92,54 @@ class WechatCallbackServiceTest {
 
         assertTrue(reply.contains("<Content><![CDATA[您的回填验证码：1234]]></Content>"));
         verify(toolAuthService).saveWechatVerificationCode("doubao", "openid-1", "1234");
+    }
+
+    @Test
+    @DisplayName("文本内容命中菜单关键字任意一项时返回对应配置内容")
+    void handleMenuKeywordReply() {
+        when(sysConfigService.getValue(Constants.WECHAT_MENU_REPLY_RULES_KEY)).thenReturn("""
+                [
+                  {"replyKey":"wechat.menu.reply.1","keywords":["1","验证码","验证","解锁"],"generateCode":true}
+                ]
+                """);
+        when(sysConfigService.getValue(Constants.WECHAT_MENU_REPLY_1_KEY)).thenReturn("您的验证码是：{code}");
+        WechatMessage message = textMessage("解锁");
+
+        String reply = service.handleCallback(message);
+
+        assertTrue(reply.contains("<Content><![CDATA[您的验证码是：1234]]></Content>"));
+        verify(toolAuthService).saveWechatVerificationCode("doubao", "openid-1", "1234");
+    }
+
+    @Test
+    @DisplayName("文本内容为0时重新返回功能菜单")
+    void handleMenuZeroReply() {
+        when(sysConfigService.getValue(Constants.WECHAT_MENU_REPLY_RULES_KEY)).thenReturn("""
+                [
+                  {"replyKey":"wechat.subscribe.reply","keywords":["0","菜单","功能菜单"]}
+                ]
+                """);
+        when(sysConfigService.getValue(Constants.WECHAT_SUBSCRIBE_REPLY_KEY)).thenReturn("功能菜单内容");
+        WechatMessage message = textMessage("0");
+
+        String reply = service.handleCallback(message);
+
+        assertTrue(reply.contains("<Content><![CDATA[功能菜单内容]]></Content>"));
+        verifyNoInteractions(toolAuthService);
+    }
+
+    @Test
+    @DisplayName("文本内容未命中菜单关键字时不返回被动回复")
+    void handleUnknownTextWithoutMenuReply() {
+        when(sysConfigService.getValue(Constants.WECHAT_MENU_REPLY_RULES_KEY)).thenReturn("""
+                [
+                  {"replyKey":"wechat.menu.reply.1","keywords":["1","验证码","验证","解锁"],"generateCode":true}
+                ]
+                """);
+        WechatMessage message = textMessage("hello");
+
+        assertNull(service.handleCallback(message));
+        verifyNoInteractions(toolAuthService);
     }
 
     @Test
@@ -136,5 +184,17 @@ class WechatCallbackServiceTest {
         protected String generateVerificationCode() {
             return "1234";
         }
+    }
+
+    private WechatMessage textMessage(String content) {
+        return parser.parse("""
+                <xml>
+                    <ToUserName><![CDATA[gh_xiaoyan]]></ToUserName>
+                    <FromUserName><![CDATA[openid-1]]></FromUserName>
+                    <CreateTime>1710000000</CreateTime>
+                    <MsgType><![CDATA[text]]></MsgType>
+                    <Content><![CDATA[%s]]></Content>
+                </xml>
+                """.formatted(content));
     }
 }
