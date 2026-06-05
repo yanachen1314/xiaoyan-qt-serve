@@ -1,6 +1,8 @@
 package com.yan.xiaoyanqtserve.wechat;
 
+import com.yan.xiaoyanqtserve.common.Constants;
 import com.yan.xiaoyanqtserve.common.dto.wechat.WechatMessage;
+import com.yan.xiaoyanqtserve.service.SysConfigService;
 import com.yan.xiaoyanqtserve.service.impl.tool.ToolAuthService;
 import com.yan.xiaoyanqtserve.service.impl.wechat.WechatCallbackService;
 import com.yan.xiaoyanqtserve.service.impl.wechat.WechatMessageParser;
@@ -12,22 +14,27 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 class WechatCallbackServiceTest {
 
     private final WechatMessageParser parser = new WechatMessageParser();
     private ToolAuthService toolAuthService;
+    private SysConfigService sysConfigService;
     private WechatCallbackService service;
 
     @BeforeEach
     void setUp() {
         toolAuthService = mock(ToolAuthService.class);
-        service = new FixedCodeWechatCallbackService(toolAuthService);
+        sysConfigService = mock(SysConfigService.class);
+        service = new FixedCodeWechatCallbackService(toolAuthService, sysConfigService);
     }
 
     @Test
-    @DisplayName("普通关注事件返回关注验证码并保存到工具校验服务")
+    @DisplayName("普通关注事件优先返回系统配置的关注回复")
     void handleSubscribeEvent() {
+        when(sysConfigService.getValue(Constants.WECHAT_SUBSCRIBE_REPLY_KEY)).thenReturn("custom subscribe reply");
         WechatMessage message = parser.parse("""
                 <xml>
                     <ToUserName><![CDATA[gh_xiaoyan]]></ToUserName>
@@ -42,8 +49,30 @@ class WechatCallbackServiceTest {
 
         assertTrue(reply.contains("<ToUserName><![CDATA[openid-1]]></ToUserName>"));
         assertTrue(reply.contains("<FromUserName><![CDATA[gh_xiaoyan]]></FromUserName>"));
-        assertTrue(reply.contains("<Content><![CDATA[感谢关注，验证码：1234]]></Content>"));
-        verify(toolAuthService).saveWechatVerificationCode("doubao", "openid-1", "1234");
+        assertTrue(reply.contains("<Content><![CDATA[custom subscribe reply]]></Content>"));
+        verify(sysConfigService).getValue(Constants.WECHAT_SUBSCRIBE_REPLY_KEY);
+        verifyNoInteractions(toolAuthService);
+    }
+
+    @Test
+    @DisplayName("普通关注事件配置缺失时返回默认关注回复")
+    void handleSubscribeEventFallbackDefaultReply() {
+        when(sysConfigService.getValue(Constants.WECHAT_SUBSCRIBE_REPLY_KEY)).thenThrow(new RuntimeException("missing"));
+        WechatMessage message = parser.parse("""
+                <xml>
+                    <ToUserName><![CDATA[gh_xiaoyan]]></ToUserName>
+                    <FromUserName><![CDATA[openid-1]]></FromUserName>
+                    <CreateTime>1710000000</CreateTime>
+                    <MsgType><![CDATA[event]]></MsgType>
+                    <Event><![CDATA[subscribe]]></Event>
+                </xml>
+                """);
+
+        String reply = service.handleCallback(message);
+
+        assertTrue(reply.contains("https://pan.baidu.com/s/5Y5SjbcfkQfF6w1Lvvd1LLg"));
+        assertTrue(reply.contains("https://pay.ldxp.cn/shop/xiaoyanai"));
+        verifyNoInteractions(toolAuthService);
     }
 
     @Test
@@ -99,8 +128,8 @@ class WechatCallbackServiceTest {
     }
 
     private static class FixedCodeWechatCallbackService extends WechatCallbackService {
-        private FixedCodeWechatCallbackService(ToolAuthService toolAuthService) {
-            super(toolAuthService);
+        private FixedCodeWechatCallbackService(ToolAuthService toolAuthService, SysConfigService sysConfigService) {
+            super(toolAuthService, sysConfigService);
         }
 
         @Override

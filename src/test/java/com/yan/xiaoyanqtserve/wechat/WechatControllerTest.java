@@ -188,7 +188,10 @@ class WechatControllerTest {
 
     private static class FixedCodeWechatCallbackService extends WechatCallbackService {
         private FixedCodeWechatCallbackService() {
-            super(org.mockito.Mockito.mock(com.yan.xiaoyanqtserve.service.impl.tool.ToolAuthService.class));
+            super(
+                    org.mockito.Mockito.mock(com.yan.xiaoyanqtserve.service.impl.tool.ToolAuthService.class),
+                    org.mockito.Mockito.mock(com.yan.xiaoyanqtserve.service.SysConfigService.class)
+            );
         }
 
         @Override

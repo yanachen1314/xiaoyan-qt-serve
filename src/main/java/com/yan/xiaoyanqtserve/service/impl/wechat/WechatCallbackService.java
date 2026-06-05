@@ -1,10 +1,13 @@
 package com.yan.xiaoyanqtserve.service.impl.wechat;
 
+import com.yan.xiaoyanqtserve.common.Constants;
 import com.yan.xiaoyanqtserve.common.dto.wechat.WechatMessage;
+import com.yan.xiaoyanqtserve.service.SysConfigService;
 import com.yan.xiaoyanqtserve.service.impl.tool.ToolAuthService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.security.SecureRandom;
 
@@ -16,8 +19,16 @@ import java.security.SecureRandom;
 @RequiredArgsConstructor
 public class WechatCallbackService {
     private static final String DOUBAO_TOOL_CODE = "doubao";
+    private static final String DEFAULT_SUBSCRIBE_REPLY = """
+            欢迎关注云辰小烟公众号，有问题可以私信我！
+            
+            小烟工具最新版本已经发布，点击下载: <a href="https://pan.baidu.com/s/5Y5SjbcfkQfF6w1Lvvd1LLg#list/path=%2F%E5%B0%8F%E7%83%9F%E5%B7%A5%E5%85%B7">网盘链接</a>
+            工具激活卡密购买地址，点击下载：<a href="https://pay.ldxp.cn/shop/xiaoyanai">云辰小烟店铺</a>
+            人工降重复、降ai 、格式修改| 联系：Yeaokk
+            """;
     private final SecureRandom secureRandom = new SecureRandom();
     private final ToolAuthService toolAuthService;
+    private final SysConfigService sysConfigService;
 
     /**
      * 处理微信回调消息，并返回需要被动回复给微信服务器的 XML。
@@ -70,17 +81,26 @@ public class WechatCallbackService {
     }
 
     private String handleSubscribeEvent(WechatMessage message) {
-        log.info("微信用户关注并生成豆包验证码: open_id_hash={}", hashOpenId(message.getFromUserName()));
+        log.info("微信用户关注: open_id_hash={}", hashOpenId(message.getFromUserName()));
         return WechatReplyBuilder.replyText(
                 message.getFromUserName(),
                 message.getToUserName(),
-                "欢迎关注云辰小烟公众号，有问题可以私信我！\n\n" +
-                        "小烟工具最新版本已经发布，点击下载: <a href=\"https://pan.baidu.com/s/5Y5SjbcfkQfF6w1Lvvd1LLg#list/path=%2F%E5%B0%8F%E7%83%9F%E5%B7%A5%E5%85%B7\">网盘链接</a>\n" +
-                        "工具激活卡密购买地址，点击下载：<a href=\"https://pay.ldxp.cn/shop/xiaoyanai\">云辰小烟店铺</a>\n" +
-                        "人工降重复、降ai 、格式修改| 联系：Yeaokk \n" +
-                        " \n\n"+
-                        ""
+                getSubscribeReplyContent()
         );
+    }
+
+    private String getSubscribeReplyContent() {
+        try {
+            String content = sysConfigService.getValue(Constants.WECHAT_SUBSCRIBE_REPLY_KEY);
+            if (StringUtils.hasText(content)) {
+                return content;
+            }
+            log.warn("微信公众号关注回复配置为空: key={}", Constants.WECHAT_SUBSCRIBE_REPLY_KEY);
+        } catch (RuntimeException e) {
+            log.warn("读取微信公众号关注回复配置失败，使用默认文案: key={}, error={}",
+                    Constants.WECHAT_SUBSCRIBE_REPLY_KEY, e.getMessage());
+        }
+        return DEFAULT_SUBSCRIBE_REPLY;
     }
 
     private String handleTextMessage(WechatMessage message) {
