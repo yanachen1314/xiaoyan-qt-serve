@@ -111,15 +111,6 @@ public class WechatCallbackService {
         return null;
     }
 
-    /**
-     * 生成用于关注或关键词回复的 6 位数字验证码。
-     *
-     * @return 六位数字验证码
-     */
-    protected String generateVerificationCode() {
-        return "%06d".formatted(secureRandom.nextInt(1_000_000));
-    }
-
     private String handleSubscribeEvent(WechatMessage message) {
         log.info("微信用户关注: open_id_hash={}", hashOpenId(message.getFromUserName()));
         return WechatReplyBuilder.replyText(
@@ -223,10 +214,30 @@ public class WechatCallbackService {
         };
     }
 
+    /**
+     * 生成用于关注或关键词回复的 6 位数字验证码。
+     *
+     * @return 六位数字验证码
+     */
+    protected String generateVerificationCode() {
+        return "%06d".formatted(secureRandom.nextInt(1_000_000));
+    }
+    /**
+     * 保存微信验证码。
+     *
+     * @param message 微信消息实体
+     * @param code 验证码
+     */
     private void saveDoubaoCode(WechatMessage message, String code) {
         toolAuthService.saveWechatVerificationCode(DOUBAO_TOOL_CODE, message.getFromUserName(), code);
     }
 
+    /**
+     * 对微信 openId 进行哈希处理，保护用户隐私。
+     *
+     * @param openId 微信 openId
+     * @return 哈希后的 openId
+     */
     private String hashOpenId(String openId) {
         if (openId == null || openId.isBlank()) {
             return "";
@@ -234,6 +245,9 @@ public class WechatCallbackService {
         return ToolAuthService.sha256(openId).substring(0, 12);
     }
 
+    /**
+     * 微信菜单回复规则。
+     */
     @Setter
     @Getter
     public static class WechatMenuReplyRule {
