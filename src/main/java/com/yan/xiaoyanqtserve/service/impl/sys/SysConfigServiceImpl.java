@@ -152,9 +152,12 @@ public class SysConfigServiceImpl extends ServiceImpl<SysConfigMapper, SysConfig
     public String getValue(String key) {
         // 获取缓存值, 找不到则从数据库中获取
         Object val = redisUtil.hGet(Constants.CONFIG_KEY, key);
-        Object model_val = redisUtil.hGet(Constants.CONFIG_MODEL_LIST_KEY, key);
-        if (Objects.nonNull(val) || Objects.nonNull(model_val)) {
+        if (Objects.nonNull(val)) {
             return val.toString();
+        }
+        Object modelVal = redisUtil.hGet(Constants.CONFIG_MODEL_LIST_KEY, key);
+        if (Objects.nonNull(modelVal)) {
+            return modelVal.toString();
         }
 
         List<SysConfig> sysConfigs = getConfigByKey(key, false);
@@ -163,6 +166,7 @@ public class SysConfigServiceImpl extends ServiceImpl<SysConfigMapper, SysConfig
         if (Objects.isNull(config) || !StringUtils.hasText(config.getConfigValue())) {
             throw new BizException("配置不存在: " + key);
         }
+        onChangeDealRedisCache(config);
         return config.getConfigValue();
     }
 
