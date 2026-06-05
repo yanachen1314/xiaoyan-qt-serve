@@ -70,13 +70,16 @@ public class WechatCallbackService {
     }
 
     private String handleSubscribeEvent(WechatMessage message) {
-        String code = generateVerificationCode();
-        saveDoubaoCode(message, code);
         log.info("微信用户关注并生成豆包验证码: open_id_hash={}", hashOpenId(message.getFromUserName()));
         return WechatReplyBuilder.replyText(
                 message.getFromUserName(),
                 message.getToUserName(),
-                "感谢关注，验证码：" + code
+                "欢迎关注云辰小烟公众号，有问题可以私信我！\n\n" +
+                        "小烟工具最新版本已经发布，点击下载: <a href=\"https://pan.baidu.com/s/5Y5SjbcfkQfF6w1Lvvd1LLg#list/path=%2F%E5%B0%8F%E7%83%9F%E5%B7%A5%E5%85%B7\">网盘链接</a>\n" +
+                        "工具激活卡密购买地址，点击下载：<a href=\"https://pay.ldxp.cn/shop/xiaoyanai\">云辰小烟店铺</a>\n" +
+                        "人工降重复、降ai 、格式修改| 联系：Yeaokk \n" +
+                        " \n\n"+
+                        ""
         );
     }
 
