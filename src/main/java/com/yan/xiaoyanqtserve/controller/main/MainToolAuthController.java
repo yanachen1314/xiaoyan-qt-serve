@@ -9,6 +9,7 @@ import com.yan.xiaoyanqtserve.common.utils.ApiResponse;
 import com.yan.xiaoyanqtserve.service.impl.tool.ToolAuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
  * @author yanchen
  * @since 2026-06-06
  */
+@Slf4j
 @RestController
 @RequestMapping("/api/main/tool-auth")
 @RequiredArgsConstructor
@@ -51,6 +53,7 @@ public class MainToolAuthController {
             );
             return ResponseEntity.ok(ApiResponse.success(response));
         } catch (BizException e) {
+            log.debug("工具验证码校验失败", e);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(ApiResponse.build(e.getCode(), e.getMessage(), null));
         }

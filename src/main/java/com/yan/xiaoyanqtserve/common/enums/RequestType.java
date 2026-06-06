@@ -13,6 +13,7 @@ public enum RequestType {
     ADMIN_REQUEST("ADMIN", "/api/admin", "管理请求"),
     APIKEY_REQUEST("APIKEY", "/api/key", "卡密请求"),
     WECHAT_REQUEST("WECHAT", "/api/wechat", "微信回调请求"),
+    MAIN_REQUEST("main", "/api/main", "主站请求"),
     UNKNOWN("UNKNOWN", "", "未知请求");
 
     /**
