@@ -150,9 +150,8 @@ public class SystemModeFilter implements Filter {
                 mailPropertiesConfig.getVerifyLink().getBasePath(),
                 // 微信公众号服务器回调接口
                 "/api/wechat/**",
-                // 工具处理和认证接口
-                "/api/public/tools/**",
-                "/api/public/tool-auth/**",
+                // 主站接口
+                "/api/main/**",
                 // 测试接口
                 "/api/public/test/**"
         };

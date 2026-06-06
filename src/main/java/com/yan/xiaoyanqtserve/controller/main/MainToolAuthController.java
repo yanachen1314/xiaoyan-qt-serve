@@ -1,4 +1,4 @@
-package com.yan.xiaoyanqtserve.controller.publicApi;
+package com.yan.xiaoyanqtserve.controller.main;
 
 import com.yan.xiaoyanqtserve.common.Constants;
 import com.yan.xiaoyanqtserve.common.dto.tool.ToolVerifyRequest;
@@ -15,26 +15,29 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * 公开工具校验接口，用于将微信公众号验证码换成工具 JWT。
+ * 【主站】工具认证接口
+ * 提供工具验证码校验接口
+ *
+ * @author yanchen
+ * @since 2026-06-06
  */
 @RestController
+@RequestMapping("/api/main/tool-auth")
 @RequiredArgsConstructor
-@RequestMapping("/api/public/tool-auth")
-public class ToolAuthController {
+public class MainToolAuthController {
     private final ToolAuthService toolAuthService;
 
     /**
-     * 校验微信公众号验证码并返回工具令牌。
+     * 校验微信公众号验证码并返回工具令牌
      *
      * @param deviceId 浏览器指纹
-     * @param request 校验请求
-     * @return 工具 JWT
+     * @param request  校验请求
+     * @return 工具JWT
      */
     @PostMapping("/verify")
     public ResponseEntity<ApiResponse<ToolVerifyResponse>> verify(
             @RequestHeader(value = Constants.HEADER_DEVICE_ID, required = false) String deviceId,
-            @Valid @RequestBody ToolVerifyRequest request
-    ) {
+            @Valid @RequestBody ToolVerifyRequest request) {
         if (!StringUtils.hasText(deviceId)) {
             return ResponseEntity.badRequest()
                     .body(ApiResponse.build(BizStatus.BAD_REQUEST, "缺少浏览器指纹", null));

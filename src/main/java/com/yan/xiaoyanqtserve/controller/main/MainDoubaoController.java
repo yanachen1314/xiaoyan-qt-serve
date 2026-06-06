@@ -1,11 +1,10 @@
-package com.yan.xiaoyanqtserve.controller.publicApi;
+package com.yan.xiaoyanqtserve.controller.main;
 
 import com.yan.xiaoyanqtserve.common.Constants;
 import com.yan.xiaoyanqtserve.common.annotaions.RateLimiter;
 import com.yan.xiaoyanqtserve.common.dto.tool.DoubaoAnalyzeRequest;
 import com.yan.xiaoyanqtserve.common.enums.BizStatus;
 import com.yan.xiaoyanqtserve.common.enums.RateLimiterType;
-import com.yan.xiaoyanqtserve.common.exception.BizException;
 import com.yan.xiaoyanqtserve.common.utils.ApiResponse;
 import com.yan.xiaoyanqtserve.service.impl.tool.DoubaoToolProxyService;
 import com.yan.xiaoyanqtserve.service.impl.tool.ToolAuthService;
@@ -17,12 +16,16 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * 豆包工具网关接口，负责校验工具 JWT 后代理到 Flask 解析服务。
+ * 【主站】豆包工具接口
+ * 提供豆包图片和视频解析接口
+ *
+ * @author yanchen
+ * @since 2026-06-06
  */
 @RestController
+@RequestMapping("/api/main/tools/doubao")
 @RequiredArgsConstructor
-@RequestMapping("/api/public/tools/doubao")
-public class DoubaoToolController {
+public class MainDoubaoController {
     private static final String TOOL_CODE = "doubao";
     private static final String ANALYZE_RATE_LIMIT_KEY = "doubaoAnalyze";
 
@@ -30,12 +33,12 @@ public class DoubaoToolController {
     private final DoubaoToolProxyService proxyService;
 
     /**
-     * 解析豆包图片素材。
+     * 解析豆包图片素材
      *
-     * @param deviceId 浏览器指纹
-     * @param toolToken 工具 JWT
-     * @param request 解析请求
-     * @return Flask 图片解析响应
+     * @param deviceId  浏览器指纹
+     * @param toolToken 工具JWT
+     * @param request   解析请求
+     * @return 图片解析响应
      */
     @RateLimiter(
             key = ANALYZE_RATE_LIMIT_KEY,
@@ -53,12 +56,12 @@ public class DoubaoToolController {
     }
 
     /**
-     * 解析豆包视频素材。
+     * 解析豆包视频素材
      *
-     * @param deviceId 浏览器指纹
-     * @param toolToken 工具 JWT
-     * @param request 解析请求
-     * @return Flask 视频解析响应
+     * @param deviceId  浏览器指纹
+     * @param toolToken 工具JWT
+     * @param request   解析请求
+     * @return 视频解析响应
      */
     @RateLimiter(
             key = ANALYZE_RATE_LIMIT_KEY,
@@ -75,6 +78,15 @@ public class DoubaoToolController {
         return analyze(deviceId, toolToken, request, false);
     }
 
+    /**
+     * 解析处理
+     *
+     * @param deviceId  浏览器指纹
+     * @param toolToken 工具JWT
+     * @param request   解析请求
+     * @param imageMode 是否为图片模式
+     * @return 解析响应
+     */
     private ResponseEntity<?> analyze(String deviceId, String toolToken, DoubaoAnalyzeRequest request, boolean imageMode) {
         if (!StringUtils.hasText(deviceId)) {
             return fail(HttpStatus.BAD_REQUEST, "缺少浏览器指纹");
@@ -88,7 +100,7 @@ public class DoubaoToolController {
 
         try {
             toolAuthService.consumeToolToken(TOOL_CODE, deviceId, toolToken);
-        } catch (BizException e) {
+        } catch (Exception e) {
             return fail(HttpStatus.UNAUTHORIZED, BizStatus.UNAUTHORIZED, e.getMessage());
         }
 
@@ -104,16 +116,22 @@ public class DoubaoToolController {
                 builder.contentType(MediaType.APPLICATION_JSON);
             }
             return builder.body(response.getBody());
-        } catch (BizException e) {
+        } catch (Exception e) {
             return fail(HttpStatus.BAD_GATEWAY, BizStatus.ERROR, e.getMessage());
         }
     }
 
+    /**
+     * 构建失败响应
+     */
     private ResponseEntity<ApiResponse<Void>> fail(HttpStatus status, String message) {
         BizStatus bizStatus = status == HttpStatus.UNAUTHORIZED ? BizStatus.UNAUTHORIZED : BizStatus.BAD_REQUEST;
         return fail(status, bizStatus, message);
     }
 
+    /**
+     * 构建失败响应
+     */
     private ResponseEntity<ApiResponse<Void>> fail(HttpStatus status, BizStatus bizStatus, String message) {
         return ResponseEntity.status(status)
                 .contentType(MediaType.APPLICATION_JSON)
