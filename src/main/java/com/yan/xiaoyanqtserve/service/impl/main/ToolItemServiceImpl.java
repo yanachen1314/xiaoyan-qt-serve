@@ -19,7 +19,6 @@ import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -36,30 +35,16 @@ public class ToolItemServiceImpl extends ServiceImpl<ToolItemMapper, ToolItem> i
     private ToolItemMapper toolItemMapper;
 
     @Resource
-    private RedisUtil redisUtil;
+    private ToolCacheManager toolCacheManager;
 
     @Resource
     private ToolCategoryService toolCategoryService;
 
     /**
-     * Redis缓存Key前缀
+     * Redis 工具类（仅用于 clickCount 原子递增，不用于缓存）
      */
-    private static final String CACHE_KEY_PREFIX = "main:tool:item:";
-
-    /**
-     * Redis缓存Key - 所有启用的工具项列表
-     */
-    private static final String CACHE_KEY_ENABLED_LIST = "main:tool:item:enabled:list";
-
-    /**
-     * Redis缓存Key - 工具列表（按分类分组）
-     */
-    private static final String CACHE_KEY_GROUP_BY_CATEGORY = "main:tool:list";
-
-    /**
-     * 缓存过期时间（分钟）
-     */
-    private static final int CACHE_EXPIRE_MINUTES = 30;
+    @Resource
+    private RedisUtil redisUtil;
 
     /**
      * 分页查询工具项列表
@@ -104,21 +89,7 @@ public class ToolItemServiceImpl extends ServiceImpl<ToolItemMapper, ToolItem> i
      */
     @Override
     public ToolItem getDetailById(Long id) {
-        String cacheKey = CACHE_KEY_PREFIX + id;
-
-        // 从缓存获取
-        Object cached = redisUtil.get(cacheKey);
-        if (cached instanceof ToolItem item) {
-            return item;
-        }
-
-        // 从数据库获取
-        ToolItem toolItem = toolItemMapper.selectById(id);
-        if (toolItem != null) {
-            redisUtil.set(cacheKey, toolItem, CACHE_EXPIRE_MINUTES, TimeUnit.MINUTES);
-        }
-
-        return toolItem;
+        return toolCacheManager.getItemDetail(id, () -> toolItemMapper.selectById(id));
     }
 
     /**
@@ -129,29 +100,12 @@ public class ToolItemServiceImpl extends ServiceImpl<ToolItemMapper, ToolItem> i
      */
     @Override
     public List<ToolItem> getItemsByCategoryId(Long categoryId) {
-        String cacheKey = CACHE_KEY_PREFIX + "category:" + categoryId;
-
-        // 从缓存获取
-        Object cached = redisUtil.get(cacheKey);
-        if (cached instanceof List<?> list && !list.isEmpty()) {
-            @SuppressWarnings("unchecked")
-            List<ToolItem> result = (List<ToolItem>) list;
-            return result;
-        }
-
-        // 从数据库获取
         LambdaQueryWrapper<ToolItem> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(ToolItem::getCategoryId, categoryId)
                 .eq(ToolItem::getStatus, 1)
                 .orderByAsc(ToolItem::getSortOrder);
 
-        List<ToolItem> items = toolItemMapper.selectList(queryWrapper);
-
-        if (items != null && !items.isEmpty()) {
-            redisUtil.set(cacheKey, items, CACHE_EXPIRE_MINUTES, TimeUnit.MINUTES);
-        }
-
-        return items;
+        return toolItemMapper.selectList(queryWrapper);
     }
 
     /**
@@ -160,49 +114,39 @@ public class ToolItemServiceImpl extends ServiceImpl<ToolItemMapper, ToolItem> i
      * @return 分类和工具项的映射
      */
     @Override
-    @SuppressWarnings("unchecked")
     public Map<String, List<ToolItem>> getEnabledItemsGroupByCategory() {
-        // 从缓存获取
-        Object cached = redisUtil.get(CACHE_KEY_GROUP_BY_CATEGORY);
-        if (cached instanceof Map<?, ?> map && !map.isEmpty()) {
-            return (Map<String, List<ToolItem>>) map;
-        }
-
-        // 获取所有启用的分类
-        List<ToolCategory> categories = toolCategoryService.getEnabledCategories();
-        if (categories == null || categories.isEmpty()) {
-            return Collections.emptyMap();
-        }
-
-        // 获取所有启用的工具项
-        LambdaQueryWrapper<ToolItem> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(ToolItem::getStatus, 1)
-                .orderByAsc(ToolItem::getSortOrder);
-
-        List<ToolItem> allItems = toolItemMapper.selectList(queryWrapper);
-        if (allItems == null) {
-            allItems = Collections.emptyList();
-        }
-
-        // 按分类ID分组
-        Map<Long, List<ToolItem>> itemsByCategoryId = allItems.stream()
-                .collect(Collectors.groupingBy(ToolItem::getCategoryId));
-
-        // 构建结果：分类名称 -> 工具项列表
-        Map<String, List<ToolItem>> result = new LinkedHashMap<>();
-        for (ToolCategory category : categories) {
-            List<ToolItem> items = itemsByCategoryId.getOrDefault(category.getId(), Collections.emptyList());
-            if (!items.isEmpty()) {
-                result.put(category.getName(), items);
+        return toolCacheManager.getGroupedItems(() -> {
+            // 获取所有启用的分类
+            List<ToolCategory> categories = toolCategoryService.getEnabledCategories();
+            if (categories == null || categories.isEmpty()) {
+                return Collections.emptyMap();
             }
-        }
 
-        // 存入缓存
-        if (!result.isEmpty()) {
-            redisUtil.set(CACHE_KEY_GROUP_BY_CATEGORY, result, CACHE_EXPIRE_MINUTES, TimeUnit.MINUTES);
-        }
+            // 获取所有启用的工具项
+            LambdaQueryWrapper<ToolItem> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.eq(ToolItem::getStatus, 1)
+                    .orderByAsc(ToolItem::getSortOrder);
 
-        return result;
+            List<ToolItem> allItems = toolItemMapper.selectList(queryWrapper);
+            if (allItems == null) {
+                allItems = Collections.emptyList();
+            }
+
+            // 按分类ID分组
+            Map<Long, List<ToolItem>> itemsByCategoryId = allItems.stream()
+                    .collect(Collectors.groupingBy(ToolItem::getCategoryId));
+
+            // 构建结果：分类名称 -> 工具项列表
+            Map<String, List<ToolItem>> result = new LinkedHashMap<>();
+            for (ToolCategory category : categories) {
+                List<ToolItem> items = itemsByCategoryId.getOrDefault(category.getId(), Collections.emptyList());
+                if (!items.isEmpty()) {
+                    result.put(category.getName(), items);
+                }
+            }
+
+            return result;
+        });
     }
 
     /**
@@ -220,8 +164,7 @@ public class ToolItemServiceImpl extends ServiceImpl<ToolItemMapper, ToolItem> i
 
         this.save(toolItem);
 
-        // 清除缓存
-        clearCache();
+        toolCacheManager.evictItemCache(toolItem.getId());
     }
 
     /**
@@ -237,8 +180,7 @@ public class ToolItemServiceImpl extends ServiceImpl<ToolItemMapper, ToolItem> i
 
         this.updateById(toolItem);
 
-        // 清除缓存
-        clearCache();
+        toolCacheManager.evictItemCache(toolItem.getId());
     }
 
     /**
@@ -250,8 +192,7 @@ public class ToolItemServiceImpl extends ServiceImpl<ToolItemMapper, ToolItem> i
     public void deleteById(Long id) {
         toolItemMapper.deleteById(id);
 
-        // 清除缓存
-        clearCache();
+        toolCacheManager.evictItemCache(id);
     }
 
     /**
@@ -273,21 +214,5 @@ public class ToolItemServiceImpl extends ServiceImpl<ToolItemMapper, ToolItem> i
             toolItem.setUpdatedAt(LocalDateTime.now());
             this.updateById(toolItem);
         }
-    }
-
-    /**
-     * 清除缓存
-     */
-    private void clearCache() {
-        // 删除所有工具项详情缓存（main:tool:item:{id}、main:tool:item:category:{categoryId}）
-        redisUtil.deleteByPattern(CACHE_KEY_PREFIX + "*");
-        // 删除主站按分类分组的工具列表缓存
-        redisUtil.delete(CACHE_KEY_GROUP_BY_CATEGORY);
-        // 删除启用工具列表缓存
-        redisUtil.delete(CACHE_KEY_ENABLED_LIST);
-        // 删除分类相关缓存（分类变化会影响工具项展示）
-        redisUtil.deleteByPattern("main:tool:category:*");
-
-        log.debug("清除工具项缓存完成");
     }
 }

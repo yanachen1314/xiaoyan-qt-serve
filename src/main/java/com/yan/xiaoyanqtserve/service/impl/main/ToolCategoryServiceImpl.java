@@ -4,7 +4,6 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.yan.xiaoyanqtserve.common.dto.main.ToolCategoryDto;
 import com.yan.xiaoyanqtserve.common.dto.main.ToolCategoryPageRequest;
-import com.yan.xiaoyanqtserve.common.utils.RedisUtil;
 import com.yan.xiaoyanqtserve.entity.ToolCategory;
 import com.yan.xiaoyanqtserve.mapper.ToolCategoryMapper;
 import com.yan.xiaoyanqtserve.service.ToolCategoryService;
@@ -17,7 +16,6 @@ import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 /**
  * 工具分类表 服务实现类
@@ -33,22 +31,7 @@ public class ToolCategoryServiceImpl extends ServiceImpl<ToolCategoryMapper, Too
     private ToolCategoryMapper toolCategoryMapper;
 
     @Resource
-    private RedisUtil redisUtil;
-
-    /**
-     * Redis缓存Key前缀
-     */
-    private static final String CACHE_KEY_PREFIX = "main:tool:category:";
-
-    /**
-     * Redis缓存Key - 所有启用的分类列表
-     */
-    private static final String CACHE_KEY_ENABLED_LIST = "main:tool:category:enabled:list";
-
-    /**
-     * 缓存过期时间（分钟）
-     */
-    private static final int CACHE_EXPIRE_MINUTES = 30;
+    private ToolCacheManager toolCacheManager;
 
     /**
      * 分页查询工具分类列表
@@ -84,21 +67,7 @@ public class ToolCategoryServiceImpl extends ServiceImpl<ToolCategoryMapper, Too
      */
     @Override
     public ToolCategory getDetailById(Long id) {
-        String cacheKey = CACHE_KEY_PREFIX + id;
-
-        // 从缓存获取
-        Object cached = redisUtil.get(cacheKey);
-        if (cached instanceof ToolCategory category) {
-            return category;
-        }
-
-        // 从数据库获取
-        ToolCategory toolCategory = toolCategoryMapper.selectById(id);
-        if (toolCategory != null) {
-            redisUtil.set(cacheKey, toolCategory, CACHE_EXPIRE_MINUTES, TimeUnit.MINUTES);
-        }
-
-        return toolCategory;
+        return toolCacheManager.getCategoryDetail(id, () -> toolCategoryMapper.selectById(id));
     }
 
     /**
@@ -108,26 +77,12 @@ public class ToolCategoryServiceImpl extends ServiceImpl<ToolCategoryMapper, Too
      */
     @Override
     public List<ToolCategory> getEnabledCategories() {
-        // 从缓存获取
-        Object cached = redisUtil.get(CACHE_KEY_ENABLED_LIST);
-        if (cached instanceof List<?> list && !list.isEmpty()) {
-            @SuppressWarnings("unchecked")
-            List<ToolCategory> result = (List<ToolCategory>) list;
-            return result;
-        }
-
-        // 从数据库获取
-        LambdaQueryWrapper<ToolCategory> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(ToolCategory::getStatus, 1)
-                .orderByAsc(ToolCategory::getSortOrder);
-
-        List<ToolCategory> categories = toolCategoryMapper.selectList(queryWrapper);
-
-        if (categories != null && !categories.isEmpty()) {
-            redisUtil.set(CACHE_KEY_ENABLED_LIST, categories, CACHE_EXPIRE_MINUTES, TimeUnit.MINUTES);
-        }
-
-        return categories;
+        return toolCacheManager.getEnabledCategories(() -> {
+            LambdaQueryWrapper<ToolCategory> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.eq(ToolCategory::getStatus, 1)
+                    .orderByAsc(ToolCategory::getSortOrder);
+            return toolCategoryMapper.selectList(queryWrapper);
+        });
     }
 
     /**
@@ -149,10 +104,10 @@ public class ToolCategoryServiceImpl extends ServiceImpl<ToolCategoryMapper, Too
         toolCategory.setCreatedAt(LocalDateTime.now());
         toolCategory.setUpdatedAt(LocalDateTime.now());
 
-        this.save(toolCategory);
+        boolean saved = this.save(toolCategory);
+        log.info("[ToolCategory] 新增分类: name={}, id={}, saved={}", dto.getName(), toolCategory.getId(), saved);
 
-        // 清除缓存
-        clearCache();
+        toolCacheManager.evictCategoryCache(toolCategory.getId());
     }
 
     /**
@@ -168,8 +123,7 @@ public class ToolCategoryServiceImpl extends ServiceImpl<ToolCategoryMapper, Too
 
         this.updateById(toolCategory);
 
-        // 清除缓存
-        clearCache();
+        toolCacheManager.evictCategoryCache(toolCategory.getId());
     }
 
     /**
@@ -181,21 +135,6 @@ public class ToolCategoryServiceImpl extends ServiceImpl<ToolCategoryMapper, Too
     public void deleteById(Long id) {
         toolCategoryMapper.deleteById(id);
 
-        // 清除缓存
-        clearCache();
-    }
-
-    /**
-     * 清除缓存
-     */
-    private void clearCache() {
-        // 删除所有分类详情缓存
-        redisUtil.deleteByPattern(CACHE_KEY_PREFIX + "*");
-        // 删除启用分类列表缓存
-        redisUtil.delete(CACHE_KEY_ENABLED_LIST);
-        // 删除主站工具列表缓存（分类变化会影响主站展示）
-        redisUtil.delete("main:tool:list");
-
-        log.debug("清除工具分类缓存完成");
+        toolCacheManager.evictCategoryCache(id);
     }
 }
