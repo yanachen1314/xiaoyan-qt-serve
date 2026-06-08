@@ -135,6 +135,13 @@ public class ToolCategoryServiceImpl extends ServiceImpl<ToolCategoryMapper, Too
      */
     @Override
     public void add(ToolCategoryDto dto) {
+        // 检查分类名称是否已存在
+        LambdaQueryWrapper<ToolCategory> checkWrapper = new LambdaQueryWrapper<>();
+        checkWrapper.eq(ToolCategory::getName, dto.getName());
+        if (this.count(checkWrapper) > 0) {
+            throw new RuntimeException("分类名称「" + dto.getName() + "」已存在");
+        }
+
         ToolCategory toolCategory = new ToolCategory();
         BeanUtils.copyProperties(dto, toolCategory);
         toolCategory.setCreatedAt(LocalDateTime.now());
@@ -180,11 +187,12 @@ public class ToolCategoryServiceImpl extends ServiceImpl<ToolCategoryMapper, Too
      * 清除缓存
      */
     private void clearCache() {
-        // 删除所有分类缓存
+        // 删除分类缓存
         redisUtil.delete(CACHE_KEY_ENABLED_LIST);
 
-        // 删除单个分类缓存（这里简单处理，实际可以更精确）
-        // 注意：这里只是示例，实际应该删除所有以 CACHE_KEY_PREFIX 开头的 key
+        // 同步清除主站工具列表缓存（分类变化会影响主站展示）
+        redisUtil.delete("main:tool:list");
+
         log.debug("清除工具分类缓存");
     }
 }
