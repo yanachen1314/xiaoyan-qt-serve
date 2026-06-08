@@ -87,14 +87,14 @@ public class ToolCategoryServiceImpl extends ServiceImpl<ToolCategoryMapper, Too
         String cacheKey = CACHE_KEY_PREFIX + id;
 
         // 从缓存获取
-        if (redisUtil.hasKey(cacheKey)) {
-            return (ToolCategory) redisUtil.get(cacheKey);
+        Object cached = redisUtil.get(cacheKey);
+        if (cached instanceof ToolCategory category) {
+            return category;
         }
 
         // 从数据库获取
         ToolCategory toolCategory = toolCategoryMapper.selectById(id);
         if (toolCategory != null) {
-            // 存入缓存
             redisUtil.set(cacheKey, toolCategory, CACHE_EXPIRE_MINUTES, TimeUnit.MINUTES);
         }
 
@@ -109,8 +109,11 @@ public class ToolCategoryServiceImpl extends ServiceImpl<ToolCategoryMapper, Too
     @Override
     public List<ToolCategory> getEnabledCategories() {
         // 从缓存获取
-        if (redisUtil.hasKey(CACHE_KEY_ENABLED_LIST)) {
-            return (List<ToolCategory>) redisUtil.get(CACHE_KEY_ENABLED_LIST);
+        Object cached = redisUtil.get(CACHE_KEY_ENABLED_LIST);
+        if (cached instanceof List<?> list && !list.isEmpty()) {
+            @SuppressWarnings("unchecked")
+            List<ToolCategory> result = (List<ToolCategory>) list;
+            return result;
         }
 
         // 从数据库获取
@@ -120,7 +123,6 @@ public class ToolCategoryServiceImpl extends ServiceImpl<ToolCategoryMapper, Too
 
         List<ToolCategory> categories = toolCategoryMapper.selectList(queryWrapper);
 
-        // 存入缓存
         if (categories != null && !categories.isEmpty()) {
             redisUtil.set(CACHE_KEY_ENABLED_LIST, categories, CACHE_EXPIRE_MINUTES, TimeUnit.MINUTES);
         }
@@ -187,12 +189,13 @@ public class ToolCategoryServiceImpl extends ServiceImpl<ToolCategoryMapper, Too
      * 清除缓存
      */
     private void clearCache() {
-        // 删除分类缓存
+        // 删除所有分类详情缓存
+        redisUtil.deleteByPattern(CACHE_KEY_PREFIX + "*");
+        // 删除启用分类列表缓存
         redisUtil.delete(CACHE_KEY_ENABLED_LIST);
-
-        // 同步清除主站工具列表缓存（分类变化会影响主站展示）
+        // 删除主站工具列表缓存（分类变化会影响主站展示）
         redisUtil.delete("main:tool:list");
 
-        log.debug("清除工具分类缓存");
+        log.debug("清除工具分类缓存完成");
     }
 }

@@ -107,14 +107,14 @@ public class ToolItemServiceImpl extends ServiceImpl<ToolItemMapper, ToolItem> i
         String cacheKey = CACHE_KEY_PREFIX + id;
 
         // 从缓存获取
-        if (redisUtil.hasKey(cacheKey)) {
-            return (ToolItem) redisUtil.get(cacheKey);
+        Object cached = redisUtil.get(cacheKey);
+        if (cached instanceof ToolItem item) {
+            return item;
         }
 
         // 从数据库获取
         ToolItem toolItem = toolItemMapper.selectById(id);
         if (toolItem != null) {
-            // 存入缓存
             redisUtil.set(cacheKey, toolItem, CACHE_EXPIRE_MINUTES, TimeUnit.MINUTES);
         }
 
@@ -132,8 +132,11 @@ public class ToolItemServiceImpl extends ServiceImpl<ToolItemMapper, ToolItem> i
         String cacheKey = CACHE_KEY_PREFIX + "category:" + categoryId;
 
         // 从缓存获取
-        if (redisUtil.hasKey(cacheKey)) {
-            return (List<ToolItem>) redisUtil.get(cacheKey);
+        Object cached = redisUtil.get(cacheKey);
+        if (cached instanceof List<?> list && !list.isEmpty()) {
+            @SuppressWarnings("unchecked")
+            List<ToolItem> result = (List<ToolItem>) list;
+            return result;
         }
 
         // 从数据库获取
@@ -144,7 +147,6 @@ public class ToolItemServiceImpl extends ServiceImpl<ToolItemMapper, ToolItem> i
 
         List<ToolItem> items = toolItemMapper.selectList(queryWrapper);
 
-        // 存入缓存
         if (items != null && !items.isEmpty()) {
             redisUtil.set(cacheKey, items, CACHE_EXPIRE_MINUTES, TimeUnit.MINUTES);
         }
@@ -158,10 +160,12 @@ public class ToolItemServiceImpl extends ServiceImpl<ToolItemMapper, ToolItem> i
      * @return 分类和工具项的映射
      */
     @Override
+    @SuppressWarnings("unchecked")
     public Map<String, List<ToolItem>> getEnabledItemsGroupByCategory() {
         // 从缓存获取
-        if (redisUtil.hasKey(CACHE_KEY_GROUP_BY_CATEGORY)) {
-            return (Map<String, List<ToolItem>>) redisUtil.get(CACHE_KEY_GROUP_BY_CATEGORY);
+        Object cached = redisUtil.get(CACHE_KEY_GROUP_BY_CATEGORY);
+        if (cached instanceof Map<?, ?> map && !map.isEmpty()) {
+            return (Map<String, List<ToolItem>>) map;
         }
 
         // 获取所有启用的分类
@@ -275,11 +279,15 @@ public class ToolItemServiceImpl extends ServiceImpl<ToolItemMapper, ToolItem> i
      * 清除缓存
      */
     private void clearCache() {
-        // 删除工具列表缓存
+        // 删除所有工具项详情缓存（main:tool:item:{id}、main:tool:item:category:{categoryId}）
+        redisUtil.deleteByPattern(CACHE_KEY_PREFIX + "*");
+        // 删除主站按分类分组的工具列表缓存
         redisUtil.delete(CACHE_KEY_GROUP_BY_CATEGORY);
+        // 删除启用工具列表缓存
         redisUtil.delete(CACHE_KEY_ENABLED_LIST);
+        // 删除分类相关缓存（分类变化会影响工具项展示）
+        redisUtil.deleteByPattern("main:tool:category:*");
 
-        // 删除分类下的工具列表缓存（这里简单处理，实际可以更精确）
-        log.debug("清除工具项缓存");
+        log.debug("清除工具项缓存完成");
     }
 }

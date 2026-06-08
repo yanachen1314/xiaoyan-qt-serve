@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.ArrayList;
 
 /**
  * Redis 工具类，封装常用操作
@@ -44,6 +45,18 @@ public class RedisUtil {
      */
     public Long delete(Collection<String> keys) {
         return redisTemplate.delete(keys);
+    }
+
+    /**
+     * 按 pattern 匹配并删除所有 key
+     */
+    public long deleteByPattern(String pattern) {
+        Set<String> keys = redisTemplate.keys(pattern);
+        if (keys == null || keys.isEmpty()) {
+            return 0;
+        }
+        Long count = redisTemplate.delete(keys);
+        return count != null ? count : 0;
     }
 
     /**
