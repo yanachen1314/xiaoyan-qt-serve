@@ -58,4 +58,35 @@ public class MainToolAuthController {
                     .body(ApiResponse.build(e.getCode(), e.getMessage(), null));
         }
     }
+
+    /**
+     * 校验工具令牌是否有效
+     *
+     * @param toolCode  工具编码
+     * @param deviceId  浏览器指纹
+     * @param toolToken 工具JWT
+     * @return 校验结果
+     */
+    @PostMapping("/token/validate")
+    public ResponseEntity<ApiResponse<Void>> validateToolToken(
+            @RequestParam(value = "toolCode", required = false) String toolCode,
+            @RequestHeader(value = Constants.HEADER_DEVICE_ID, required = false) String deviceId,
+            @RequestHeader(value = Constants.HEADER_TOOL_TOKEN, required = false) String toolToken) {
+        try {
+            toolAuthService.consumeToolToken(toolCode, deviceId, toolToken);
+            return ResponseEntity.ok(ApiResponse.success());
+        } catch (BizException e) {
+            log.debug("工具令牌校验失败", e);
+            return ResponseEntity.status(toHttpStatus(e.getCode()))
+                    .body(ApiResponse.build(e.getCode(), e.getMessage(), null));
+        }
+    }
+
+    private HttpStatus toHttpStatus(BizStatus bizStatus) {
+        return switch (bizStatus) {
+            case FORBIDDEN -> HttpStatus.FORBIDDEN;
+            case UNAUTHORIZED -> HttpStatus.UNAUTHORIZED;
+            default -> HttpStatus.BAD_REQUEST;
+        };
+    }
 }
