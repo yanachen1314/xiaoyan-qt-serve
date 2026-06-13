@@ -26,54 +26,9 @@ import java.util.List;
 @RequiredArgsConstructor
 public class WechatCallbackService {
     private static final String DEFAULT_TOOL_CODE = ToolCodeEnum.DEFAULT.code();
-    private static final String DEFAULT_SUBSCRIBE_REPLY = """
-            欢迎关注【云辰小烟】公众号。
-
-            这是小烟GO服务账号，有任何问题请回复菜单关键字或编号，快速获取对应内容。
-            [握手][握手][握手]
-            =========================
-
-            【快捷菜单】
-            👉🏻【1】获取验证码
-            用于解锁官网中一系列的免费工具[礼物]
-            👉🏻【2】小烟改写工具
-            用于文本改写、语句优化、表达润色，帮助降低文本中的AI生成痕迹，使内容更自然、更通顺、更贴近人工写作风格。
-            👉🏻【3】人工降重 / 降AI / 格式修改
-            了解人工文本润色、重复率优化、AI痕迹优化、论文/文章修改、Word格式调整等服务。
-            👉🏻【4】联系我
-            获取联系方式、问题反馈与合作咨询方式。
-            👉🏻【0】重新查看功能菜单
-            """;
-    private static final String DEFAULT_MENU_REPLY_1 = "您的回填验证码：{code}";
-    private static final String DEFAULT_MENU_REPLY_2 = """
-            【小烟改写工具】
-            可用于文本改写、语句优化、表达润色，帮助降低文本中的AI生成痕迹，使内容更自然、更通顺、更贴近人工写作风格。
-            """;
-    private static final String DEFAULT_MENU_REPLY_3 = """
-            【人工降重 / 降AI / 格式修改】
-            可咨询人工文本润色、重复率优化、AI痕迹优化、论文/文章修改、Word格式调整等服务。
-            """;
-    private static final String DEFAULT_MENU_REPLY_4 = """
-            【联系我】
-            如需问题反馈、合作咨询或人工服务，请联系：Yeaokk
-            """;
-    private static final List<WechatMenuReplyRule> DEFAULT_MENU_REPLY_RULES = List.of(
-            new WechatMenuReplyRule(Constants.WECHAT_MENU_REPLY_1_KEY,
-                    List.of("豆包","水印"), true, ToolCodeEnum.DOUBAO.code(), 10),
-            new WechatMenuReplyRule(Constants.WECHAT_MENU_REPLY_1_KEY,
-                    List.of("AI小说", "ai小说", "小说"), true, ToolCodeEnum.NOVEL.code(), 20),
-            new WechatMenuReplyRule(Constants.WECHAT_MENU_REPLY_1_KEY,
-                    List.of("1", "验证码", "验证", "解锁", "获取验证码"), true, DEFAULT_TOOL_CODE, 100),
-            new WechatMenuReplyRule(Constants.WECHAT_MENU_REPLY_2_KEY,
-                    List.of("2", "小烟改写", "改写工具", "文本改写", "润色"), false, null, 200),
-            new WechatMenuReplyRule(Constants.WECHAT_MENU_REPLY_3_KEY,
-                    List.of("3", "人工降重", "降重", "降ai", "降AI", "格式修改", "论文修改"), false, null, 300),
-            new WechatMenuReplyRule(Constants.WECHAT_MENU_REPLY_4_KEY,
-                    List.of("4", "联系我", "联系", "客服", "反馈", "合作"), false, null, 400),
-            new WechatMenuReplyRule(Constants.WECHAT_SUBSCRIBE_REPLY_KEY,
-                    List.of("0", "菜单", "功能菜单", "帮助", "重新查看"), false, null, 500)
-    );
+    private static final String CONFIG_MISSING_REPLY = "抱歉，当前自动回复内容暂未配置完整，暂时无法为您自动处理。请联系人工客服反馈问题，我们会尽快为您处理。";
     private final SecureRandom secureRandom = new SecureRandom();
+
     private final ToolAuthService toolAuthService;
     private final SysConfigService sysConfigService;
 
@@ -148,24 +103,24 @@ public class WechatCallbackService {
                 return buildMenuReply(message, rule);
             }
         }
-        return null;
+        return buildFallbackReply(message);
     }
 
     /**
-     * 获取微信公众号关注回复内容，如果未配置则返回默认内容。
+     * 获取微信公众号关注回复内容，如果未配置则返回统一提示。
      * @return 关注回复内容
      */
     private String getSubscribeReplyContent() {
-        return getConfiguredText(Constants.WECHAT_SUBSCRIBE_REPLY_KEY, DEFAULT_SUBSCRIBE_REPLY);
+        String content = getConfiguredText(Constants.WECHAT_SUBSCRIBE_REPLY_KEY);
+        return StringUtils.hasText(content) ? content : CONFIG_MISSING_REPLY;
     }
 
     /**
-     * 获取微信公众号配置的回复内容，如果未配置则返回默认内容。
+     * 获取微信公众号配置的回复内容。
      * @param key 配置项 key
-     * @param defaultContent 默认内容
-     * @return 配置内容，如果未配置则返回默认内容
+     * @return 配置内容，如果未配置则返回 null
      */
-    private String getConfiguredText(String key, String defaultContent) {
+    private String getConfiguredText(String key) {
         try {
             String content = sysConfigService.getValue(key);
             if (StringUtils.hasText(content)) {
@@ -173,20 +128,21 @@ public class WechatCallbackService {
             }
             log.warn("微信公众号回复配置为空: key={}", key);
         } catch (RuntimeException e) {
-            log.warn("读取微信公众号回复配置失败，使用默认文案: key={}, error={}", key, e.getMessage());
+            log.warn("读取微信公众号回复配置失败: key={}, error={}", key, e.getMessage());
         }
-        return defaultContent;
+        return null;
     }
 
     /**
      * 获取微信公众号菜单回复规则。
-     * @return 菜单回复规则列表，如果未配置则返回默认规则
+     * @return 菜单回复规则列表，如果未配置则返回空列表
      */
     private List<WechatMenuReplyRule> getMenuReplyRules() {
         try {
             String rulesJson = sysConfigService.getValue(Constants.WECHAT_MENU_REPLY_RULES_KEY);
             if (!StringUtils.hasText(rulesJson)) {
-                return DEFAULT_MENU_REPLY_RULES;
+                log.warn("微信公众号菜单回复规则未配置: key={}", Constants.WECHAT_MENU_REPLY_RULES_KEY);
+                return List.of();
             }
             List<WechatMenuReplyRule> rules = JSON.parseArray(rulesJson, WechatMenuReplyRule.class);
             if (rules != null && !rules.isEmpty()) {
@@ -194,10 +150,10 @@ public class WechatCallbackService {
             }
             log.warn("微信公众号菜单回复规则为空: key={}", Constants.WECHAT_MENU_REPLY_RULES_KEY);
         } catch (RuntimeException e) {
-            log.warn("读取微信公众号菜单回复规则失败，使用默认规则: key={}, error={}",
+            log.warn("读取微信公众号菜单回复规则失败: key={}, error={}",
                     Constants.WECHAT_MENU_REPLY_RULES_KEY, e.getMessage());
         }
-        return DEFAULT_MENU_REPLY_RULES;
+        return List.of();
     }
 
     private List<WechatMenuReplyRule> sortMenuReplyRules(List<WechatMenuReplyRule> rules) {
@@ -213,7 +169,10 @@ public class WechatCallbackService {
      * @return 回复内容
      */
     private String buildMenuReply(WechatMessage message, WechatMenuReplyRule rule) {
-        String content = getConfiguredText(rule.getReplyKey(), getDefaultReplyContent(rule.getReplyKey()));
+        String content = getConfiguredText(rule.getReplyKey());
+        if (!StringUtils.hasText(content)) {
+            return buildFallbackReply(message);
+        }
         if (rule.isGenerateCode()) {
             String code = generateVerificationCode();
             saveToolCode(message, code, rule.resolvedToolCode());
@@ -226,15 +185,12 @@ public class WechatCallbackService {
         );
     }
 
-    private String getDefaultReplyContent(String replyKey) {
-        return switch (replyKey) {
-            case Constants.WECHAT_SUBSCRIBE_REPLY_KEY -> DEFAULT_SUBSCRIBE_REPLY;
-            case Constants.WECHAT_MENU_REPLY_1_KEY -> DEFAULT_MENU_REPLY_1;
-            case Constants.WECHAT_MENU_REPLY_2_KEY -> DEFAULT_MENU_REPLY_2;
-            case Constants.WECHAT_MENU_REPLY_3_KEY -> DEFAULT_MENU_REPLY_3;
-            case Constants.WECHAT_MENU_REPLY_4_KEY -> DEFAULT_MENU_REPLY_4;
-            default -> "该菜单内容暂未配置，请回复 0 查看功能菜单。";
-        };
+    private String buildFallbackReply(WechatMessage message) {
+        return WechatReplyBuilder.replyText(
+                message.getFromUserName(),
+                message.getToUserName(),
+                CONFIG_MISSING_REPLY
+        );
     }
 
     /**

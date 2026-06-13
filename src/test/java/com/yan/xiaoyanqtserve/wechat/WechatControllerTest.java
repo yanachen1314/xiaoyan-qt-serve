@@ -1,7 +1,10 @@
 package com.yan.xiaoyanqtserve.wechat;
 
+import com.yan.xiaoyanqtserve.common.Constants;
 import com.yan.xiaoyanqtserve.config.custome.WechatPropertiesConfig;
 import com.yan.xiaoyanqtserve.controller.wechat.WechatController;
+import com.yan.xiaoyanqtserve.service.SysConfigService;
+import com.yan.xiaoyanqtserve.service.impl.tool.ToolAuthService;
 import com.yan.xiaoyanqtserve.service.impl.wechat.WechatCallbackService;
 import com.yan.xiaoyanqtserve.service.impl.wechat.WechatCryptoService;
 import com.yan.xiaoyanqtserve.service.impl.wechat.WechatMessageParser;
@@ -15,6 +18,8 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import java.nio.charset.StandardCharsets;
 
 import static org.hamcrest.Matchers.containsString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -26,6 +31,8 @@ class WechatControllerTest {
     private MockMvc mockMvc;
     private WechatSignatureService signatureService;
     private WechatCryptoService cryptoService;
+    private ToolAuthService toolAuthService;
+    private SysConfigService sysConfigService;
 
     @BeforeEach
     void setUp() {
@@ -35,11 +42,19 @@ class WechatControllerTest {
         properties.setEncodingAesKey("abcdefghijklmnopqrstuvwxyz0123456789ABCDEFG");
         signatureService = new WechatSignatureService(properties);
         cryptoService = new WechatCryptoService(properties);
+        toolAuthService = mock(ToolAuthService.class);
+        sysConfigService = mock(SysConfigService.class);
+        when(sysConfigService.getValue(Constants.WECHAT_MENU_REPLY_RULES_KEY)).thenReturn("""
+                [
+                  {"replyKey":"wechat.menu.reply.1","keywords":["豆包"],"generateCode":true,"tool_code":"doubao"}
+                ]
+                """);
+        when(sysConfigService.getValue(Constants.WECHAT_MENU_REPLY_1_KEY)).thenReturn("您的回填验证码：{code}");
         mockMvc = MockMvcBuilders.standaloneSetup(new WechatController(
                 signatureService,
                 cryptoService,
                 new WechatMessageParser(),
-                new FixedCodeWechatCallbackService()
+                new FixedCodeWechatCallbackService(toolAuthService, sysConfigService)
         )).build();
     }
 
@@ -121,8 +136,8 @@ class WechatControllerTest {
                                     <ToUserName><![CDATA[gh_xiaoyan]]></ToUserName>
                                     <FromUserName><![CDATA[openid-1]]></FromUserName>
                                     <CreateTime>1710000000</CreateTime>
-                                    <MsgType><![CDATA[text]]></MsgType>
-                                    <Content><![CDATA[你好]]></Content>
+                                    <MsgType><![CDATA[event]]></MsgType>
+                                    <Event><![CDATA[unsubscribe]]></Event>
                                 </xml>
                                 """.getBytes(StandardCharsets.UTF_8)))
                 .andExpect(status().isOk())
@@ -187,11 +202,8 @@ class WechatControllerTest {
     }
 
     private static class FixedCodeWechatCallbackService extends WechatCallbackService {
-        private FixedCodeWechatCallbackService() {
-            super(
-                    org.mockito.Mockito.mock(com.yan.xiaoyanqtserve.service.impl.tool.ToolAuthService.class),
-                    org.mockito.Mockito.mock(com.yan.xiaoyanqtserve.service.SysConfigService.class)
-            );
+        private FixedCodeWechatCallbackService(ToolAuthService toolAuthService, SysConfigService sysConfigService) {
+            super(toolAuthService, sysConfigService);
         }
 
         @Override
