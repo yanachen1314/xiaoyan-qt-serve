@@ -225,7 +225,7 @@ public class WechatCallbackService {
     }
 
     /**
-     * 微信菜单回复规则。
+     * 微信菜单回复规则实体
      */
     @Setter
     @Getter
@@ -235,6 +235,7 @@ public class WechatCallbackService {
         private Boolean generateCode;
         @JSONField(name = "tool_code")
         private String toolCode;
+        // 用来控制多条规则的匹配顺序，数值越小越先匹配
         private Integer priority;
 
         public WechatMenuReplyRule() {
