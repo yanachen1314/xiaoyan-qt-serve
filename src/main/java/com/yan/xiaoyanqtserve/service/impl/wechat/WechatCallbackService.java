@@ -201,6 +201,7 @@ public class WechatCallbackService {
     protected String generateVerificationCode() {
         return "%06d".formatted(secureRandom.nextInt(1_000_000));
     }
+
     /**
      * 保存微信验证码。
      *
@@ -230,13 +231,27 @@ public class WechatCallbackService {
     @Setter
     @Getter
     public static class WechatMenuReplyRule {
+        /**
+         * 待回复内容的config_key
+         */
         private String replyKey;
+        /**
+         * 匹配关键字
+         */
         private List<String> keywords;
-        private Boolean generateCode;
+        /**
+         * 是否生成验证码（r1使用）
+         */
+        private Boolean generateCode = false;
+        /**
+         * 工具编码：{@link ToolCodeEnum}
+         */
         @JSONField(name = "tool_code")
-        private String toolCode;
-        // 用来控制多条规则的匹配顺序，数值越小越先匹配
-        private Integer priority;
+        private String toolCode = ToolCodeEnum.DEFAULT.code();
+        /**
+         * 用来控制多条规则的匹配顺序，数值越小越先匹配
+         */
+        private Integer priority = Integer.MAX_VALUE;
 
         public WechatMenuReplyRule() {
         }
@@ -249,9 +264,9 @@ public class WechatCallbackService {
                                    String toolCode, Integer priority) {
             this.replyKey = replyKey;
             this.keywords = keywords;
-            this.generateCode = generateCode;
-            this.toolCode = toolCode;
-            this.priority = priority;
+            this.generateCode = generateCode != null && generateCode;
+            this.toolCode = StringUtils.hasText(toolCode) ? toolCode : DEFAULT_TOOL_CODE;
+            this.priority = priority == null ? Integer.MAX_VALUE : priority;
         }
 
         private boolean isGenerateCode() {
