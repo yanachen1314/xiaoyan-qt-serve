@@ -4,6 +4,7 @@ import com.yan.xiaoyanqtserve.common.Constants;
 import com.yan.xiaoyanqtserve.common.dto.tool.ToolVerifyRequest;
 import com.yan.xiaoyanqtserve.common.dto.tool.ToolVerifyResponse;
 import com.yan.xiaoyanqtserve.common.enums.BizStatus;
+import com.yan.xiaoyanqtserve.common.enums.ToolCodeEnum;
 import com.yan.xiaoyanqtserve.common.exception.BizException;
 import com.yan.xiaoyanqtserve.common.utils.ApiResponse;
 import com.yan.xiaoyanqtserve.service.impl.tool.ToolAuthService;
@@ -46,8 +47,9 @@ public class MainToolAuthController {
         }
 
         try {
+            String toolCode = ToolCodeEnum.requireValidCode(request.toolCode());
             ToolVerifyResponse response = toolAuthService.verifyAndIssueToken(
-                    request.toolCode(),
+                    toolCode,
                     request.code(),
                     deviceId
             );
@@ -73,7 +75,8 @@ public class MainToolAuthController {
             @RequestHeader(value = Constants.HEADER_DEVICE_ID, required = false) String deviceId,
             @RequestHeader(value = Constants.HEADER_TOOL_TOKEN, required = false) String toolToken) {
         try {
-            toolAuthService.consumeToolToken(toolCode, deviceId, toolToken);
+            String verifiedToolCode = ToolCodeEnum.requireValidCode(toolCode);
+            toolAuthService.consumeToolToken(verifiedToolCode, deviceId, toolToken);
             return ResponseEntity.ok(ApiResponse.success());
         } catch (BizException e) {
             log.debug("工具令牌校验失败", e);
