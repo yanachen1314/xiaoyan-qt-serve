@@ -84,7 +84,6 @@ public class ToolAuthService {
 
         redisUtil.delete(codeKey(toolCode, code));
         String jti = UUID.randomUUID().toString();
-        int tokenUses = Math.max(0, properties.getTokenUses());
         Duration ttl = Duration.ofMinutes(properties.getTokenExpireMinutes());
         String token = toolJwtService.generateToolToken(
                 toolCode,
@@ -96,13 +95,13 @@ public class ToolAuthService {
 
         redisUtil.set(
                 tokenKey(jti),
-                toJson(new ToolTokenState(toolCode, deviceIdHash, verificationCode.openIdHash(), tokenUses)),
+                toJson(new ToolTokenState(toolCode, deviceIdHash, verificationCode.openIdHash())),
                 properties.getTokenExpireMinutes(),
                 TimeUnit.MINUTES
         );
         redisUtil.delete(failKey(deviceIdHash));
 
-        return new ToolVerifyResponse(token, ttl.toSeconds(), tokenUses);
+        return new ToolVerifyResponse(token, ttl.toSeconds(), 0);
     }
 
     /**
@@ -113,6 +112,7 @@ public class ToolAuthService {
      * @param token 工具 JWT
      */
     public void consumeToolToken(String expectedToolCode, String deviceId, String token) {
+        log.debug("开始校验工具令牌: expectedToolCode={}, deviceId={}, token={}", expectedToolCode, deviceId, token);
         requireText(expectedToolCode, "工具编码不能为空");
         requireText(deviceId, "缺少浏览器指纹");
 
@@ -127,7 +127,6 @@ public class ToolAuthService {
 
         ToolTokenState state = readTokenState(claims.jti());
         if (state == null
-                || state.remainingUses() < 0
                 || !expectedToolCode.equals(state.toolCode())
                 || !deviceIdHash.equals(state.deviceIdHash())
                 || !claims.openIdHash().equals(state.openIdHash())) {

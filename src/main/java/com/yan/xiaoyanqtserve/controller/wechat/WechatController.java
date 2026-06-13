@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 微信公众号服务器回调接口。
+ * 【微信】公众号服务器回调接口。
  */
 @Slf4j
 @RestController

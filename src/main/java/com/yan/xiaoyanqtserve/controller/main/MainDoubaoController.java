@@ -9,6 +9,7 @@ import com.yan.xiaoyanqtserve.common.utils.ApiResponse;
 import com.yan.xiaoyanqtserve.service.impl.tool.DoubaoToolProxyService;
 import com.yan.xiaoyanqtserve.service.impl.tool.ToolAuthService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
  * @author yanchen
  * @since 2026-06-06
  */
+@Slf4j
 @RestController
 @RequestMapping("/api/main/tools/doubao")
 @RequiredArgsConstructor
@@ -101,6 +103,7 @@ public class MainDoubaoController {
         try {
             toolAuthService.consumeToolToken(TOOL_CODE, deviceId, toolToken);
         } catch (Exception e) {
+            log.debug("工具令牌验证失败: {}", e.getMessage());
             return fail(HttpStatus.UNAUTHORIZED, BizStatus.UNAUTHORIZED, e.getMessage());
         }
 
