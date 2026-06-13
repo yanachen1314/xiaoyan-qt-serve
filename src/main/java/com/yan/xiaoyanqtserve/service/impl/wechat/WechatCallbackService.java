@@ -77,19 +77,23 @@ public class WechatCallbackService {
      * @return XML 回复；返回 null 时表示只响应 success，不给用户发送消息
      */
     public String handleCallback(WechatMessage message) {
+        // 处理普通扫码关注事件
         if (message.isSubscribeEvent()) {
             return handleSubscribeEvent(message);
         }
 
+        // 处理用户取消关注事件
         if (message.isUnsubscribeEvent()) {
             log.info("微信用户取消关注: open_id_hash={}", hashOpenId(message.getFromUserName()));
             return null;
         }
 
+        // 处理文本消息
         if (message.isTextMessage()) {
             return handleTextMessage(message);
         }
 
+        // 处理扫描带参数二维码事件（未关注）
         if (message.isQrCodeSubscribeEvent()) {
             log.info("收到扫描带参数二维码事件（未关注）: open_id_hash={}, scene={}",
                     hashOpenId(message.getFromUserName()), message.getEventKey());
@@ -120,6 +124,12 @@ public class WechatCallbackService {
         );
     }
 
+    /**
+     * 处理微信文本消息，并返回需要被动回复给微信服务器的 XML。<br>
+     * 根据不同菜单关键字回复不同内容。
+     * @param message 微信消息实体
+     * @return XML 回复；返回 null 时表示只响应 success，不给用户发送消息
+     */
     private String handleTextMessage(WechatMessage message) {
         log.info("收到文本消息: open_id_hash={}, content={}", hashOpenId(message.getFromUserName()), message.getContent());
         String content = message.getContent() == null ? "" : message.getContent().trim();

@@ -76,6 +76,7 @@ public class ToolAuthService {
         ensureDeviceNotLocked(deviceIdHash);
 
         ToolVerificationCode verificationCode = readVerificationCode(toolCode, code, deviceIdHash);
+        log.debug("读取到的验证码: {}", verificationCode);
         if (verificationCode == null || !toolCode.equals(verificationCode.toolCode())) {
             recordVerifyFailure(deviceIdHash);
             throw new BizException(BizStatus.BAD_REQUEST, "验证码无效或已过期");
