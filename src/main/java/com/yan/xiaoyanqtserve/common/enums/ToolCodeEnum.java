@@ -9,7 +9,10 @@ import java.util.Arrays;
  * 官方工具编码枚举。
  */
 public enum ToolCodeEnum {
-    DOUBAO("doubao");
+    // 豆包去水印工具
+    DOUBAO("doubao"),
+    // AI小说生成工具
+    NOVEL("novel");
 
     private final String code;
 
