@@ -39,7 +39,7 @@ public class MainToolAuthController {
      */
     @PostMapping("/verify")
     public ResponseEntity<ApiResponse<ToolVerifyResponse>> verify(
-            @RequestHeader(value = Constants.HEADER_DEVICE_ID, required = false) String deviceId,
+            @RequestHeader(value = Constants.HEADER_DEVICE_ID) String deviceId,
             @Valid @RequestBody ToolVerifyRequest request) {
         if (!StringUtils.hasText(deviceId)) {
             return ResponseEntity.badRequest()
@@ -71,9 +71,9 @@ public class MainToolAuthController {
      */
     @PostMapping("/token/validate")
     public ResponseEntity<ApiResponse<Void>> validateToolToken(
-            @RequestParam(value = "toolCode", required = false) String toolCode,
-            @RequestHeader(value = Constants.HEADER_DEVICE_ID, required = false) String deviceId,
-            @RequestHeader(value = Constants.HEADER_TOOL_TOKEN, required = false) String toolToken) {
+            @RequestParam(value = "toolCode") String toolCode,
+            @RequestHeader(value = Constants.HEADER_DEVICE_ID) String deviceId,
+            @RequestHeader(value = Constants.HEADER_TOOL_TOKEN) String toolToken) {
         try {
             String verifiedToolCode = ToolCodeEnum.requireValidCode(toolCode);
             toolAuthService.consumeToolToken(verifiedToolCode, deviceId, toolToken);

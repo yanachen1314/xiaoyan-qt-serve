@@ -51,8 +51,8 @@ public class MainDoubaoController {
     )
     @PostMapping(value = "/images/analyze", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> analyzeImages(
-            @RequestHeader(value = Constants.HEADER_DEVICE_ID, required = false) String deviceId,
-            @RequestHeader(value = Constants.HEADER_TOOL_TOKEN, required = false) String toolToken,
+            @RequestHeader(value = Constants.HEADER_DEVICE_ID) String deviceId,
+            @RequestHeader(value = Constants.HEADER_TOOL_TOKEN) String toolToken,
             @RequestBody DoubaoAnalyzeRequest request) {
         return analyze(deviceId, toolToken, request, true);
     }
@@ -74,8 +74,8 @@ public class MainDoubaoController {
     )
     @PostMapping(value = "/videos/analyze", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> analyzeVideos(
-            @RequestHeader(value = Constants.HEADER_DEVICE_ID, required = false) String deviceId,
-            @RequestHeader(value = Constants.HEADER_TOOL_TOKEN, required = false) String toolToken,
+            @RequestHeader(value = Constants.HEADER_DEVICE_ID) String deviceId,
+            @RequestHeader(value = Constants.HEADER_TOOL_TOKEN) String toolToken,
             @RequestBody DoubaoAnalyzeRequest request) {
         return analyze(deviceId, toolToken, request, false);
     }
