@@ -99,7 +99,7 @@ class WechatCallbackServiceTest {
     void handleMenuKeywordReply() {
         when(sysConfigService.getValue(Constants.WECHAT_MENU_REPLY_RULES_KEY)).thenReturn("""
                 [
-                  {"replyKey":"wechat.menu.reply.1","keywords":["1","验证码","验证","解锁"],"generateCode":true}
+                  {"replyKey":"wechat.menu.reply.1","keywords":["1","验证码","验证","解锁"],"generateCode":true,"tool_code":"default"}
                 ]
                 """);
         when(sysConfigService.getValue(Constants.WECHAT_MENU_REPLY_1_KEY)).thenReturn("您的验证码是：{code}");
@@ -108,7 +108,35 @@ class WechatCallbackServiceTest {
         String reply = service.handleCallback(message);
 
         assertTrue(reply.contains("<Content><![CDATA[您的验证码是：1234]]></Content>"));
-        verify(toolAuthService).saveWechatVerificationCode("doubao", "openid-1", "1234");
+        verify(toolAuthService).saveWechatVerificationCode("default", "openid-1", "1234");
+    }
+
+    @Test
+    @DisplayName("验证码规则会按 tool_code 保存到对应工具 Key")
+    void handleMenuKeywordReplyWithToolCode() {
+        when(sysConfigService.getValue(Constants.WECHAT_MENU_REPLY_RULES_KEY)).thenReturn("""
+                [
+                  {"replyKey":"wechat.menu.reply.1","keywords":["AI小说"],"generateCode":true,"tool_code":"novel"}
+                ]
+                """);
+        when(sysConfigService.getValue(Constants.WECHAT_MENU_REPLY_1_KEY)).thenReturn("您的验证码是：{code}");
+        WechatMessage message = textMessage("AI小说");
+
+        String reply = service.handleCallback(message);
+
+        assertTrue(reply.contains("<Content><![CDATA[您的验证码是：1234]]></Content>"));
+        verify(toolAuthService).saveWechatVerificationCode("novel", "openid-1", "1234");
+    }
+
+    @Test
+    @DisplayName("默认规则中 AI小说 会保存到 novel 工具 Key")
+    void defaultRuleForNovelSavesNovelToolCode() {
+        WechatMessage message = textMessage("AI小说");
+
+        String reply = service.handleCallback(message);
+
+        assertTrue(reply.contains("<Content><![CDATA[您的回填验证码：1234]]></Content>"));
+        verify(toolAuthService).saveWechatVerificationCode("novel", "openid-1", "1234");
     }
 
     @Test

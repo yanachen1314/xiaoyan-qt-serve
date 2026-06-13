@@ -14,6 +14,8 @@ class ToolCodeEnumTest {
     @DisplayName("已配置的工具编码可以通过枚举校验")
     void configuredToolCodeCanPassValidation() {
         assertEquals("doubao", ToolCodeEnum.requireValidCode(" doubao "));
+        assertEquals("novel", ToolCodeEnum.requireValidCode("NOVEL"));
+        assertEquals("default", ToolCodeEnum.requireValidCode("default"));
     }
 
     @Test

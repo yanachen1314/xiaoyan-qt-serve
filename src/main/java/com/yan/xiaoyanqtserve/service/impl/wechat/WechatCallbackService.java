@@ -1,8 +1,10 @@
 package com.yan.xiaoyanqtserve.service.impl.wechat;
 
 import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.annotation.JSONField;
 import com.yan.xiaoyanqtserve.common.Constants;
 import com.yan.xiaoyanqtserve.common.dto.wechat.WechatMessage;
+import com.yan.xiaoyanqtserve.common.enums.ToolCodeEnum;
 import com.yan.xiaoyanqtserve.service.SysConfigService;
 import com.yan.xiaoyanqtserve.service.impl.tool.ToolAuthService;
 import lombok.Getter;
@@ -13,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import java.security.SecureRandom;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -22,7 +25,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class WechatCallbackService {
-    private static final String DOUBAO_TOOL_CODE = "doubao";
+    private static final String DEFAULT_TOOL_CODE = ToolCodeEnum.DEFAULT.code();
     private static final String DEFAULT_SUBSCRIBE_REPLY = """
             欢迎关注【云辰小烟】公众号。
 
@@ -56,15 +59,19 @@ public class WechatCallbackService {
             """;
     private static final List<WechatMenuReplyRule> DEFAULT_MENU_REPLY_RULES = List.of(
             new WechatMenuReplyRule(Constants.WECHAT_MENU_REPLY_1_KEY,
-                    List.of("1", "验证码", "验证", "解锁", "获取验证码", "豆包"), true),
+                    List.of("豆包","水印"), true, ToolCodeEnum.DOUBAO.code(), 10),
+            new WechatMenuReplyRule(Constants.WECHAT_MENU_REPLY_1_KEY,
+                    List.of("AI小说", "ai小说", "小说"), true, ToolCodeEnum.NOVEL.code(), 20),
+            new WechatMenuReplyRule(Constants.WECHAT_MENU_REPLY_1_KEY,
+                    List.of("1", "验证码", "验证", "解锁", "获取验证码"), true, DEFAULT_TOOL_CODE, 100),
             new WechatMenuReplyRule(Constants.WECHAT_MENU_REPLY_2_KEY,
-                    List.of("2", "小烟改写", "改写工具", "文本改写", "润色"), false),
+                    List.of("2", "小烟改写", "改写工具", "文本改写", "润色"), false, null, 200),
             new WechatMenuReplyRule(Constants.WECHAT_MENU_REPLY_3_KEY,
-                    List.of("3", "人工降重", "降重", "降ai", "降AI", "格式修改", "论文修改"), false),
+                    List.of("3", "人工降重", "降重", "降ai", "降AI", "格式修改", "论文修改"), false, null, 300),
             new WechatMenuReplyRule(Constants.WECHAT_MENU_REPLY_4_KEY,
-                    List.of("4", "联系我", "联系", "客服", "反馈", "合作"), false),
+                    List.of("4", "联系我", "联系", "客服", "反馈", "合作"), false, null, 400),
             new WechatMenuReplyRule(Constants.WECHAT_SUBSCRIBE_REPLY_KEY,
-                    List.of("0", "菜单", "功能菜单", "帮助", "重新查看"), false)
+                    List.of("0", "菜单", "功能菜单", "帮助", "重新查看"), false, null, 500)
     );
     private final SecureRandom secureRandom = new SecureRandom();
     private final ToolAuthService toolAuthService;
@@ -183,7 +190,7 @@ public class WechatCallbackService {
             }
             List<WechatMenuReplyRule> rules = JSON.parseArray(rulesJson, WechatMenuReplyRule.class);
             if (rules != null && !rules.isEmpty()) {
-                return rules;
+                return sortMenuReplyRules(rules);
             }
             log.warn("微信公众号菜单回复规则为空: key={}", Constants.WECHAT_MENU_REPLY_RULES_KEY);
         } catch (RuntimeException e) {
@@ -191,6 +198,12 @@ public class WechatCallbackService {
                     Constants.WECHAT_MENU_REPLY_RULES_KEY, e.getMessage());
         }
         return DEFAULT_MENU_REPLY_RULES;
+    }
+
+    private List<WechatMenuReplyRule> sortMenuReplyRules(List<WechatMenuReplyRule> rules) {
+        return rules.stream()
+                .sorted(Comparator.comparingInt(WechatMenuReplyRule::priorityValue))
+                .toList();
     }
 
     /**
@@ -203,7 +216,7 @@ public class WechatCallbackService {
         String content = getConfiguredText(rule.getReplyKey(), getDefaultReplyContent(rule.getReplyKey()));
         if (rule.isGenerateCode()) {
             String code = generateVerificationCode();
-            saveDoubaoCode(message, code);
+            saveToolCode(message, code, rule.resolvedToolCode());
             content = content.replace("{code}", code);
         }
         return WechatReplyBuilder.replyText(
@@ -238,8 +251,8 @@ public class WechatCallbackService {
      * @param message 微信消息实体
      * @param code 验证码
      */
-    private void saveDoubaoCode(WechatMessage message, String code) {
-        toolAuthService.saveWechatVerificationCode(DOUBAO_TOOL_CODE, message.getFromUserName(), code);
+    private void saveToolCode(WechatMessage message, String code, String toolCode) {
+        toolAuthService.saveWechatVerificationCode(toolCode, message.getFromUserName(), code);
     }
 
     /**
@@ -264,18 +277,39 @@ public class WechatCallbackService {
         private String replyKey;
         private List<String> keywords;
         private Boolean generateCode;
+        @JSONField(name = "tool_code")
+        private String toolCode;
+        private Integer priority;
 
         public WechatMenuReplyRule() {
         }
 
         public WechatMenuReplyRule(String replyKey, List<String> keywords, Boolean generateCode) {
+            this(replyKey, keywords, generateCode, null, null);
+        }
+
+        public WechatMenuReplyRule(String replyKey, List<String> keywords, Boolean generateCode,
+                                   String toolCode, Integer priority) {
             this.replyKey = replyKey;
             this.keywords = keywords;
             this.generateCode = generateCode;
+            this.toolCode = toolCode;
+            this.priority = priority;
         }
 
         private boolean isGenerateCode() {
             return Boolean.TRUE.equals(generateCode);
+        }
+
+        private String resolvedToolCode() {
+            if (!StringUtils.hasText(toolCode)) {
+                return DEFAULT_TOOL_CODE;
+            }
+            return ToolCodeEnum.requireValidCode(toolCode);
+        }
+
+        private int priorityValue() {
+            return priority == null ? Integer.MAX_VALUE : priority;
         }
 
         private boolean matches(String content) {

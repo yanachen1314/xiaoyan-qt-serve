@@ -9,6 +9,8 @@ import java.util.Arrays;
  * 官方工具编码枚举。
  */
 public enum ToolCodeEnum {
+    // 默认通用验证码
+    DEFAULT("default"),
     // 豆包去水印工具
     DOUBAO("doubao"),
     // AI小说生成工具
