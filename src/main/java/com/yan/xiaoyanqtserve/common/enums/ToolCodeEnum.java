@@ -32,7 +32,7 @@ public enum ToolCodeEnum {
         String normalizedToolCode = toolCode.trim();
         return Arrays.stream(values())
                 .map(ToolCodeEnum::code)
-                .filter(normalizedToolCode::equals)
+                .filter(normalizedToolCode::equalsIgnoreCase)
                 .findFirst()
                 .orElseThrow(() -> new BizException(BizStatus.BAD_REQUEST, "工具编码无效"));
     }
