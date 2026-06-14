@@ -46,10 +46,10 @@ class WechatControllerTest {
         sysConfigService = mock(SysConfigService.class);
         when(sysConfigService.getValue(Constants.WECHAT_MENU_REPLY_RULES_KEY)).thenReturn("""
                 [
-                  {"replyKey":"wechat.menu.reply.1","keywords":["豆包"],"generateCode":true,"tool_code":"doubao"}
+                  {"replyKey":"wechat.menu.reply.1-1","keywords":["豆包"],"generateCode":true,"tool_code":"doubao"}
                 ]
                 """);
-        when(sysConfigService.getValue(Constants.WECHAT_MENU_REPLY_1_KEY)).thenReturn("您的回填验证码：{code}");
+        when(sysConfigService.getValue(Constants.WECHAT_MENU_REPLY_1_CODE_KEY)).thenReturn("您的回填验证码：{code}");
         mockMvc = MockMvcBuilders.standaloneSetup(new WechatController(
                 signatureService,
                 cryptoService,

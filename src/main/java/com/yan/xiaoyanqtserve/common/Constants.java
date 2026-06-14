@@ -61,6 +61,7 @@ public class Constants {
     public static final String WECHAT_MENU_REPLY_RULES_KEY = "wechat.menu.reply.rules";
     // 微信公众号菜单回复内容
     public static final String WECHAT_MENU_REPLY_1_KEY = "wechat.menu.reply.1";
+    public static final String WECHAT_MENU_REPLY_1_CODE_KEY = "wechat.menu.reply.1-1";
     public static final String WECHAT_MENU_REPLY_2_KEY = "wechat.menu.reply.2";
     public static final String WECHAT_MENU_REPLY_3_KEY = "wechat.menu.reply.3";
     public static final String WECHAT_MENU_REPLY_4_KEY = "wechat.menu.reply.4";

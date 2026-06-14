@@ -80,10 +80,10 @@ class WechatCallbackServiceTest {
     void handleDoubaoTextMessage() {
         when(sysConfigService.getValue(Constants.WECHAT_MENU_REPLY_RULES_KEY)).thenReturn("""
                 [
-                  {"replyKey":"wechat.menu.reply.1","keywords":["豆包"],"generateCode":true,"tool_code":"doubao"}
+                  {"replyKey":"wechat.menu.reply.1-1","keywords":["豆包"],"generateCode":true,"tool_code":"doubao"}
                 ]
                 """);
-        when(sysConfigService.getValue(Constants.WECHAT_MENU_REPLY_1_KEY)).thenReturn("您的回填验证码：{code}");
+        when(sysConfigService.getValue(Constants.WECHAT_MENU_REPLY_1_CODE_KEY)).thenReturn("您的回填验证码：{code}");
         WechatMessage message = parser.parse("""
                 <xml>
                     <ToUserName><![CDATA[gh_xiaoyan]]></ToUserName>
@@ -105,16 +105,16 @@ class WechatCallbackServiceTest {
     void handleMenuKeywordReply() {
         when(sysConfigService.getValue(Constants.WECHAT_MENU_REPLY_RULES_KEY)).thenReturn("""
                 [
-                  {"replyKey":"wechat.menu.reply.1","keywords":["1","验证码","验证","解锁"],"generateCode":true,"tool_code":"default"}
+                  {"replyKey":"wechat.menu.reply.1","keywords":["1","验证码","验证","解锁"],"generateCode":false}
                 ]
                 """);
-        when(sysConfigService.getValue(Constants.WECHAT_MENU_REPLY_1_KEY)).thenReturn("您的验证码是：{code}");
+        when(sysConfigService.getValue(Constants.WECHAT_MENU_REPLY_1_KEY)).thenReturn("输入以下关键字获取对应工具的验证码");
         WechatMessage message = textMessage("解锁");
 
         String reply = service.handleCallback(message);
 
-        assertTrue(reply.contains("<Content><![CDATA[您的验证码是：1234]]></Content>"));
-        verify(toolAuthService).saveWechatVerificationCode("default", "openid-1", "1234");
+        assertTrue(reply.contains("<Content><![CDATA[输入以下关键字获取对应工具的验证码]]></Content>"));
+        verifyNoInteractions(toolAuthService);
     }
 
     @Test
@@ -122,10 +122,10 @@ class WechatCallbackServiceTest {
     void handleMenuKeywordReplyWithToolCode() {
         when(sysConfigService.getValue(Constants.WECHAT_MENU_REPLY_RULES_KEY)).thenReturn("""
                 [
-                  {"replyKey":"wechat.menu.reply.1","keywords":["AI小说"],"generateCode":true,"tool_code":"novel"}
+                  {"replyKey":"wechat.menu.reply.1-1","keywords":["AI小说"],"generateCode":true,"tool_code":"novel"}
                 ]
                 """);
-        when(sysConfigService.getValue(Constants.WECHAT_MENU_REPLY_1_KEY)).thenReturn("您的验证码是：{code}");
+        when(sysConfigService.getValue(Constants.WECHAT_MENU_REPLY_1_CODE_KEY)).thenReturn("您的验证码是：{code}");
         WechatMessage message = textMessage("AI小说");
 
         String reply = service.handleCallback(message);
@@ -151,7 +151,7 @@ class WechatCallbackServiceTest {
     void matchedCodeRuleWithoutReplyContentDoesNotSaveCode() {
         when(sysConfigService.getValue(Constants.WECHAT_MENU_REPLY_RULES_KEY)).thenReturn("""
                 [
-                  {"replyKey":"wechat.menu.reply.1","keywords":["豆包"],"generateCode":true,"tool_code":"doubao"}
+                  {"replyKey":"wechat.menu.reply.1-1","keywords":["豆包"],"generateCode":true,"tool_code":"doubao"}
                 ]
                 """);
         WechatMessage message = textMessage("豆包");
