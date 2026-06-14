@@ -166,6 +166,17 @@ public class SecurityConfig {
         return http.build();
     }
 
+    @Bean
+    @Order(3)
+    public SecurityFilterChain mainChain(HttpSecurity http) throws Exception {
+        baseConfig(http);
+        http
+                .securityMatcher("/api/main/**")
+                .authorizeHttpRequests(auth ->
+                        auth.anyRequest().permitAll());
+        return http.build();
+    }
+
     /**
      * API KEY 安全链
      * @param http HttpSecurity
@@ -173,7 +184,7 @@ public class SecurityConfig {
      * @throws Exception 抛出
      */
     @Bean
-    @Order(3)
+    @Order(4)
     public SecurityFilterChain apiChain(HttpSecurity http) throws Exception {
         baseConfig(http);
         http
@@ -200,7 +211,7 @@ public class SecurityConfig {
      * @throws Exception 抛出
      */
     @Bean
-    @Order(4)
+    @Order(5)
     public SecurityFilterChain adminChain(HttpSecurity http) throws Exception {
         baseConfig(http);
         http
