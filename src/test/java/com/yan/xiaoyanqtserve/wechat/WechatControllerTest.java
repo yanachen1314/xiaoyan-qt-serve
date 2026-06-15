@@ -5,6 +5,7 @@ import com.yan.xiaoyanqtserve.config.custome.WechatPropertiesConfig;
 import com.yan.xiaoyanqtserve.controller.wechat.WechatController;
 import com.yan.xiaoyanqtserve.service.SysConfigService;
 import com.yan.xiaoyanqtserve.service.impl.tool.ToolAuthService;
+import com.yan.xiaoyanqtserve.service.impl.tool.ToolCodeService;
 import com.yan.xiaoyanqtserve.service.impl.wechat.WechatCallbackService;
 import com.yan.xiaoyanqtserve.service.impl.wechat.WechatCryptoService;
 import com.yan.xiaoyanqtserve.service.impl.wechat.WechatMessageParser;
@@ -20,6 +21,7 @@ import java.nio.charset.StandardCharsets;
 import static org.hamcrest.Matchers.containsString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -33,6 +35,7 @@ class WechatControllerTest {
     private WechatCryptoService cryptoService;
     private ToolAuthService toolAuthService;
     private SysConfigService sysConfigService;
+    private ToolCodeService toolCodeService;
 
     @BeforeEach
     void setUp() {
@@ -44,6 +47,9 @@ class WechatControllerTest {
         cryptoService = new WechatCryptoService(properties);
         toolAuthService = mock(ToolAuthService.class);
         sysConfigService = mock(SysConfigService.class);
+        toolCodeService = mock(ToolCodeService.class);
+        when(toolCodeService.requireValidCode(anyString())).thenAnswer(invocation ->
+                invocation.getArgument(0, String.class).trim().toLowerCase());
         when(sysConfigService.getValue(Constants.WECHAT_MENU_REPLY_RULES_KEY)).thenReturn("""
                 [
                   {"replyKey":"wechat.menu.reply.1-1","keywords":["豆包"],"generateCode":true,"tool_code":"doubao"}
@@ -54,7 +60,7 @@ class WechatControllerTest {
                 signatureService,
                 cryptoService,
                 new WechatMessageParser(),
-                new FixedCodeWechatCallbackService(toolAuthService, sysConfigService)
+                new FixedCodeWechatCallbackService(toolAuthService, sysConfigService, toolCodeService)
         )).build();
     }
 
@@ -202,8 +208,9 @@ class WechatControllerTest {
     }
 
     private static class FixedCodeWechatCallbackService extends WechatCallbackService {
-        private FixedCodeWechatCallbackService(ToolAuthService toolAuthService, SysConfigService sysConfigService) {
-            super(toolAuthService, sysConfigService);
+        private FixedCodeWechatCallbackService(ToolAuthService toolAuthService, SysConfigService sysConfigService,
+                                               ToolCodeService toolCodeService) {
+            super(toolAuthService, sysConfigService, toolCodeService);
         }
 
         @Override

@@ -2,8 +2,11 @@ package com.yan.xiaoyanqtserve.tool;
 
 import com.yan.xiaoyanqtserve.common.Constants;
 import com.yan.xiaoyanqtserve.common.dto.tool.ToolVerifyResponse;
+import com.yan.xiaoyanqtserve.common.enums.BizStatus;
+import com.yan.xiaoyanqtserve.common.exception.BizException;
 import com.yan.xiaoyanqtserve.controller.main.MainToolAuthController;
 import com.yan.xiaoyanqtserve.service.impl.tool.ToolAuthService;
+import com.yan.xiaoyanqtserve.service.impl.tool.ToolCodeService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -22,35 +25,43 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class MainToolAuthControllerTest {
 
     private ToolAuthService toolAuthService;
+    private ToolCodeService toolCodeService;
     private MockMvc mockMvc;
 
     @BeforeEach
     void setUp() {
         toolAuthService = mock(ToolAuthService.class);
-        mockMvc = MockMvcBuilders.standaloneSetup(new MainToolAuthController(toolAuthService)).build();
+        toolCodeService = mock(ToolCodeService.class);
+        mockMvc = MockMvcBuilders.standaloneSetup(
+                new MainToolAuthController(toolAuthService, toolCodeService)
+        ).build();
     }
 
     @Test
-    @DisplayName("验证码换令牌前会校验工具编码枚举")
-    void verifyChecksToolCodeEnumBeforeIssuingToken() throws Exception {
-        when(toolAuthService.verifyAndIssueToken("doubao", "123456", "browser-fingerprint"))
+    @DisplayName("验证码换令牌前会校验动态工具编码")
+    void verifyChecksConfiguredToolCodeBeforeIssuingToken() throws Exception {
+        when(toolCodeService.requireValidCode("custom")).thenReturn("custom");
+        when(toolAuthService.verifyAndIssueToken("custom", "123456", "browser-fingerprint"))
                 .thenReturn(new ToolVerifyResponse("jwt-token", 600, 0));
 
         mockMvc.perform(post("/api/main/tool-auth/verify")
                         .header(Constants.HEADER_DEVICE_ID, "browser-fingerprint")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"toolCode":"doubao","code":"123456"}
+                                {"toolCode":"custom","code":"123456"}
                                 """))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.toolToken").value("jwt-token"));
 
-        verify(toolAuthService).verifyAndIssueToken("doubao", "123456", "browser-fingerprint");
+        verify(toolAuthService).verifyAndIssueToken("custom", "123456", "browser-fingerprint");
     }
 
     @Test
-    @DisplayName("未配置到枚举的工具编码不会发放令牌")
+    @DisplayName("未配置的工具编码不会发放令牌")
     void verifyRejectsUnknownToolCode() throws Exception {
+        when(toolCodeService.requireValidCode("fake"))
+                .thenThrow(new BizException(BizStatus.BAD_REQUEST, "工具编码无效"));
+
         mockMvc.perform(post("/api/main/tool-auth/verify")
                         .header(Constants.HEADER_DEVICE_ID, "browser-fingerprint")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -64,14 +75,16 @@ class MainToolAuthControllerTest {
     }
 
     @Test
-    @DisplayName("校验工具令牌前会校验工具编码枚举")
-    void validateTokenChecksToolCodeEnumBeforeConsumingToken() throws Exception {
+    @DisplayName("校验工具令牌前会校验动态工具编码")
+    void validateTokenChecksConfiguredToolCodeBeforeConsumingToken() throws Exception {
+        when(toolCodeService.requireValidCode("custom")).thenReturn("custom");
+
         mockMvc.perform(post("/api/main/tool-auth/token/validate")
-                        .param("toolCode", "doubao")
+                        .param("toolCode", "custom")
                         .header(Constants.HEADER_DEVICE_ID, "browser-fingerprint")
                         .header(Constants.HEADER_TOOL_TOKEN, "jwt-token"))
                 .andExpect(status().isOk());
 
-        verify(toolAuthService).consumeToolToken("doubao", "browser-fingerprint", "jwt-token");
+        verify(toolAuthService).consumeToolToken("custom", "browser-fingerprint", "jwt-token");
     }
 }

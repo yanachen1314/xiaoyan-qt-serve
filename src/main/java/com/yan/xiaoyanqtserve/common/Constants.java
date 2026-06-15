@@ -55,6 +55,7 @@ public class Constants {
     public static final String VERSION_KEY = "system.version";
     // LINK3地址缓存KEY
     public static final String LINK3_KEY = "system.updateLink";
+    public static final String WECHAT_TOOL_ITEM_KEY = "wechat.tool.item";
     // 微信公众号关注后自动回复内容
     public static final String WECHAT_SUBSCRIBE_REPLY_KEY = "wechat.subscribe.reply";
     // 微信公众号菜单关键字匹配规则

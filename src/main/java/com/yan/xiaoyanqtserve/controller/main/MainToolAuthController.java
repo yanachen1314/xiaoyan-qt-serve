@@ -4,10 +4,10 @@ import com.yan.xiaoyanqtserve.common.Constants;
 import com.yan.xiaoyanqtserve.common.dto.tool.ToolVerifyRequest;
 import com.yan.xiaoyanqtserve.common.dto.tool.ToolVerifyResponse;
 import com.yan.xiaoyanqtserve.common.enums.BizStatus;
-import com.yan.xiaoyanqtserve.common.enums.ToolCodeEnum;
 import com.yan.xiaoyanqtserve.common.exception.BizException;
 import com.yan.xiaoyanqtserve.common.utils.ApiResponse;
 import com.yan.xiaoyanqtserve.service.impl.tool.ToolAuthService;
+import com.yan.xiaoyanqtserve.service.impl.tool.ToolCodeService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +29,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class MainToolAuthController {
     private final ToolAuthService toolAuthService;
+    private final ToolCodeService toolCodeService;
 
     /**
      * 校验微信公众号验证码并返回工具令牌
@@ -47,7 +48,7 @@ public class MainToolAuthController {
         }
 
         try {
-            String toolCode = ToolCodeEnum.requireValidCode(request.toolCode());
+            String toolCode = toolCodeService.requireValidCode(request.toolCode());
             ToolVerifyResponse response = toolAuthService.verifyAndIssueToken(
                     toolCode,
                     request.code(),
@@ -75,7 +76,7 @@ public class MainToolAuthController {
             @RequestHeader(value = Constants.HEADER_DEVICE_ID) String deviceId,
             @RequestHeader(value = Constants.HEADER_TOOL_TOKEN) String toolToken) {
         try {
-            String verifiedToolCode = ToolCodeEnum.requireValidCode(toolCode);
+            String verifiedToolCode = toolCodeService.requireValidCode(toolCode);
             toolAuthService.consumeToolToken(verifiedToolCode, deviceId, toolToken);
             return ResponseEntity.ok(ApiResponse.success());
         } catch (BizException e) {

@@ -4,6 +4,7 @@ import com.yan.xiaoyanqtserve.common.Constants;
 import com.yan.xiaoyanqtserve.common.dto.wechat.WechatMessage;
 import com.yan.xiaoyanqtserve.service.SysConfigService;
 import com.yan.xiaoyanqtserve.service.impl.tool.ToolAuthService;
+import com.yan.xiaoyanqtserve.service.impl.tool.ToolCodeService;
 import com.yan.xiaoyanqtserve.service.impl.wechat.WechatCallbackService;
 import com.yan.xiaoyanqtserve.service.impl.wechat.WechatMessageParser;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,19 +17,24 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.anyString;
 
 class WechatCallbackServiceTest {
 
     private final WechatMessageParser parser = new WechatMessageParser();
     private ToolAuthService toolAuthService;
     private SysConfigService sysConfigService;
+    private ToolCodeService toolCodeService;
     private WechatCallbackService service;
 
     @BeforeEach
     void setUp() {
         toolAuthService = mock(ToolAuthService.class);
         sysConfigService = mock(SysConfigService.class);
-        service = new FixedCodeWechatCallbackService(toolAuthService, sysConfigService);
+        toolCodeService = mock(ToolCodeService.class);
+        when(toolCodeService.requireValidCode(anyString())).thenAnswer(invocation ->
+                invocation.getArgument(0, String.class).trim().toLowerCase());
+        service = new FixedCodeWechatCallbackService(toolAuthService, sysConfigService, toolCodeService);
     }
 
     @Test
@@ -237,8 +243,9 @@ class WechatCallbackServiceTest {
     }
 
     private static class FixedCodeWechatCallbackService extends WechatCallbackService {
-        private FixedCodeWechatCallbackService(ToolAuthService toolAuthService, SysConfigService sysConfigService) {
-            super(toolAuthService, sysConfigService);
+        private FixedCodeWechatCallbackService(ToolAuthService toolAuthService, SysConfigService sysConfigService,
+                                               ToolCodeService toolCodeService) {
+            super(toolAuthService, sysConfigService, toolCodeService);
         }
 
         @Override

@@ -4,9 +4,9 @@ import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.annotation.JSONField;
 import com.yan.xiaoyanqtserve.common.Constants;
 import com.yan.xiaoyanqtserve.common.dto.wechat.WechatMessage;
-import com.yan.xiaoyanqtserve.common.enums.ToolCodeEnum;
 import com.yan.xiaoyanqtserve.service.SysConfigService;
 import com.yan.xiaoyanqtserve.service.impl.tool.ToolAuthService;
+import com.yan.xiaoyanqtserve.service.impl.tool.ToolCodeService;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -25,12 +25,12 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class WechatCallbackService {
-    private static final String DEFAULT_TOOL_CODE = ToolCodeEnum.DEFAULT.code();
     private static final String CONFIG_MISSING_REPLY = "抱歉，当前自动回复内容暂未配置完整，暂时无法为您自动处理。请联系人工客服反馈问题，我们会尽快为您处理。";
     private final SecureRandom secureRandom = new SecureRandom();
 
     private final ToolAuthService toolAuthService;
     private final SysConfigService sysConfigService;
+    private final ToolCodeService toolCodeService;
 
     /**
      * 处理微信回调消息，并返回需要被动回复给微信服务器的 XML。
@@ -175,7 +175,7 @@ public class WechatCallbackService {
         }
         if (rule.isGenerateCode()) {
             String code = generateVerificationCode();
-            saveToolCode(message, code, rule.resolvedToolCode());
+            saveToolCode(message, code, toolCodeService.requireValidCode(rule.getToolCode()));
             content = content.replace("{code}", code);
         }
         return WechatReplyBuilder.replyText(
@@ -244,10 +244,10 @@ public class WechatCallbackService {
          */
         private Boolean generateCode = false;
         /**
-         * 工具编码：{@link ToolCodeEnum}
+         * Tool_code configured by wechat.tool.item.
          */
         @JSONField(name = "tool_code")
-        private String toolCode = ToolCodeEnum.DEFAULT.code();
+        private String toolCode;
         /**
          * 用来控制多条规则的匹配顺序，数值越小越先匹配
          */
@@ -265,19 +265,12 @@ public class WechatCallbackService {
             this.replyKey = replyKey;
             this.keywords = keywords;
             this.generateCode = generateCode != null && generateCode;
-            this.toolCode = StringUtils.hasText(toolCode) ? toolCode : DEFAULT_TOOL_CODE;
+            this.toolCode = toolCode;
             this.priority = priority == null ? Integer.MAX_VALUE : priority;
         }
 
         private boolean isGenerateCode() {
             return Boolean.TRUE.equals(generateCode);
-        }
-
-        private String resolvedToolCode() {
-            if (!StringUtils.hasText(toolCode)) {
-                return DEFAULT_TOOL_CODE;
-            }
-            return ToolCodeEnum.requireValidCode(toolCode);
         }
 
         private int priorityValue() {
