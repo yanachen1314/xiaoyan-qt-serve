@@ -135,6 +135,23 @@ class WechatCallbackServiceTest {
     }
 
     @Test
+    @DisplayName("验证码规则可以使用独立 replyKey 读取不同工具模板")
+    void handleCodeRuleWithCustomReplyKey() {
+        when(sysConfigService.getValue(Constants.WECHAT_MENU_REPLY_RULES_KEY)).thenReturn("""
+                [
+                  {"replyKey":"wechat.menu.reply.1-2","keywords":["AI小说"],"generateCode":true,"tool_code":"novel"}
+                ]
+                """);
+        when(sysConfigService.getValue("wechat.menu.reply.1-2")).thenReturn("AI小说验证码：{code}");
+        WechatMessage message = textMessage("AI小说");
+
+        String reply = service.handleCallback(message);
+
+        assertTrue(reply.contains("<Content><![CDATA[AI小说验证码：1234]]></Content>"));
+        verify(toolAuthService).saveWechatVerificationCode("novel", "openid-1", "1234");
+    }
+
+    @Test
     @DisplayName("菜单规则未配置时返回客服提示")
     void missingMenuRulesReturnsFallbackReply() {
         WechatMessage message = textMessage("AI小说");
