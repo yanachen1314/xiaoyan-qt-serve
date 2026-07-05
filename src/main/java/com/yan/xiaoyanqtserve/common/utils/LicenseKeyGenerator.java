@@ -14,6 +14,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
+/**
+ * 卡密(LicenseKey)生成器
+ */
 @Component
 public class LicenseKeyGenerator {
 
