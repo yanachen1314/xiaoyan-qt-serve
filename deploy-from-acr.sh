@@ -2,8 +2,8 @@
 set -Eeuo pipefail
 
 # Compose 和 Deploy-arc脚本所在目录
-DEPLOY_DIR="/home/xygo/deploy-project/xygo-serve"
-LOCK_FILE="/tmp/xygo-server-deploy.lock"
+DEPLOY_DIR="/home/deploy-project/xiaoyan-serve"
+LOCK_FILE="/tmp/xiaoyan-server-deploy.lock"
 
 log() {
   printf '[%s] %s\n' "$(date '+%F %T')" "$*"
