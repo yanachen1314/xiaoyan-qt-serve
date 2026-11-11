@@ -65,13 +65,13 @@ xiaoyan:
   # ===================== 微信公众号配置 =======================
   wechat:
     # 微信公众号服务器配置 Token，生产环境建议通过 WECHAT_TOKEN 环境变量覆盖
-    token: asdhjksfdgdfg
+    token: ${WECHAT_TOKEN}
     # 微信公众号 AppID，安全模式下用于校验解密消息归属
-    app-id: wx9e969ae9fbc780b6
+    app-id: ${WECHAT_APP_ID:}
     # 微信公众号 AppSecret，安全模式下用于获取访问令牌
-    app-secret: dfa1650e7bb26b936debfa901b94c6d0
+    app-secret: ${WECHAT_APP_SECRET:}
     # 微信公众号 EncodingAESKey，安全模式下用于消息体加解密
-    encoding-aes-key: Il9640GYQJXldkfnr2DNNFhF7uMBekvHIJRiTjYJ2lQ
+    encoding-aes-key: ${WECHAT_ENCODING_AES_KEY:}
   tool-auth:
     code-expire-minutes: ${TOOL_AUTH_CODE_EXPIRE_MINUTES:5}
     token-expire-minutes: ${TOOL_AUTH_TOKEN_EXPIRE_MINUTES:1}
@@ -90,8 +90,8 @@ aliyun:
     access-key-id: ${ALIYUN_CAPTCHA_AK}
     access-key-secret: ${ALIYUN_CAPTCHA_SK}
     endpoint: ${ALIYUN_CAPTCHA_ENDPOINT}
-    connect-timeout: ${ALIYUN_CAPTCHA_CONNECT_TIMEOUT}
-    read-timeout: ${ALIYUN_CAPTCHA_READ_TIMEOUT}
+    connect-timeout: ${ALIYUN_CAPTCHA_CONNECT_TIMEOUT:5000}
+    read-timeout: ${ALIYUN_CAPTCHA_READ_TIMEOUT:5000}
     ekey: ${ALIYUN_CAPTCHA_EKEY}
 
 
