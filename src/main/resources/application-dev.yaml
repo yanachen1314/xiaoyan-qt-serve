@@ -36,7 +36,7 @@ xiaoyan:
   security:
     # 卡密加密密钥
     license:
-      key: P9X7M2K4ZQ8F1T6W3R5N0A8L2Y7B4C9D6E1H5J3U8V2S4
+      key: ${LICENSE_KEY}
     # 业务数据加密配置
     biz-data:
       algorithm: RSA-256
@@ -65,13 +65,13 @@ xiaoyan:
   # ===================== 微信公众号配置 =======================
   wechat:
     # 微信公众号服务器配置 Token，生产环境建议通过 WECHAT_TOKEN 环境变量覆盖
-    token: ${WECHAT_TOKEN:asdhjksfdgdfg}
+    token: asdhjksfdgdfg
     # 微信公众号 AppID，安全模式下用于校验解密消息归属
-    app-id: ${WECHAT_APP_ID:wx9e969ae9fbc780b6}
+    app-id: wx9e969ae9fbc780b6
     # 微信公众号 AppSecret，安全模式下用于获取访问令牌
-    app-secret: ${WECHAT_APP_SECRET:dfa1650e7bb26b936debfa901b94c6d0}
+    app-secret: dfa1650e7bb26b936debfa901b94c6d0
     # 微信公众号 EncodingAESKey，安全模式下用于消息体加解密
-    encoding-aes-key: ${WECHAT_ENCODING_AES_KEY:Il9640GYQJXldkfnr2DNNFhF7uMBekvHIJRiTjYJ2lQ}
+    encoding-aes-key: Il9640GYQJXldkfnr2DNNFhF7uMBekvHIJRiTjYJ2lQ
   tool-auth:
     code-expire-minutes: ${TOOL_AUTH_CODE_EXPIRE_MINUTES:5}
     token-expire-minutes: ${TOOL_AUTH_TOKEN_EXPIRE_MINUTES:1}
