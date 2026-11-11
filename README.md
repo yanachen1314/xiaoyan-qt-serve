@@ -7,7 +7,22 @@
 
 ## 后端服务
 
-### 1、项目技术栈
+### 1、版本管理与部署
+> 脚本文件、环境变量文件、docker-compose文件需要放在服务器某个可执行的目录下
+#### （1）每次发布新版本，请在项目根目录下执行以下命令以设置版本号：
+```shell
+mvn versions:set "-DnewVersion=4.0.0" "-DgenerateBackupPoms=false"
+```
+#### （2）环境变量
+环境变量的配置文件： [`.env`](./.env)
+#### （3）Github Action 自动化构建镜像
+- [docker-compose.yml](docker-compose.yml)
+- [Dockerfile](Dockerfile)
+#### （4）自定义脚本更新容器镜像
+自定义脚本：[deploy-from-acr.sh](deploy-from-acr.sh)
+
+
+### 2、项目技术栈
 - Spring Boot3.5.9
 - MyBatis Plus
 - MySQL8
@@ -15,7 +30,7 @@
 - JWT
 - Spring Security
 
-### 2、功能模块
+### 3、功能模块
 1、安全与认证模块
 - API Key 认证: 通过自定义的 `ApiKeyAuthFilter` 实现。拦截 `/api/key/**` 请求，从 `X-API-Key` Header 中提取密钥并验证。验证成功后，将认证信息（如密钥值、`ROLE_KEY_USER`）放入 Spring Security 上下文。
 

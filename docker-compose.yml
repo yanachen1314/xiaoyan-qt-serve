@@ -1,13 +1,16 @@
-# docker-compose.yml
-
 services:
-  xiaoyan-backend:
-    image: xiaoyanqt-serve-1.0.0 # 指定构建后的镜像名称和标签
-    container_name: xiaoyanqt-serve
-    network_mode: "host" # 关键：使用 host 网络模式，容器内 localhost 指向宿主机
-    env_file:
-      - ./.env # 加载同目录下的 .env 文件
+  xiaoyanqt-server:
+    image: "${ACR_IMAGE}:${IMAGE_TAG:-latest}"
+    container_name: "${CONTAINER_NAME:-xiaoyanqt-server}"
     restart: unless-stopped
-    # 如果不使用 host 网络，需要映射端口以便 Nginx 代理
-    # ports:
-    #   - "8080:8080"
+    env_file:
+      - .env
+    networks:
+      - 1panel-network
+    ports:
+      - "${APP_PORT:-8080}:${SERVER_PORT:-8080}"
+
+networks:
+  1panel-network:
+    external: true
+    name: 1panel-network
