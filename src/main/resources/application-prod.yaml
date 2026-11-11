@@ -81,12 +81,12 @@ xiaoyan:
 # 阿里云配置
 aliyun:
   captcha:
-    access-key-id: ${CAPTCHA_AK}
-    access-key-secret: ${CAPTCHA_SK}
-    endpoint: ${CAPTCHA_ENDPOINT}
-    connect-timeout: ${CAPTCHA_CONNECT_TIMEOUT}
-    read-timeout: ${CAPTCHA_READ_TIMEOUT}
-    ekey: ${CAPTCHA_EKEY}
+    access-key-id: ${ALIYUN_CAPTCHA_AK}
+    access-key-secret: ${ALIYUN_CAPTCHA_SK}
+    endpoint: ${ALIYUN_CAPTCHA_ENDPOINT}
+    connect-timeout: ${ALIYUN_CAPTCHA_CONNECT_TIMEOUT}
+    read-timeout: ${ALIYUN_CAPTCHA_READ_TIMEOUT}
+    ekey: ${ALIYUN_CAPTCHA_EKEY}
 
 
 spring:

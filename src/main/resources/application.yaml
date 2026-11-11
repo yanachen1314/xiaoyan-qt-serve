@@ -8,6 +8,8 @@ server:
 spring:
   application:
     name: xiaoyanQt-serve
+  config:
+    import: optional:file:.env[.properties]
   profiles:
     active: dev
   servlet:

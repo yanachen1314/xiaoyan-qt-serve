@@ -1,0 +1,134 @@
+# ===================== 自定义配置 =======================
+xiaoyan:
+  webinfo:
+    # 网站名称
+    name: 小烟改写工具
+    # 网站主站点
+    main_site: https://xygo.cn
+    # 网站后台管理系统
+    admin_site: https://admin.xygo.cn
+    # 小烟改写工具 WEB端部署域名
+    writer_site: https://writer.xygo.cn
+    # 网站接口域名
+    api_site: http://z6a3b6a6.natappfree.cc
+    # 商品购买地址
+    ldxp_url: https://pay.ldxp.cn/shop/xiaoyanai
+    # 网站备案号
+    icp_record: 京ICP备2021032357号
+
+  # 邮箱自定义配置
+  mail:
+    safety_limits:
+      daily_total_max: 100       # 日发送上限总额
+      mail_daily_max: 50          # 单邮箱每天上限
+      mail_minute_rate: 5       # 单邮箱每分钟 5 封
+      mail_bounce_rate: 0.1     # 单邮箱退信率 > 10% 立即禁用
+    # 邮箱验证链接
+    verify-link:
+      # 链接长度
+      token-length: 128
+      # 链接有效期（天）
+      expire_time: ${VERIFY_LINK_EXPIRE_TIME:3}
+      # 链接校验基础路径
+      base_path: /api/public/verifyEmailLink
+
+  # 安全配置
+  security:
+    # 卡密加密密钥
+    license:
+      key: P9X7M2K4ZQ8F1T6W3R5N0A8L2Y7B4C9D6E1H5J3U8V2S4
+    # 业务数据加密配置
+    biz-data:
+      algorithm: RSA-256
+      encrypt-private-key: -----BEGIN PRIVATE KEY-----
+        MIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQDsahd1CjJ/pXvwMBgyv/5x39Q9RMIB+vyndcWrVG1TvesQxghinfa8h79xwRbZgzkJidHij2l/Pky3DmFpDCpFgoMQk6SAx9bN09Vtu7ApLkMHN6AfGD64Ucmv+XWdEgNp8gQG46NVfY1rzocQh2+PK5XDj7DDwjS/UAEyzhtdB7i/3e2nFJZJHlRV06hsBxzYa1aBIJq6k1zm0VqQvhscCBflUb+nmXQEVUxk6EzzFZNRj9s+TnA5+boLV2upHOaLApNy51SM4dE+1TmD0dJdnMBnYrrhP85sHkudi9lc06y4PuB+4dM0sA0kMRfauKi/MZ9epOfyUVXxKnxoQGI/AgMBAAECggEAEEogbaRokFpdrNITiMOpNj10SU3IibcP25YGKw+j13ukNmv+veohIHfAstzZbzQBz8Ia9R++kXxAcEiMYQmWjA2PFwBP+xOfSGAKj7IOqaJnZJg/mdo40B3KkNaBH8koSmTY7tnr3Nh20HEoO0pUXyq4pK3s7GrK6aJgmBiS0sOzNHzrKxXDkmu7Lp5W/iUEzaQdvZrlrT4QajtUtVZM8hknxGKbzZmXEFiXSXE/tsh7wuK6E1HjcMU7MsU/q3tpKsOX/DaWIJ/EQd+LwATcyCpAC0O8DNHrdRzEeqdZDtqUPueaPOr37wBSmHAjcw2Qha3MF4Wn7Z0M7eQ4Lwho8QKBgQD1hRZs0LMmrOCcyJ+fv96PKcSZOtXwKb96yVN1K9iupBmGr/Wu+cUP7dtWUfleh7xDUKqwlPbLIUr69Dz/eJIOygrQdbWa9bT3+x38/BVBZy3opAkoD21GwJmhytS37zNdQFE7VAHFqPnjoX7HWOOdWzH7uAGM88+0lsx7hKWa6QKBgQD2gYEhe2nYhFZ+q49xUQRGGaH+UMf+yFMPz4lVDrSnKM3AHk18GP372sfp+lYtNnt3dXG1BiEotzXwR4yTCd/JXPVp6zDMcB7ox9ZJdi8mrvFyv1Zcr4G/ajJjq/xnsgRKKzILfC2T2YP+fsfwcSUsdzyYe8ZT1fRJVVAvdNCK5wKBgQCoXYHJUTzpkrfdDD9af2sR5eSp54z6SsbCXvlaap0G9gWDNXtXaHTYvZYiFcjaKF7UEqdavGyZU9VlTsPdtUMD3U2ZMn89Kq3VOGGSMRQqa6Ux2ftle17GnCE+sCc7k0837XlHJA6rC3uBvCeCcNR1/inCoqZ9kFypTJghRA+EsQKBgQC4JKQPG/9ExA9NDuHX15qmty1BKp1MId+StwkzJgojuSKCOuDNLGpHAvdGPUC1A7cV1QD9JrgMj1hWx0wm50BqTuvxlMTeY39jiyzzsbqlXhh2DKL6GA2HrVA5Dtg9qkj0EvKOi9QMV3f33EOFxS/s2KHGkufj5rdXNMjyuoOyzwKBgQDnO4MYjntErrrbUv6WCOL5JTDnYJ1tQbbNKURf3lEkL89AVYxKmMKxmBe5B+hpFh4hbkvaNdPPJLh/GIm47suHnhnSUR5JFwxkwdC8WRUpAPnyEW0Rk+q82NXJvswMfrxLDC7oCPtwOq2K4lhwgKrRcseco9YMKWmlk8Y1FxzlYg==
+        -----END PRIVATE KEY-----
+      encrypt-public-key: -----BEGIN PUBLIC KEY-----
+        MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA7GoXdQoyf6V78DAYMr/+cd/UPUTCAfr8p3XFq1RtU73rEMYIYp32vIe/ccEW2YM5CYnR4o9pfz5Mtw5haQwqRYKDEJOkgMfWzdPVbbuwKS5DBzegHxg+uFHJr/l1nRIDafIEBuOjVX2Na86HEIdvjyuVw4+ww8I0v1ABMs4bXQe4v93tpxSWSR5UVdOobAcc2GtWgSCaupNc5tFakL4bHAgX5VG/p5l0BFVMZOhM8xWTUY/bPk5wOfm6C1drqRzmiwKTcudUjOHRPtU5g9HSXZzAZ2K64T/ObB5LnYvZXNOsuD7gfuHTNLANJDEX2riovzGfXqTn8lFV8Sp8aEBiPwIDAQAB
+        -----END PUBLIC KEY-----
+
+  # CORS 跨域配置（开发环境）
+  cors:
+    # 允许访问的源地址 (包含所有常见内网地址段)
+    allowed-origin-patterns: http://192.168.1.5:[*],http://192.168.1.6:[*],http://127.0.0.1:[*],http://localhost:[*]
+    # 允许的请求方法
+    allowed-methods: GET,POST,PUT,DELETE,OPTIONS
+    # 允许的请求头
+    allowed-headers: Authorization,Content-Type,X-API-Key,X-Device,X-Device-Id,X-Client-Version,X-Captcha-Verify-Params,X-Tool-Token
+    # 暴露的响应头
+    exposed-headers: Authorization
+    # 预检请求缓存时间（秒）
+    max-age: 7200
+    # 是否允许携带 Cookie,使用Authorization 传递JWT不需要携带Cookie
+    allow-credentials: false
+
+  # ===================== 微信公众号配置 =======================
+  wechat:
+    # 微信公众号服务器配置 Token，生产环境建议通过 WECHAT_TOKEN 环境变量覆盖
+    token: ${WECHAT_TOKEN:asdhjksfdgdfg}
+    # 微信公众号 AppID，安全模式下用于校验解密消息归属
+    app-id: ${WECHAT_APP_ID:wx9e969ae9fbc780b6}
+    # 微信公众号 AppSecret，安全模式下用于获取访问令牌
+    app-secret: ${WECHAT_APP_SECRET:dfa1650e7bb26b936debfa901b94c6d0}
+    # 微信公众号 EncodingAESKey，安全模式下用于消息体加解密
+    encoding-aes-key: ${WECHAT_ENCODING_AES_KEY:Il9640GYQJXldkfnr2DNNFhF7uMBekvHIJRiTjYJ2lQ}
+  tool-auth:
+    code-expire-minutes: ${TOOL_AUTH_CODE_EXPIRE_MINUTES:5}
+    token-expire-minutes: ${TOOL_AUTH_TOKEN_EXPIRE_MINUTES:1}
+    token-uses: ${TOOL_AUTH_TOKEN_USES:0}
+    verify-fail-limit: ${TOOL_AUTH_VERIFY_FAIL_LIMIT:5}
+    verify-lock-minutes: ${TOOL_AUTH_VERIFY_LOCK_MINUTES:10}
+  tools:
+    doubao:
+      base-url: ${DOUBAO_TOOL_BASE_URL:http://127.0.0.1:5000/api/doubao}
+      connect-timeout-millis: ${DOUBAO_TOOL_CONNECT_TIMEOUT_MILLIS:5000}
+      read-timeout-millis: ${DOUBAO_TOOL_READ_TIMEOUT_MILLIS:30000}
+
+# 阿里云配置
+aliyun:
+  captcha:
+    access-key-id: ${ALIYUN_CAPTCHA_AK}
+    access-key-secret: ${ALIYUN_CAPTCHA_SK}
+    endpoint: ${ALIYUN_CAPTCHA_ENDPOINT}
+    connect-timeout: ${ALIYUN_CAPTCHA_CONNECT_TIMEOUT}
+    read-timeout: ${ALIYUN_CAPTCHA_READ_TIMEOUT}
+    ekey: ${ALIYUN_CAPTCHA_EKEY}
+
+
+spring:
+  # ======================= 数据源配置 (开发环境) =======================
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://127.0.0.1:3306/db_xiaoyan_ai_qt?useSSL=true&useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai # 指向本地MySQL
+    username: root
+    password: root
+  data:
+    # ===================== Redis 配置 (开发环境) =======================
+    redis:
+      host: 127.0.0.1  # 指向本地Redis
+      port: 6379
+      password: root # 开发用密码
+      database: 0
+      timeout: 10000
+      lettuce:
+        pool:
+          max-active: 10
+          max-idle: 8
+          min-idle: 2
+          max-wait: 2000
+
+  # ========= 邮箱配置 =========
+  mail:
+    properties:
+      mail:
+        debug: true # 开启邮件调试
+  # ===================== Thymeleaf 模板配置 (开发环境) =====================
+  thymeleaf:
+    cache: false # 开发时关闭缓存，便于实时查看修改
+    encoding: UTF-8
+    suffix: .html
+    mode: HTML
+# ===================== 日志配置 =======================
+logging:
+  level:
+    com.yan.xiaoyanqtserve: debug

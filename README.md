@@ -1,7 +1,8 @@
 # xiaoyanQT系统
 
 ## Web管理端
-[Web管理端](https://github.com/xiaoyan-qt/xiaoyanqt-web)后台管理
+- 后台管理端：[github（主）](https://github.com/yanachen1314/xiaoyan-qt-admin)、[gitee（副）](https://gitee.com/yanachen1314/xiaoyan-qt-admin)
+- 用户Web端：[github（主）](https://github.com/yanachen1314/xiaoyan-qt-user)、[gitee（副）](https://gitee.com/yanachen1314/xiaoyan-qt-user)
 
 
 ## 后端服务

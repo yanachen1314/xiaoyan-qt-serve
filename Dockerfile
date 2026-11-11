@@ -5,7 +5,7 @@ FROM eclipse-temurin:17-jre-alpine
 WORKDIR /home/yan/project/xiaoyanqt-serve
 
 # 将本地的 JAR 文件复制到容器中
-COPY xiaoyanqt-serve-1.0.0.jar app.jar
+COPY xiaoyanqt-serve-*.jar app.jar
 
 # 暴露应用运行的端口
 EXPOSE 8080
