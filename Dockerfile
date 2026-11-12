@@ -3,8 +3,8 @@ FROM eclipse-temurin:17-jre-jammy
 # 设置工作目录
 WORKDIR /app
 
-# 将本地的 JAR 文件复制到容器中
-COPY xiaoyanqt-serve-*.jar app.jar
+# Maven 在 target 目录生成可执行 JAR，构建上下文为项目根目录
+COPY target/xiaoyanqt-serve-*.jar /app/app.jar
 
 # 暴露应用运行的端口
 EXPOSE 8080
